@@ -1,5 +1,7 @@
 // Four times the original playable AREA; actors and contact distances stay life-sized.
 export const PITCH_SCALE = 2;
+// Presentation scale is independent of pitch dimensions and collision/restart distances.
+export const PLAYER_VISUAL_SCALE = Object.freeze({desktop:1.48,compact:1.72});
 export const fieldUnits = value => value * PITCH_SCALE;
 export const FIELD = Object.freeze({
   halfLength:fieldUnits(32), halfWidth:fieldUnits(21),

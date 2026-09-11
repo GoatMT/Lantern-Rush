@@ -10,7 +10,8 @@ export class Settings {
     this.storage=storage;
     let saved={};try{saved=JSON.parse(storage.getItem('lsl-lantern-rush-v1')||'{}')||{};}catch{}
     this.value={graphics:['low','medium','high'].includes(saved.graphics)?saved.graphics:startingGraphics(),
-      camera:['low','medium','high','broadcast'].includes(saved.camera)?saved.camera:'medium',
+      camera:['low','medium','high','broadcast'].includes(saved.camera)?saved.camera:saved.camera?'medium':'broadcast',
+      lighting:['day','evening','night'].includes(saved.lighting)?saved.lighting:'evening',
       difficulty:['easy','normal','hard'].includes(saved.difficulty)?saved.difficulty:'normal',
       duration:[3,4,5,6].includes(saved.duration)?saved.duration:6,season:String(saved.season||'2026'),
       userTeam:saved.userTeam||'leeward-lions',cpuTeam:saved.cpuTeam||'em-haulers-fc',controlsVersion:2,keys:{...DEFAULT_KEYS}};

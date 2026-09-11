@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
+import { verifyJerseyAudit, jerseyAuditSummary } from './jersey-data.mjs';
 const root=path.resolve(import.meta.dirname,'..');
 let checks=0;
 async function exists(file){await fs.access(file);checks++;}
@@ -26,5 +27,7 @@ for(const season of manifest){
   }
 }
 await exists(path.join(root,'vendor/three.module.js'));await exists(path.join(root,'vendor/THREE-LICENSE.txt'));
+const jerseyAudit=JSON.parse(await fs.readFile(path.join(root,'data/jersey-audit.json'),'utf8'));
+await verifyJerseyAudit(root,jerseyAudit);
 console.log(checks+' syntax and static asset checks passed. '+manifest.length+' seasons, '+teams+' teams, '+players+' season roster entries. No runtime CDN or server dependency.');
-
+console.log(jerseyAuditSummary(jerseyAudit));

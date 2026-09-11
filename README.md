@@ -1,4 +1,4 @@
-# LSL: Lantern Rush
+# LSL Kickoff
 
 An original, silent 3D 7v7 arcade soccer game for desktop and mobile browsers. Built with Three.js and plain JavaScript modules. This folder is the complete standalone website; it does not depend on the adjacent LSL Website folder at runtime.
 
@@ -46,11 +46,11 @@ Move and tap Skill for a contextual feint, step-over, ball roll, quick cut, drag
 
 For penalties and free kicks, movement changes the gold aiming guide. Shoot or Pass takes the restart. Throw-ins and goal kicks use the same buttons. Restarts are taken automatically after a short timeout if there is no input.
 
-Settings supports rebindable keys, Easy/Normal/Hard difficulty, 3/4/5/6-minute games and Low/Medium/High graphics. The Camera section has Low (closer), Medium (default), High (tactical) and Broadcast (sideline TV view). Camera changes apply immediately. Preferences and the last selected season/teams are saved locally when storage is available.
+Settings supports rebindable keys, Easy/Normal/Hard difficulty, 3/4/5/6-minute games and Low/Medium/High graphics. The Camera section has Low (closer), Medium (balanced), High (tactical) and Broadcast (default sideline view). Camera changes apply immediately. Preferences and the last selected season/teams are saved locally when storage is available.
 
 ## Match rules and flow
 
-The expanded pitch is **128 × 84 world units**, compared with the original 64 × 42: **four times the playable area** (each side is doubled). Players, the referee and the ball retain their original model sizes. Goals, boxes, formation spacing and the surrounding stadium follow the enlarged field.
+The expanded pitch is **128 × 84 world units**, compared with the original 64 × 42: **four times the playable area** (each side is doubled). Players and the referee now have larger visual silhouettes for readability: about 31% larger on desktop and 52% larger on compact/mobile layouts than the former 1.13 model scale. The closer compact broadcast camera further increases their on-screen size. The ball, field dimensions, collision distances and match rules remain consistent. Goals, boxes, formation spacing and the surrounding stadium follow the enlarged field.
 
 Base running speed is 7.3 units/second (about 16% faster) and sprint speed is 11.8 (about 34% faster). Stamina capacity is 70% at 75 OVR and below, scales linearly for ratings 76–98, and reaches the original 100% at 99 OVR. Recovery is 1.2 percentage points per second when not sprinting. Reaching zero locks recovery until a match stoppage (including goals, restarts and halftime); pausing does not unlock it. Stoppages resume slow recovery without instantly refilling the bar. Fresh substitutes start at their own rating-based capacity. Passes account for distance and friction, lead longer runs and reach up to 46 units/second; charged shots reach approximately 49. Teammates keep wider lanes, one defender presses while another covers, and goalkeepers anticipate incoming shots across the wider goal. The broadcast camera follows the expanded boundaries and pulls back for passing options and fast balls.
 
@@ -74,7 +74,7 @@ The game uses simplified arcade rules and physics, with contextual actions, assi
 
 Characters have jointed knees and elbows, visible faces, deterministic generic hair/skin/build variations, kit textures, cleats, goalkeeper gloves and captain armbands where the source lists a captain. Their identity remains stable across matches and seasons. No generic appearance is presented as a real player's likeness.
 
-Locomotion uses actual velocity and distance traveled, with acceleration, braking, turning limits, lean and pose blending. Separate contextual poses cover receiving, passing, shooting, skill moves, tackles, falls/recovery and celebrations. Goalkeepers use a ready stance, shuffles, dives toward the ball, catches, parries, punches, recovery and distribution. Low graphics hides fine facial geometry, hair detail and boot studs while retaining the animated silhouette.
+Locomotion uses actual velocity and distance traveled, with acceleration, braking, turning limits, lean and pose blending. Separate contextual poses cover receiving, passing, shooting, skill moves, tackles, falls/recovery and celebrations. Goalkeepers use a ready stance, shuffles, dives toward the ball, catches, parries, punches, recovery and distribution. Fine facial geometry, hair detail, collars and boot studs appear at closer camera distances on Medium/High. Low keeps the animated silhouette, source numbers and original kit pattern. Static parts are merged per animated joint to reduce drawing work.
 
 Possession uses intermittent touches; the ball is free to move between them. Grass drag and rolling resistance stop loose balls, airborne drag and spin shape flight, and bounces lose energy. First touches cushion incoming passes according to speed, movement, rating and pressure. A successful goalkeeper catch holds the ball in the hands before a roll, throw or punt. Hard saves allow rebounds, and the net absorbs most goal momentum.
 
@@ -84,7 +84,7 @@ Both teams continuously update preferred zones, support lanes, pressing/cover ro
 
 Bundled seasons: **2024, 2025 and 2026**, containing **24 teams** and their original season-specific roster memberships.
 
-Source: the existing LSL Website data/{season}/teams.json files and matching player metadata. Team and player IDs, roster names and known jersey numbers are preserved. Numbers absent from the source remain absent; those shirts show LSL. Player personal/contact details and photos are not needed by the game and are omitted.
+Source: the existing LSL Website data/{season}/teams.json files and matching player metadata. Team and player IDs, roster names and known jersey numbers are preserved. Numbers absent from the source remain absent; the name is printed on the back without a made-up number. Known numbers are printed on both the front and back. Player personal/contact details and photos are not needed by the game and are omitted.
 
 Published positions are used when choosing the lineup. Where records only say Field, or a team lacks enough specialists, a game formation role is assigned to an existing roster member. No extra players or teams are fabricated. Every team badge is copied from the supplied Logos folder.
 
@@ -151,12 +151,33 @@ Responsive browser QA includes the main menu, all three seasons, settings, live 
 
 ## Performance
 
-Low graphics disables dynamic shadows, limits rendering to device pixel ratio 1 and reduces crowd/scenery detail. Medium and High increase resolution, shadow-map size and scenery. The crowd uses instanced rendering; model geometries are shared. Physics uses a fixed timestep, and inactive tabs auto-pause. Touch devices can automatically reduce graphics after sustained low frame rates.
+Low disables dynamic shadows, grass bump and fabric normal maps, limits pixel ratio to 1, and reduces crowd/scenery detail. Medium uses up to 1.35 pixel ratio and a 1024 shadow map; High uses up to 1.75 and a 2048 shadow map. Only one light casts dynamic shadows. Seats, stands and spectators use instancing; static body pieces merge by joint; kit textures are shared and released after use. Compact layouts can reduce render scale in steps down to 75% after sustained frame rates below 29. Touch devices can also switch to Low. Physics keeps its fixed timestep and inactive tabs pause.
 
 Requires WebGL 2 in a current browser. Network is needed to initially load the static game files; there is no offline caching layer. No audio is created or loaded.
 
+
+## Matchday visuals
+
+The rebuilt stadium includes covered seating on four sides, stair aisles and concourses, instanced spectators, team LED boards, a tunnel, dugouts with glass backs, floodlight towers, two live score screens, round metal goal frames and fine net meshes. Corners have animated flags. Goal nets deform near the ball impact and settle with damping; their goalpost attachments remain pinned.
+
+The turf uses original generated textures: 16 mowing bands, grain and blade variation, lightly worn goalmouths and a tiled bump layer. Painted line ribbons retain a physical width and include penalty arcs, corner arcs and technical areas. All artwork is generated locally; there are no copied FC Mobile assets or external texture/model requests.
+
+**Graphics → Match lighting** selects Day, Evening or Night and saves locally. Each mode changes the procedural sky, exposure, light direction, warmth, fill and stadium lamps. ACES tone mapping and physical materials give fabric, skin, grass and metal a consistent response. Low preserves the lighting palette with inexpensive contact shadows.
+
+The original LSL Kickoff interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
+
+### Jersey-number provenance
+
+`data/jersey-audit.json` lists every assignment and records source hashes, unavailable values and source conflicts. Current source coverage: 2024 **81/81**, 2025 **115/115**, and 2026 **7/82** known numbers. The 75 unlisted 2026 values stay blank. One conflicting profile and four duplicate-number groups are flagged; the published team roster has precedence. Numbers from other seasons or representative tournament squads are never silently substituted.
+
+To verify against a fresh website checkout:
+
+    node scripts/check-jerseys.mjs "../LSL Website"
+
+The regular release check also validates the bundled audit. Update the website's correct season/team roster first, run the sync command, then rerun the checks to publish new numbers.
+
 ## Credits
 
-Game identity, code, stadium and character models: original LSL: Lantern Rush implementation.
+Game identity, code, stadium and character models: original LSL Kickoff implementation.
 League names, badges and rosters: supplied Lantern Soccer League project.
 Three.js: the Three.js authors, MIT license in vendor/THREE-LICENSE.txt.

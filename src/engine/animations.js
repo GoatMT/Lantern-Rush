@@ -2,18 +2,20 @@ import { clamp } from '../config.js';
 import { angleDelta } from '../match/player.js';
 const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
 export function animationPose(p,time){
-  const speed=Math.hypot(p.vx,p.vz),phase=p.gait,run=clamp(speed/8,0,1),swing=Math.sin(phase)*(.22+run*.65);
+  const speed=Math.hypot(p.vx,p.vz),phase=p.gait,run=clamp(speed/9,0,1),swing=Math.sin(phase)*(.18+run*.64);
   const face=Math.atan2(p.faceX,p.faceZ),look=Math.atan2(p.lookX,p.lookZ);
-  const pose={y:0,x:0,pitch:clamp(speed*.022-p.acceleration*.004,-.15,.27),roll:clamp(-p.turn*speed*.018,-.22,.22),yaw:0,
-    headYaw:clamp(angleDelta(face,look),-.6,.6)+Math.sin(time*.8+p.slot)*.06,headPitch:0,
-    laX:-swing*.75,raX:swing*.75,laZ:-.09,raZ:.09,le:.3+run*.65,re:.3+run*.65,
-    llX:swing,rlX:-swing,llZ:0,rlZ:0,lk:Math.max(0,-Math.sin(phase))*(.45+run*.85),rk:Math.max(0,Math.sin(phase))*(.45+run*.85)};
-  if(speed<.15){pose.pitch=0;pose.y=Math.sin(time*2+p.slot)*.012;pose.llX=pose.rlX=pose.lk=pose.rk=0;}
-  else pose.y=Math.abs(Math.sin(phase))*(.025+run*.045);
+  const pose={y:0,x:0,pitch:clamp(speed*.018+p.acceleration*.003,-.10,.24),roll:clamp(-p.turn*speed*.018,-.22,.22),yaw:Math.sin(phase)*run*.045,
+    headYaw:clamp(angleDelta(face,look),-.6,.6)+Math.sin(time*.65+p.slot)*.035,headPitch:-run*.035,
+    laX:-swing*.67,raX:swing*.67,laZ:-.08-run*.06,raZ:.08+run*.06,le:.20+run*.90,re:.20+run*.90,
+    llX:swing,rlX:-swing,llZ:-.015,rlZ:.015,lk:.06+Math.max(0,-Math.sin(phase))*(.39+run*.90),rk:.06+Math.max(0,Math.sin(phase))*(.39+run*.90)};
+  if(speed<.15){pose.pitch=.018;pose.y=Math.sin(time*1.8+p.slot)*.008;pose.roll=Math.sin(time*.5+p.slot)*.012;pose.llX=pose.rlX=0;pose.lk=pose.rk=.025;}
+  else pose.y=Math.abs(Math.sin(phase))*(.013+run*.035);
   if(p.locomotion==='sidestep'){pose.llZ=swing*.35;pose.rlZ=-swing*.35;pose.llX*=.35;pose.rlX*=.35;}
   if(p.locomotion==='backpedal'){pose.pitch=-.12;pose.llX*=-.65;pose.rlX*=-.65;}
   if(p.role==='GK'){
-    pose.y-=.10;pose.lk+=.24;pose.rk+=.24;pose.pitch=.08;pose.laZ=-.22;pose.raZ=.22;pose.laX-=.5;pose.raX-=.5;pose.le=.8;pose.re=.8;
+    const set=1-clamp(speed/4,0,1);
+    pose.y-=.09*set;pose.lk+=.22*set;pose.rk+=.22*set;pose.pitch=.07+set*.03;pose.laZ=-.21;pose.raZ=.21;pose.laX-=.38*set;pose.raX-=.38*set;pose.le=.65;pose.re=.65;
+    pose.llZ-=.055*set;pose.rlZ+=.055*set;
   }
   if(p.footTouch>0&&!p.action){pose.rlX-=.3;pose.rk+=.15;}
   const a=p.action;if(!a)return pose;
@@ -55,8 +57,8 @@ export function animationPose(p,time){
     if(names==='stumble'){action.y=-.12*f;action.pitch=.5*f;action.roll=side*.18*f;}
   }else if(names.startsWith('keeper-')){
     if(names==='keeper-dive'){
-      const extension=Math.min(1,t*5);action.roll=-side*1.2*extension;action.x=side*.45*extension;
-      action.y=(c.high?.27:-.48)*extension;action.pitch=-.05;action.lk=.35;action.rk=.45;
+      const extension=smooth(t/.23),landing=smooth((t-.52)/.48);action.roll=-side*(1.13+landing*.08)*extension;action.x=side*.45*extension;
+      action.y=(c.high?.32:-.30)*extension-Math.sin(landing*Math.PI/2)*.12;action.pitch=-.04;action.lk=.18+landing*.35;action.rk=.38+landing*.35;
       action.laZ=side*1.15;action.raZ=side*1.15;action.laX=c.high?-1.9:-.7;action.raX=action.laX;
       action.le=c.oneHand?.5:.08;action.re=.08;action.headPitch=-.1;
     }else if(names==='keeper-get-up'){
@@ -69,7 +71,8 @@ export function animationPose(p,time){
     else if(names==='keeper-roll'){action.raX=Math.sin(t*Math.PI*2)*.9;action.re=.15;action.pitch=.6*f;action.y=-.15*f;}
     else if(names==='keeper-throw'){action.raX=t<.4?2.6*t:-2.6*f;action.re=.3;action.yaw=-f*.3;action.laX=-.4;}
   }else if(names==='sprint-start'){action.pitch=.35*f;action.le=action.re=1;}
-  else if(names==='miss'||names==='concede'){action.laX=action.raX=-2;action.le=action.re=1.8;action.headPitch=.3;}
+  else if(names==='miss'){action.laX=.12;action.le=.15;action.raX=-.95;action.raZ=.18;action.re=1.65;action.headPitch=.40;action.pitch=.09;}
+  else if(names==='concede'){action.laX=action.raX=.05;action.le=action.re=.2;action.headPitch=.45;action.pitch=.13;action.laZ=-.08;action.raZ=.08;}
   else if(names==='card-reaction'){action.laZ=-.8;action.raZ=.8;action.le=action.re=.7;action.headPitch=-.12;}
   else if(names==='card'){action.laX=-2.8;action.le=.05;}
   else if(names==='applaud'){action.laX=action.raX=-1.1;action.le=action.re=1;action.laZ=-.2+Math.sin(time*16)*.1;action.raZ=.2-Math.sin(time*16)*.1;}

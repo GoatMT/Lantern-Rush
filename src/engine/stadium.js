@@ -1,87 +1,159 @@
 import * as T from '../../vendor/three.module.js';
-import { FIELD,fieldUnits as u } from '../config.js';
-import { textTexture } from './models.js';
-const mat=color=>new T.MeshLambertMaterial({color});
-export class Stadium {
+import {FIELD} from '../config.js';
+import {textTexture} from './models.js';
+import {createTurf,createMarkings} from './turf.js';
+
+const PALETTE=['#20343f','#345267','#9caaa7','#c49d71','#d9d3bd','#795045','#4b6859','#bec8c5'];
+const physical=color=>new T.MeshStandardMaterial({color,roughness:.83,metalness:.06});
+const unitBox=new T.BoxGeometry(1,1,1);
+
+// Thousands of seats and repeated architectural pieces share instanced draws.
+class VenueBatch{
+  constructor(parent){this.parent=parent;this.parts=new Map();}
+  box(w,h,d,x,y,z,color,angle=0){if(!this.parts.has(color))this.parts.set(color,[]);this.parts.get(color).push({w,h,d,x,y,z,angle});}
+  build(){
+    const dummy=new T.Object3D();
+    for(const [color,parts] of this.parts){
+      const mesh=new T.InstancedMesh(unitBox,physical(color),parts.length);mesh.receiveShadow=true;
+      parts.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.angle,0);dummy.scale.set(p.w,p.h,p.d);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);});
+      mesh.computeBoundingSphere();this.parent.add(mesh);
+    }
+  }
+}
+
+export class Stadium{
   constructor(scene){
-    this.root=new T.Group();scene.add(this.root);this.detail=new T.Group();this.crowdGroup=new T.Group();this.root.add(this.detail,this.crowdGroup);this.nets=[];this.banners=[];
+    this.root=new T.Group();this.detail=new T.Group();this.crowdGroup=new T.Group();this.root.add(this.detail,this.crowdGroup);scene.add(this.root);
+    this.nets=[];this.flags=[];this.banners=[];this.lamps=[];this.previousPhase='home';
+    this.structure=new VenueBatch(this.root);this.extras=new VenueBatch(this.detail);this.seatBatch=new VenueBatch(this.root);
     const L=FIELD.halfLength,W=FIELD.halfWidth;
-    this.box(u(112),.8,u(91),0,-.6,0,'#132f30');
-    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=768;const c=canvas.getContext('2d');
-    c.fillStyle='#38896a';c.fillRect(0,0,1024,768);
-    for(let i=0;i<16;i++){c.fillStyle=i%2?'#3b916d':'#32815e';c.fillRect(i*64,0,64,768);}
-    let seed=37;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-    for(let i=0;i<38000;i++){const x=random()*1024,y=random()*768;c.fillStyle=i%2?'#ffffff05':'#00150808';c.fillRect(x,y,1,2);}
-    const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;
-    this.pitch=new T.Mesh(new T.PlaneGeometry(L*2,W*2),new T.MeshLambertMaterial({map:texture}));
-    this.pitch.rotation.x=-Math.PI/2;this.pitch.receiveShadow=true;this.root.add(this.pitch);
-    this.box(L*2+u(12),.07,W*2+u(10),0,-.1,0,'#286651');
-    this.line([[-L,-W],[L,-W],[L,W],[-L,W],[-L,-W]]);this.line([[0,-W],[0,W]]);this.circle(0,0,FIELD.centerRadius);this.circle(0,0,.16);
+    this.structure.box(235,.8,180,0,-.7,0,'#263332');this.structure.box(L*2+18,.10,W*2+16,0,-.07,0,'#345b34');
+    this.turf=createTurf();this.pitch=this.turf.pitch;this.root.add(this.pitch,createMarkings());
+    this.boardTextures=[textTexture('LSL   /   KICKOFF',{background:'#102a32',color:'#ede1aa',font:38}),textTexture('YOUR LEAGUE. YOUR GAME.',{background:'#d9d5bd',color:'#143638',font:28})];
     for(const side of [-1,1]){
-      this.line([[side*L,-FIELD.boxHalf],[side*(L-FIELD.boxDepth),-FIELD.boxHalf],[side*(L-FIELD.boxDepth),FIELD.boxHalf],[side*L,FIELD.boxHalf]]);
-      this.line([[side*L,-FIELD.goalBoxHalf],[side*(L-FIELD.goalBoxDepth),-FIELD.goalBoxHalf],[side*(L-FIELD.goalBoxDepth),FIELD.goalBoxHalf],[side*L,FIELD.goalBoxHalf]]);
-      this.circle(side*(L-FIELD.penaltyDistance),0,.16);this.goal(side);
-      for(const z of [-W,W]){
-        this.box(.1,1.6,.1,side*L,.8,z,'#eceadd');
-        const flag=new T.Mesh(new T.PlaneGeometry(.8,.5),new T.MeshBasicMaterial({color:'#e6ce78',side:T.DoubleSide}));
-        flag.position.set(side*L+.4,1.5,z);this.root.add(flag);
-      }
-      this.box(u(72),1.4,.4,0,.7,side*u(25),'#173b3a');
-      this.box(.4,1.4,u(49),side*u(37),.7,0,'#173b3a');
-      for(let row=0;row<4;row++){
-        this.box(u(76),.65,u(2.3),0,.35+row*.8,side*u(28+row*2.1),row%2?'#214848':'#295857');
-        this.box(u(2.3),.65,u(48),side*u(40+row*2.1),.35+row*.8,0,'#244b4c');
-      }
-      for(let i=-2;i<=2;i++){
-        const board=new T.Mesh(new T.PlaneGeometry(u(13),1.1),new T.MeshBasicMaterial({map:textTexture(i%2?'LANTERN RUSH':'LANTERN SOCCER LEAGUE',{background:i%2?'#e6d083':'#164c3d',color:i%2?'#112c29':'#edecdc',font:30})}));
-        board.position.set(u(i*14),.85,side*u(24.74));if(side>0)board.rotation.y=Math.PI;this.root.add(board);this.banners.push(board);
-      }
-      for(const x of [-u(28),u(28)]){
-        this.box(.24,u(17),.24,x,u(8.5),side*u(29),'#73938b');
-        this.box(4,1.3,.55,x,u(17),side*u(29),'#c4d4c8');
-        const glow=new T.Mesh(new T.PlaneGeometry(3.7,1),new T.MeshBasicMaterial({color:'#fff8d3',side:T.DoubleSide}));
-        glow.position.set(x,u(17),side*u(29)+.31);this.root.add(glow);
-      }
+      this.structure.box(L*2+17,.035,.22,0,.004,side*(W+3.6),'#69716b');this.structure.box(.22,.035,W*2+7.2,side*(L+8.4),.004,0,'#69716b');
+      this.structure.box(L*2+24,.06,5.5,0,-.015,side*(W+8),'#48524f');this.structure.box(5.5,.06,W*2+25,side*(L+13),-.015,0,'#48524f');
+      this.buildStand(side,false);this.buildStand(side,true);this.goal(side);for(const zSide of [-1,1])this.cornerFlag(side*L,zSide*W);
+      this.buildBoards(side);this.screen(side);
     }
-    // Props and spectators keep their original body sizes; their placement follows the stadium.
-    for(const x of [-u(11),u(11)]){
-      this.box(8,.3,1.2,x,.6,u(24),'#d0dac9');this.box(8,1,.16,x,1.2,u(24)+.6,'#24465b');this.box(9,.15,2,x,2.6,u(24)+.5,'#86aaa0');
-      for(const sign of [-1,1])this.box(.12,2.5,.12,x+sign*4.3,1.3,u(24)+.5,'#acd0bd');
-    }
-    this.scoreTexture=textTexture('LSL   0 : 0',{width:512,height:200,font:70});
-    const score=new T.Mesh(new T.PlaneGeometry(u(9),u(3.5)),new T.MeshBasicMaterial({map:this.scoreTexture}));score.position.set(0,u(8),-u(36));this.root.add(score);
-    for(const x of [-u(3),u(3)])this.box(.3,u(7),.3,x,u(3.5),-u(36),'#75938b');
-    const geom=new T.SphereGeometry(.27,5,4),cm=new T.MeshLambertMaterial({color:'#efb977'});
-    const crowd=new T.InstancedMesh(geom,cm,1056),dummy=new T.Object3D(),color=new T.Color();
-    const colors=['#e7dca3','#b8c4bc','#214459','#d66f45','#6cad9f','#e3e9cf'];
-    // Interleave stands so every graphics level includes all four sides without more instances.
-    let k=0;for(let r=0;r<4;r++)for(let j=0;j<88;j++)for(const side of [-1,1]){
-      dummy.position.set(u((j-44)*.83),1.15+r*.8,side*u(28+r*2.1));dummy.scale.set(1,1.9,1);dummy.updateMatrix();
-      crowd.setMatrixAt(k,dummy.matrix);crowd.setColorAt(k++,color.set(colors[(j*7+r)%colors.length]));
-      if(j%2===0){
-        dummy.position.set(side*u(40+r*2.1),1.15+r*.8,u((j/2-22)*1.05));dummy.updateMatrix();
-        crowd.setMatrixAt(k,dummy.matrix);crowd.setColorAt(k++,color.set(colors[(j+r)%colors.length]));
-      }
-    }
-    crowd.count=k;this.crowd=crowd;this.crowdGroup.add(crowd);
-    for(let i=0;i<32;i++)this.box(u(1.5),u(3+(i%4)),u(1.5),u((i-16)*3.8),u(1.5),-u(43),'#102c2d',this.detail);
+    this.buildTunnel();this.buildBenches();this.buildLights();this.buildCrowd();this.buildSurroundings();
+    this.structure.build();this.extras.build();this.seatBatch.build();this.quality('medium');this.score(0,0);
   }
-  box(w,h,d,x,y,z,color,parent=this.root){const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.receiveShadow=true;parent.add(m);return m;}
-  line(points){const vertices=points.map(([x,z])=>new T.Vector3(x,.04,z));this.root.add(new T.Line(new T.BufferGeometry().setFromPoints(vertices),new T.LineBasicMaterial({color:'#e5ecce'})));}
-  circle(x,z,r){const pts=[];for(let i=0;i<=64;i++){const a=i/64*Math.PI*2;pts.push([x+Math.cos(a)*r,z+Math.sin(a)*r]);}this.line(pts);}
+  buildStand(side,end){
+    const L=FIELD.halfLength,W=FIELD.halfWidth,span=end?W*2+10:L*2+22,edge=end?L+14:W+12;
+    const place=(along,out,height,w,h,d,color,batch=this.structure)=>end?batch.box(d,h,w,side*out,height,along,color):batch.box(w,h,d,along,height,side*out,color);
+    for(let row=0;row<9;row++){
+      const out=edge+row*1.4,height=.55+row*.72+(row>4?.65:0);
+      if(!end){for(const sign of [-1,1])place(sign*(span/4+3.8),out,height/2,span/2-7.6,height,1.5,'#64706d');}
+      else place(0,out,height/2,span,height,1.5,'#64706d');
+      const count=Math.floor(span/1.18);
+      for(let j=0;j<count;j++){
+        const along=(j-(count-1)/2)*1.18;if((!end&&Math.abs(along)<7.8)||j%20<2)continue;
+        const color=(j%20===2||j%20===19)?'#a5b7b3':(Math.floor(j/20)+row)%4===0?'#b8c5bf':'#234b55';
+        place(along,out,height+.13,.77,.16,.74,color,this.seatBatch);place(along,out+.35,height+.51,.77,.59,.12,color,this.seatBatch);
+      }
+      if(row===4)place(0,out+1,height+.24,span,.05,.1,'#d6dcd6',this.extras);
+    }
+    place(0,edge+13.3,4.8,span+1,9.6,.7,'#24363d');place(0,edge-1.8,1.25,span+1,2.5,.55,'#21373d');place(0,edge-1.8,2.52,span+1,.10,.68,'#a0b4b4');
+    place(0,edge+5.6,12.1,span+4,.4,18.2,'#425765');place(0,edge-3.5,11.9,span+4,.72,.28,'#d4dcd8');place(0,edge+14.6,11.9,span+4,.8,.25,'#1b303c');
+    for(let along=-span/2+4;along<span/2;along+=12){place(along,edge+12.6,7,.30,14,.30,'#9eaeb0');place(along,edge+5.7,11.7,.24,.32,17.8,'#bac6c6',this.extras);}
+    for(let i=0;i<5;i++)place(0,edge-1+i*3.4,12.35,span+4,.12,.10,'#657d8a',this.extras);
+  }
+  buildBoards(side){
+    const L=FIELD.halfLength,W=FIELD.halfWidth,[dark,light]=this.boardTextures;
+    for(let i=0;i<10;i++){
+      const x=(i-4.5)*12.7,panel=new T.Mesh(new T.PlaneGeometry(12.3,1.05),new T.MeshBasicMaterial({map:i%3?dark:light}));
+      panel.position.set(x,.76,side*(W+6.5));if(side>0)panel.rotation.y=Math.PI;this.root.add(panel);this.banners.push(panel);
+      this.structure.box(12.4,1.35,.25,x,.68,side*(W+6.6),'#101b22');
+    }
+    for(let i=-3;i<=3;i++){
+      const panel=new T.Mesh(new T.PlaneGeometry(10.5,1.05),new T.MeshBasicMaterial({map:i%2?dark:light}));
+      panel.position.set(side*(L+10),.76,i*11.2);panel.rotation.y=-side*Math.PI/2;this.root.add(panel);this.banners.push(panel);this.structure.box(.25,1.35,10.6,side*(L+10.1),.68,i*11.2,'#101b22');
+    }
+  }
+  buildTunnel(){
+    const z=-FIELD.halfWidth-14;
+    for(const side of [-1,1])this.structure.box(.7,5,7,side*5.5,2.5,z,'#1d3038');
+    this.structure.box(12,.55,8,0,5.2,z,'#344955');this.structure.box(10.5,5,.2,0,2.5,z-3.8,'#07151c');this.structure.box(10,.06,14,0,.04,z+2,'#405654');
+    for(const x of [-4.6,4.6])this.extras.box(.08,3.8,6.5,x,2.3,z,'#cee4e0');
+    const sign=new T.Mesh(new T.PlaneGeometry(10.6,1.1),new T.MeshBasicMaterial({map:textTexture('THIS IS YOUR LEAGUE',{background:'#1b333a',color:'#ebe1b8',font:38})}));sign.position.set(0,5.2,z+4.1);this.root.add(sign);
+  }
+  buildBenches(){
+    const z=-FIELD.halfWidth-4.2;
+    for(const x of [-18,18]){
+      this.structure.box(11,.2,2.4,x,.10,z,'#444f4c');this.structure.box(11,.12,2.5,x,2.8,z-.25,'#6c939a');
+      for(const side of [-1,1])this.extras.box(.09,2.8,.09,x+side*5.4,1.4,z+.8,'#c6d4d2');
+      const glass=new T.Mesh(new T.BoxGeometry(11,2.3,.05),new T.MeshStandardMaterial({color:'#8eaaad',transparent:true,opacity:.30,roughness:.26,metalness:.25,depthWrite:false}));glass.position.set(x,1.6,z-1.2);this.detail.add(glass);
+      for(let i=0;i<8;i++){this.extras.box(.8,.18,.75,x+(i-3.5)*1.1,.6,z,'#172e3f');this.extras.box(.8,.8,.15,x+(i-3.5)*1.1,1.1,z-.3,'#214858');this.extras.box(.12,.6,.12,x+(i-3.5)*1.1,.3,z,'#bbc6c2');}
+      this.extras.box(.7,.8,.7,x+6,.4,z,'#bcd6d0');this.extras.box(.74,.1,.74,x+6,.83,z,'#284f61');
+    }
+  }
+  buildLights(){
+    for(const sx of [-1,1])for(const sz of [-1,1]){
+      const x=sx*(FIELD.halfLength+9),z=sz*(FIELD.halfWidth+10);
+      this.structure.box(.6,26,.6,x,13,z,'#718790');this.structure.box(7.8,2.4,.45,x,26,z,'#273b48');
+      const lamp=new T.Mesh(new T.PlaneGeometry(7.2,1.9),new T.MeshBasicMaterial({color:'#dbe8ef',side:T.DoubleSide}));lamp.position.set(x,26,z-sz*.26);lamp.rotation.y=sz<0?0:Math.PI;lamp.rotation.x=.25;this.root.add(lamp);this.lamps.push(lamp);
+      for(let i=-3;i<=3;i++)this.extras.box(.075,2.1,.08,x+i,26,z-sz*.34,'#84949b');
+    }
+  }
+  screen(side){
+    this.scoreTexture||=textTexture('LSL KICKOFF',{width:1024,height:320,font:90});
+    const z=side*(FIELD.halfWidth+26),screen=new T.Mesh(new T.PlaneGeometry(18,5.625),new T.MeshBasicMaterial({map:this.scoreTexture}));screen.position.set(0,17,z);if(side>0)screen.rotation.y=Math.PI;this.root.add(screen);
+    this.structure.box(18.5,6,.4,0,17,z+side*.22,'#142a36');for(const x of [-7.5,7.5])this.structure.box(.4,16,.4,x,8,z,'#6f828a');
+  }
+  buildCrowd(){
+    const positions=[],L=FIELD.halfLength,W=FIELD.halfWidth;
+    for(let row=0;row<9;row++)for(let j=0;j<128;j++)for(const side of [-1,1])for(const end of [false,true]){
+      const span=end?W*2+10:L*2+22,count=Math.floor(span/1.18);if(j>=count||j%20<2)continue;
+      const a=(j-(count-1)/2)*1.18;if(!end&&Math.abs(a)<7.8)continue;
+      const out=(end?L+14:W+12)+row*1.4,y=.55+row*.72+(row>4?.65:0)+.8;
+      positions.push({x:end?side*out:a,y,z:end?a:side*out,color:PALETTE[(j*13+row*7+(end?2:0))%PALETTE.length],skin:['#c39a78','#8d634d','#ad7f5d','#634737'][(j+row)%4]});
+    }
+    const shuffled=positions.map((p,i)=>({p,key:(i*7919)%104729})).sort((a,b)=>a.key-b.key).map(o=>o.p);this.crowdCount=shuffled.length;
+    this.crowd=new T.InstancedMesh(new T.CylinderGeometry(.22,.26,.58,5),physical('#ffffff'),shuffled.length);this.heads=new T.InstancedMesh(new T.SphereGeometry(.145,5,4),physical('#ffffff'),shuffled.length);
+    const dummy=new T.Object3D(),color=new T.Color();
+    shuffled.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.scale.set(1,1,1);dummy.updateMatrix();this.crowd.setMatrixAt(i,dummy.matrix);this.crowd.setColorAt(i,color.set(p.color));dummy.position.y+=.43;dummy.updateMatrix();this.heads.setMatrixAt(i,dummy.matrix);this.heads.setColorAt(i,color.set(p.skin));});
+    this.crowdGroup.add(this.crowd,this.heads);
+  }
+  buildSurroundings(){for(let i=0;i<26;i++){const x=(i-13)*13,h=7+(i*7%18);this.extras.box(8+(i%3)*2,h,9,x,h/2,-102-(i%3)*9,'#30454c');}}
+  cornerFlag(x,z){
+    this.structure.box(.075,1.75,.075,x,.875,z,'#e2ded1');
+    const flag=new T.Mesh(new T.PlaneGeometry(.72,.45,5,2),new T.MeshStandardMaterial({color:'#e3c776',roughness:.85,side:T.DoubleSide}));flag.position.set(x+.36,1.57,z);flag.userData.original=new Float32Array(flag.geometry.attributes.position.array);this.root.add(flag);this.flags.push(flag);
+  }
   goal(side){
-    const x=side*FIELD.halfLength,G=FIELD.goalHalf,H=FIELD.goalHeight,D=FIELD.goalDepth,post=FIELD.postRadius*2;
-    for(const z of [-G,G])this.box(post,H,post,x,H/2,z,'#f3efd6');
-    this.box(post,post,G*2+post,x,H,0,'#f3efd6');
-    const positions=[];
-    for(let i=0;i<=24;i++){const z=-G+i*G/12;positions.push(x,H,z,x+side*D,H*.91,z,x+side*D,H*.91,z,x+side*D,0,z);}
-    for(let i=0;i<=12;i++){const y=i*H/12;positions.push(x+side*D,y*.91,-G,x+side*D,y*.91,G);for(const z of [-G,G])positions.push(x,y,z,x+side*D,y*.91,z);}
-    for(let i=0;i<=6;i++){const a=D*i/6;positions.push(x+side*a,H*(1-.09*i/6),-G,x+side*a,H*(1-.09*i/6),G);}
-    const net=new T.LineSegments(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(positions,3)),new T.LineBasicMaterial({color:'#d8e9d0',transparent:true,opacity:.44}));
-    this.root.add(net);this.nets.push(net);
+    const x=side*FIELD.halfLength,G=FIELD.goalHalf,H=FIELD.goalHeight,D=FIELD.goalDepth,post=FIELD.postRadius,steel=new T.MeshStandardMaterial({color:'#eeeee2',metalness:.38,roughness:.28});
+    const cylinder=(a,b,radius)=>{const av=new T.Vector3(...a),bv=new T.Vector3(...b),delta=bv.clone().sub(av),m=new T.Mesh(new T.CylinderGeometry(radius,radius,delta.length(),10),steel);m.position.copy(av.add(bv).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),delta.normalize());m.castShadow=true;this.root.add(m);};
+    for(const z of [-G,G]){cylinder([x,0,z],[x,H,z],post);cylinder([x,0,z],[x+side*D,0,z],.055);cylinder([x,H,z],[x+side*D,H*.91,z],.05);cylinder([x+side*D,0,z],[x+side*D,H*.91,z],.05);}cylinder([x,H,-G],[x,H,G],post);
+    const positions=[],spacing=.38,rows=Math.ceil(H/spacing),columns=Math.ceil(G*2/spacing),depthRows=Math.ceil(D/spacing);
+    for(let i=0;i<=columns;i++){const z=-G+i*G*2/columns;positions.push(x,H,z,x+side*D,H*.91,z,x+side*D,H*.91,z,x+side*D,0,z);}
+    for(let i=0;i<=rows;i++){const y=i*H/rows;positions.push(x+side*D,y*.91,-G,x+side*D,y*.91,G);for(const z of [-G,G])positions.push(x,y,z,x+side*D,y*.91,z);}
+    for(let i=0;i<=depthRows;i++){const a=D*i/depthRows;positions.push(x+side*a,H*(1-.09*i/depthRows),-G,x+side*a,H*(1-.09*i/depthRows),G);for(const z of [-G,G])positions.push(x+side*a,0,z,x+side*a,H*(1-.09*i/depthRows),z);}
+    const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));const net=new T.LineSegments(geometry,new T.LineBasicMaterial({color:'#e3e8e3',transparent:true,opacity:.55}));net.userData={base:new Float32Array(positions),side,impact:null};this.root.add(net);this.nets.push(net);
   }
-  quality(level){this.detail.visible=level!=='low';this.crowd.count=level==='low'?352:level==='medium'?704:1056;this.pitch.material.map.anisotropy=level==='high'?8:2;this.pitch.material.map.needsUpdate=true;}
-  setTeams(teams){this.banners.forEach((b,i)=>{const team=teams[i%2];b.material.map.dispose();b.material.map=textTexture(i%3===0?'LANTERN RUSH':team.name.toUpperCase(),{background:team.kit,color:'#ffffff',font:32});b.material.needsUpdate=true;});}
-  score(a,b){const canvas=this.scoreTexture.image,c=canvas.getContext('2d');c.fillStyle='#0a302b';c.fillRect(0,0,canvas.width,canvas.height);c.fillStyle='#f1dda0';c.font='900 75px Arial';c.textAlign='center';c.textBaseline='middle';c.fillText('LSL   '+a+' : '+b,256,100);this.scoreTexture.needsUpdate=true;}
-  update(t,celebrating){this.nets.forEach((n,i)=>{n.position.x=celebrating?Math.sin(t*24+i)*.05:0;});}
+  quality(level,anisotropy=8){
+    this.level=level;this.detail.visible=level!=='low';this.crowd.count=Math.round(this.crowdCount*(level==='low'?.28:level==='medium'?.63:1));this.heads.count=this.crowd.count;this.heads.visible=level!=='low';
+    this.turf.quality(level,anisotropy);this.nets.forEach(net=>net.material.opacity=level==='low'?.38:.55);
+  }
+  setLighting(name){this.lamps.forEach(l=>l.material.color.set(name==='day'?'#a4b7bd':name==='evening'?'#e5e6d0':'#f1f7ff'));}
+  setTeams(teams){
+    const old=this.teamTextures||[];this.teamNames=teams.map(t=>t.name.toUpperCase());this.teamTextures=teams.map(t=>textTexture(t.name.toUpperCase(),{background:t.kit,color:'#ffffff',font:33}));
+    this.banners.forEach((b,i)=>{b.material.map=i%3===0?this.boardTextures[i%2]:this.teamTextures[i%2];b.material.needsUpdate=true;});old.forEach(t=>t.dispose());this.score(0,0);
+  }
+  score(a,b){
+    const c=this.scoreTexture.image.getContext('2d');c.fillStyle='#0b1e2b';c.fillRect(0,0,1024,320);c.fillStyle='#d8c78e';c.fillRect(32,31,960,4);
+    c.textAlign='center';c.textBaseline='middle';c.font='700 30px Arial';c.fillText('LSL KICKOFF  /  GRENOBLE FIELD',512,65);c.fillStyle='#f0f1e8';c.font='800 110px Arial';c.fillText(a+'  :  '+b,512,173);
+    c.font='700 22px Arial';c.fillStyle='#aebfc0';c.fillText((this.teamNames||['LANTERN SOCCER LEAGUE']).join('   /   '),512,268,940);this.scoreTexture.needsUpdate=true;
+  }
+  update(t,match){
+    const ball=match?.ball,phase=match?.phase;
+    if(phase==='goal'&&this.previousPhase!=='goal'&&ball){const net=this.nets.find(n=>n.userData.side===Math.sign(ball.x));if(net)net.userData.impact={time:t,z:ball.z,y:Math.min(FIELD.goalHeight,Math.max(.6,ball.y))};}
+    if(ball&&Math.abs(ball.x)>FIELD.halfLength+.08&&Math.abs(ball.z)<FIELD.goalHalf+.3&&ball.y<FIELD.goalHeight){const net=this.nets.find(n=>n.userData.side===Math.sign(ball.x));if(net&&(!net.userData.impact||t-net.userData.impact.time>2)&&Math.hypot(ball.vx,ball.vz)>4)net.userData.impact={time:t,z:ball.z,y:ball.y};}
+    this.previousPhase=phase;
+    for(const net of this.nets){
+      const {base,side,impact}=net.userData;if(!impact)continue;const age=t-impact.time,positions=net.geometry.attributes.position;
+      for(let i=0;i<base.length;i+=3){const pin=Math.min(1,Math.abs(base[i]-side*FIELD.halfLength)/FIELD.goalDepth),range=Math.hypot((base[i+2]-impact.z)*.5,(base[i+1]-impact.y)*.9);positions.array[i]=base[i]+side*Math.sin(age*19-range*1.7)*Math.exp(-age*2.6)*Math.exp(-range*.27)*.42*pin;}
+      positions.needsUpdate=true;if(age>3){positions.array.set(base);net.userData.impact=null;}
+    }
+    if(this.level!=='low')for(let i=0;i<this.flags.length;i++){const flag=this.flags[i],p=flag.geometry.attributes.position,base=flag.userData.original;for(let j=0;j<base.length;j+=3)p.array[j+2]=Math.sin(t*3.2+base[j]*7+i)*.09*(base[j]+.36)/.72;p.needsUpdate=true;}
+  }
 }

@@ -92,6 +92,7 @@ class App {
   }
   render(dt){
     this.renderer.render(dt,this.match);this.hud.update(dt);this.menus.updateNotice(dt);
+    if(this.menus.screen==='match'&&!this.match.paused&&this.match.phase==='playing')this.renderer.adaptPerformance(this.loop.fps,dt);
     if(this.menus.screen==='match'&&this.match.phase==='playing'&&matchMedia('(pointer:coarse)').matches){
       this.slowTime=this.loop.fps<26?(this.slowTime||0)+dt:Math.max(0,(this.slowTime||0)-dt);
       if(this.slowTime>8&&this.renderer.quality!=='low'){
@@ -102,9 +103,9 @@ class App {
   registerTools(){
     if(!document.modelContext?.registerTool)return;
     try{Promise.resolve(document.modelContext.registerTool({
-      name:'read_lantern_rush_match',title:'Read Lantern Rush match',description:'Read the current match phase, selected teams, score and clock.',
+      name:'read_lantern_rush_match',title:'Read LSL Kickoff match',description:'Read the current match phase, selected teams, score, clock and rendering performance.',
       inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},
-      execute:()=>({phase:this.match.phase,teams:this.match.teams.map(t=>t.name),score:this.match.stats.map(s=>s.goals),elapsed:this.match.elapsed,half:this.match.half,framesPerSecond:Math.round(this.loop.fps),graphics:this.renderer.quality})
+      execute:()=>({phase:this.match.phase,teams:this.match.teams.map(t=>t.name),score:this.match.stats.map(s=>s.goals),elapsed:this.match.elapsed,half:this.match.half,framesPerSecond:Math.round(this.loop.fps),graphics:this.renderer.quality,lighting:this.renderer.lighting.name,drawCalls:this.renderer.renderer.info.render.calls,triangles:this.renderer.renderer.info.render.triangles,renderScale:this.renderer.adaptiveScale,playerScale:this.renderer.actorScale})
     })).catch(()=>{});}catch{}
   }
 }

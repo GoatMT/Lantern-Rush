@@ -16,6 +16,7 @@ export class Menus {
     }
     for(const side of ['user','cpu'])for(const direction of ['prev','next'])on(side+'-'+direction,()=>a.cycle(side,direction==='next'?1:-1));
     $('season-select').addEventListener('change',ev=>a.changeSeason(ev.target.value));
+    $('setting-lighting').addEventListener('change',ev=>{a.settings.set('lighting',ev.target.value);a.renderer.setLighting(ev.target.value);this.renderSettings();});
     on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());
     on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
     on('restart-match',()=>this.confirm('RESTART MATCH?',()=>a.start()));on('quit-home',()=>this.confirm('QUIT TO HOME?',()=>a.home()));
@@ -68,6 +69,7 @@ export class Menus {
       $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team.lineup)??'—');
       $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.name+' badge';
       const color=side==='cpu'?this.app.cpuKit():team.kit;
+      document.querySelector('.'+(side==='user'?'you':'cpu')+'-card').style.setProperty('--team-color',color);
       $(side+'-kit').style.background=kitSwatch(color===team.kit?team.uniform:teamKit('',team.id,color));
       $(side+'-lineup').innerHTML=team.lineup.map(p=>'<li><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(p.name)+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span><span class="number">'+(p.jersey===null?'':e(p.jersey))+'</span></button></li>').join('');
       $(side+'-bench').textContent='VIEW SQUAD · '+team.bench.length+' SUBSTITUTES ↗';
@@ -88,6 +90,8 @@ export class Menus {
   tab(tab){document.querySelectorAll('[data-settings-panel]').forEach(el=>el.hidden=el.dataset.settingsPanel!==tab);document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));}
   renderSettings(){
     for(const kind of ['graphics','difficulty','duration','camera'])document.querySelectorAll('[data-'+kind+']').forEach(b=>b.classList.toggle('active',String(this.app.settings.value[kind])===b.dataset[kind]));
+    $('setting-lighting').value=this.app.settings.value.lighting||'evening';
+    $('home-venue').textContent='GRENOBLE FIELD · '+$('setting-lighting').value.toUpperCase()+' MATCH';
     $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase();this.renderBindings();
   }
   renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
@@ -98,10 +102,21 @@ export class Menus {
   enterMatch(){
     this.closeAll();this.show('match');const m=this.app.match;
     $('hud-user').textContent=m.teams[0].name.toUpperCase();$('hud-cpu').textContent=m.teams[1].name.toUpperCase();this.keyboardHint();
+    for(const [i,side] of ['user','cpu'].entries()){
+      $('hud-'+side+'-logo').src=m.teams[i].logo;
+      $('hud-'+side+'-logo').closest('.hud-team').style.setProperty('--team-color',m.teams[i].kit);
+    }
     $('intro-overlay').hidden=false;
   }
   phase(phase){if(phase==='halftime'||phase==='fulltime'){this.results();return;}if(phase==='home')return;if(this.screen!=='match')this.show('match');$('intro-overlay').hidden=phase!=='intro';}
-  notice({title,subtitle,seconds}){$('notice').querySelector('strong').textContent=title;$('notice').querySelector('span').textContent=subtitle;$('notice').hidden=false;this.noticeTime=seconds;}
+  notice({title,subtitle,seconds}){
+    const root=$('notice'),goal=title==='GOAL!',m=this.app.match;
+    root.querySelector('strong').textContent=title;root.querySelector('span').textContent=subtitle;
+    root.dataset.kind=goal?'goal':title.includes('RED')?'red':title.includes('YELLOW')?'yellow':'match';
+    $('notice-score').hidden=!goal;
+    if(goal)$('notice-score').innerHTML='<img src="'+e(m.teams[0].logo)+'" alt=""><b>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</b><img src="'+e(m.teams[1].logo)+'" alt="">';
+    root.hidden=false;this.noticeTime=seconds;
+  }
   updateNotice(dt){if(this.noticeTime>0){this.noticeTime-=dt;if(this.noticeTime<=0)$('notice').hidden=true;}}
   subs(){this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();this.out=this.in=null;$('sub-feedback').textContent='';this.renderSubs();$('subs-dialog').showModal();}
   renderSubs(){
@@ -120,10 +135,13 @@ export class Menus {
     $('result-title').textContent=half?'HALFTIME':'FULL TIME';
     $('result-kicker').textContent=half?'TIME TO REGROUP':m.stats[0].goals===m.stats[1].goals?'HONOURS EVEN':m.stats[0].goals>m.stats[1].goals?'VICTORY':'CPU WINS';
     $('result-season').textContent=this.app.settings.value.season+' · '+m.settings.duration+' MIN MATCH';
-    $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'</span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' — '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'</span></div>';
+    $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'<small>YOU · '+(teamOverall(m.active(0))??'—')+' OVR</small></span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'<small>CPU · '+(teamOverall(m.active(1))??'—')+' OVR</small></span></div>';
     const potm=playerOfMatch([...m.players,...m.archive]);
-    $('result-highlight').innerHTML=half?'The second half changes ends. CPU kicks off.':potm?'<div class="potm"><span>✦</span><small>PLAYER OF THE MATCH</small><strong>'+e(potm.name)+'</strong><span>'+e(m.teams[potm.team].shortName)+'</span></div>':'';
-    $('stats-table').innerHTML=statRows(m).map(([label,a,b])=>'<div class="stat-row"><b>'+a+'</b><span>'+label+'</span><b>'+b+'</b></div>').join('');
+    $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Make your changes. CPU takes the second-half kickoff.</span></p>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(potm.name)+(potm.jersey!=null?' <em>#'+e(potm.jersey)+'</em>':'')+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
+    $('stats-table').innerHTML=statRows(m).map(([label,a,b])=>{
+      const va=parseFloat(a)||0,vb=parseFloat(b)||0,total=va+vb;
+      return '<div class="stat-row"><b>'+a+'</b><span>'+label+'</span><b>'+b+'</b><div class="stat-bars" aria-hidden="true"><span><i style="width:'+(total?va/total*100:0)+'%"></i></span><span><i style="width:'+(total?vb/total*100:0)+'%"></i></span></div></div>';
+    }).join('');
     $('goal-list').innerHTML=m.goalEvents.length?m.goalEvents.map(g=>'<div class="moment">⚽ '+e(g.name)+(g.ownGoal?' (OG)':'')+' <small>'+clockText(g.time)+' · '+e(m.teams[g.team].name)+(g.assist?' · Assist: '+e(g.assist):'')+'</small></div>').join(''):'<p class="muted-copy">No goals yet.</p>';
     $('sub-list').innerHTML=m.subEvents.map(s=>'<div class="moment">↔ '+e(s.in)+'<small>Replaced '+e(s.out)+' · '+clockText(s.time)+'</small></div>').join('')||'No substitutions';
     $('result-actions').innerHTML=half?'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
