@@ -1,0 +1,48 @@
+.home-title .creator-credit{display:block;margin-top:10px}
+.lineup li{display:block;padding:0}
+.lineup-player{width:100%;display:grid;grid-template-columns:28px minmax(0,1fr) 30px 17px;align-items:center;gap:7px;text-align:left;border:0;background:transparent;color:var(--cream);padding:7px 0;font:inherit;min-height:45px;border-radius:4px}
+.lineup-player:hover,.lineup-player:focus-visible{background:#e6ce8d14;outline:1px solid #d6c89d70}
+.lineup-player .name{min-width:0;line-height:1.25}
+.lineup-player .name small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.ovr{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;font-weight:900;font-size:17px;color:var(--gold);line-height:1.1}
+.ovr small{font-size:7px;letter-spacing:.5px;margin-top:3px;color:var(--muted);font-style:normal}
+.lineup-player .number{text-align:right}
+button.team-bench{width:100%;background:transparent;border:0;border-top:1px solid var(--line);padding:12px 0 3px;text-align:left;color:var(--gold);font-weight:700;cursor:pointer}
+button.team-bench:hover{text-decoration:underline}
+.kit-dot{width:22px;height:24px;border-radius:0;clip-path:polygon(28% 0,40% 8%,60% 8%,72% 0,100% 17%,88% 39%,76% 30%,76% 100%,24% 100%,24% 30%,12% 39%,0 17%)}
+.controlled-profile{display:block;font-size:9px;color:#c8d5b6;margin:-2px 0 8px;max-width:230px}
+.squad-profiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+#squad-dialog>.dialog-head{position:sticky;top:-28px;background:#103532;z-index:2;padding:10px 0;margin-bottom:12px}
+.profile-card{background:#183f3a;border:1px solid var(--line);border-radius:7px;padding:13px}
+.profile-card summary{cursor:pointer;display:flex;gap:13px;align-items:center;list-style:none;min-height:56px}
+.profile-card summary::-webkit-details-marker{display:none}
+.profile-card summary>span:last-child{min-width:0;flex:1}
+.profile-card strong,.profile-card summary small,.profile-card em{display:block}
+.profile-card strong{font-size:13px;line-height:1.35}
+.profile-card summary small{font-size:9px;color:var(--muted);margin:5px 0}
+.profile-card em{font-size:10px;font-style:normal;color:var(--gold)}
+.profile-card summary::after{content:'+';color:var(--muted)}
+.profile-card[open] summary::after{content:'−'}
+.profile-card p{font-size:12px;line-height:1.6;color:#c8d5c4;margin:13px 0}
+.profile-traits{display:flex;gap:5px;flex-wrap:wrap}
+.profile-traits span{padding:4px 6px;border:1px solid #b4b79730;border-radius:4px;font-size:9px;color:#ddd2af}
+@media(max-height:600px) and (orientation:landscape){
+ .intro-top{top:76px}.intro-top .eyebrow{font-size:8px}.intro-top h2{font-size:16px;margin-top:6px}
+ .home-title .creator-credit{margin-top:7px}
+ .lineup{column-gap:9px;margin-top:14px}
+ .lineup-player{grid-template-columns:21px minmax(0,1fr) 22px;gap:4px;padding:4px 0;min-height:41px}
+ .lineup-player .name{font-size:9px}.lineup-player .name small{font-size:7px}.lineup-player .position{font-size:7px;min-width:0}
+ .lineup-player .ovr{font-size:13px}.lineup-player .ovr small{font-size:6px}
+ .team-detail{margin-top:4px;margin-bottom:3px}.kit-dot{height:17px;width:16px}
+ button.team-bench{padding:6px 0 0;font-size:8px}
+ .controlled-profile{font-size:8px;margin-bottom:5px;max-width:180px}
+}
+@media(max-width:600px) and (orientation:portrait){
+ .lineup-player{grid-template-columns:20px minmax(0,1fr) 23px;gap:4px;padding:6px 0;min-height:54px}
+ .lineup-player .name small{font-size:8px}.lineup-player .ovr{font-size:14px}.lineup-player .position{min-width:0}
+ .lineup li{padding:0}.squad-profiles{grid-template-columns:1fr}
+ .controlled-profile{font-size:8px}.kit-dot{height:18px;width:17px}
+}
+.team-meta{display:flex;align-items:center;gap:8px}.team-ovr-badge{font-size:9px;color:var(--gold);padding:4px 6px;border:1px solid var(--line);border-radius:4px;white-space:nowrap}.hud-team-ovr{display:block;font-size:8px;letter-spacing:.08em;color:var(--gold);margin-top:4px}#stamina-status{display:block;font-size:8px;letter-spacing:.04em;margin-top:4px}#stamina-fill.exhausted{background:#f09a80}#subs-team-ovr{margin:6px 0 0;color:var(--gold)}
+@media(max-width:960px) and (max-height:600px){.team-meta{gap:5px}.team-ovr-badge{font-size:7px;padding:3px 4px}.hud-team-ovr{font-size:7px;margin-top:2px}#stamina-status{font-size:7px}}
+@media(max-width:600px) and (orientation:portrait){.team-meta{gap:4px;flex-wrap:wrap;justify-content:flex-end}.team-ovr-badge{font-size:7px;padding:3px}.hud-team-ovr{font-size:7px}}

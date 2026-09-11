@@ -1,0 +1,89 @@
+import { clamp } from '../config.js';
+import { angleDelta } from '../match/player.js';
+const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+export function animationPose(p,time){
+  const speed=Math.hypot(p.vx,p.vz),phase=p.gait,run=clamp(speed/8,0,1),swing=Math.sin(phase)*(.22+run*.65);
+  const face=Math.atan2(p.faceX,p.faceZ),look=Math.atan2(p.lookX,p.lookZ);
+  const pose={y:0,x:0,pitch:clamp(speed*.022-p.acceleration*.004,-.15,.27),roll:clamp(-p.turn*speed*.018,-.22,.22),yaw:0,
+    headYaw:clamp(angleDelta(face,look),-.6,.6)+Math.sin(time*.8+p.slot)*.06,headPitch:0,
+    laX:-swing*.75,raX:swing*.75,laZ:-.09,raZ:.09,le:.3+run*.65,re:.3+run*.65,
+    llX:swing,rlX:-swing,llZ:0,rlZ:0,lk:Math.max(0,-Math.sin(phase))*(.45+run*.85),rk:Math.max(0,Math.sin(phase))*(.45+run*.85)};
+  if(speed<.15){pose.pitch=0;pose.y=Math.sin(time*2+p.slot)*.012;pose.llX=pose.rlX=pose.lk=pose.rk=0;}
+  else pose.y=Math.abs(Math.sin(phase))*(.025+run*.045);
+  if(p.locomotion==='sidestep'){pose.llZ=swing*.35;pose.rlZ=-swing*.35;pose.llX*=.35;pose.rlX*=.35;}
+  if(p.locomotion==='backpedal'){pose.pitch=-.12;pose.llX*=-.65;pose.rlX*=-.65;}
+  if(p.role==='GK'){
+    pose.y-=.10;pose.lk+=.24;pose.rk+=.24;pose.pitch=.08;pose.laZ=-.22;pose.raZ=.22;pose.laX-=.5;pose.raX-=.5;pose.le=.8;pose.re=.8;
+  }
+  if(p.footTouch>0&&!p.action){pose.rlX-=.3;pose.rk+=.15;}
+  const a=p.action;if(!a)return pose;
+  const t=clamp(a.time/a.duration,0,1),c=a.context||{},side=c.side||1,f=Math.sin(t*Math.PI),action={...pose};
+  const names=a.name,kickRight=side>0,leg=kickRight?'rlX':'llX',knee=kickRight?'rk':'lk',plant=kickRight?'llX':'rlX';
+  const shots=['shot','power-shot','side-foot','first-shot','volley','half-volley','driven-shot','long-shot','penalty','free-kick'];
+  const passes=['short-pass','firm-pass','long-pass','through-pass','cross','first-pass','backheel','goal-kick','keeper-punt'];
+  if(shots.includes(names)||passes.includes(names)){
+    const power=names==='power-shot'||names==='long-shot'||names==='cross';
+    const strike=t<.28?Math.sin(t/.28*Math.PI/2)*.7:-Math.sin((t-.28)/.72*Math.PI)*(power?1.75:1.35);
+    action[leg]=names==='backheel'?Math.sin(t*Math.PI)*1.5:strike;
+    action[knee]=t<.32?.65:Math.max(0,.22-f*.1);action[plant]=.10;action.pitch=.05+f*.14;
+    action.yaw=-side*f*(names==='cross'?.45:.22);action.laZ=-.55*f;action.raZ=.55*f;action.le=action.re=.35;
+    if(names==='side-foot'){action.roll=-side*f*.08;action[leg]*=.6;}
+    if(names==='volley'||names==='half-volley'){action[leg]=-f*1.65;action[knee]=.2;action.y=.16*f;action.pitch=-.15*f;}
+  }else if(names==='header'||names==='header-pass'){
+    action.y=.48*f;action.pitch=Math.sin(t*Math.PI*2)*-.35;action.laZ=-.55;action.raZ=.55;action.lk=action.rk=.4*f;
+  }else if(['trap','cushion','receive-run','receive-turn'].includes(names)){
+    action[leg]=-.35*f;action[knee]=.55*f;action.pitch=.13*f;action.laZ=-.25;action.raZ=.25;action.yaw=names==='receive-turn'?side*f*.4:0;
+  }else if(['body-feint','step-over','double-step','ball-roll','fake-shot','drag-back','roulette','quick-cut','directional-touch','stop-go','heel-to-heel','close-control'].includes(names)){
+    action.laZ=-.5;action.raZ=.5;action.pitch=.15;action.roll=-side*f*.25;
+    if(names==='roulette'){action.yaw=side*Math.PI*2*smooth(t);action.lk=.4;action.rk=.4;}
+    else if(names.includes('step')){const cycle=names==='double-step'?Math.PI*4:Math.PI*2;action.llX=-Math.sin(t*cycle)*.45;action.rlX=Math.sin(t*cycle)*.45;action.llZ=-f*.3;action.rlZ=f*.3;}
+    else if(names==='drag-back'){action[leg]=-.5*f;action[knee]=.8*f;}
+    else if(names==='heel-to-heel'){action.llX=f*.65;action.rlX=-f*.7;action.pitch=.3*f;}
+    else if(names==='fake-shot'){action[leg]=f*.65;action[knee]=f*.7;action.yaw=side*f*.25;}
+    else if(names==='ball-roll'){action[leg]=-.3;action[knee]=.35;action[kickRight?'rlZ':'llZ']=side*Math.sin(t*Math.PI*2)*.4;}
+    else{action[leg]=-.5*f;action.yaw=side*f*.25;}
+  }else if(['jockey','block','intercept','shoulder','standing-tackle'].includes(names)){
+    action.y=-.13*f;action.lk=action.rk=.35;action.llZ=-.13;action.rlZ=.13;action.laZ=-.35;action.raZ=.35;
+    if(names==='standing-tackle'||names==='intercept'){action[leg]=-1.05*f;action[knee]=.1;action.pitch=-.15*f;}
+    if(names==='shoulder'){action.roll=-side*f*.45;action.laZ=action.raZ=0;}
+    if(names==='block'){action.laX=.25;action.raX=.25;action.llZ=-.35*f;action.rlZ=.35*f;}
+  }else if(['slide-tackle','fall','roll-fall','get-up','stumble','recover'].includes(names)){
+    const down=names==='get-up'?1-smooth(t):names==='recover'?(1-t)*.3:Math.min(1,t*4);
+    action.y=-.72*down;action.pitch=(names==='slide-tackle'?-.65:1.15)*down;action.lk=.7*down;action.rk=1.3*down;action.llX=-.7*down;action.rlX=-.2*down;
+    action.laZ=-.85*down;action.raZ=.85*down;
+    if(names==='roll-fall')action.roll=side*Math.PI*1.6*smooth(t);
+    if(names==='stumble'){action.y=-.12*f;action.pitch=.5*f;action.roll=side*.18*f;}
+  }else if(names.startsWith('keeper-')){
+    if(names==='keeper-dive'){
+      const extension=Math.min(1,t*5);action.roll=-side*1.2*extension;action.x=side*.45*extension;
+      action.y=(c.high?.27:-.48)*extension;action.pitch=-.05;action.lk=.35;action.rk=.45;
+      action.laZ=side*1.15;action.raZ=side*1.15;action.laX=c.high?-1.9:-.7;action.raX=action.laX;
+      action.le=c.oneHand?.5:.08;action.re=.08;action.headPitch=-.1;
+    }else if(names==='keeper-get-up'){
+      const down=1-smooth(t);action.y=-.55*down;action.roll=-side*1.15*down;action.lk=action.rk=.7*down;action.laZ=-.45;action.raZ=.45;
+    }else if(['keeper-catch','keeper-hold','keeper-cross-catch','keeper-smother'].includes(names)){
+      action.laX=action.raX=names==='keeper-cross-catch'?-2.3:-1.05;action.laZ=-.13;action.raZ=.13;action.le=action.re=.55;action.pitch=.1;
+      if(names==='keeper-smother'){action.y=-.5*(1-t);action.pitch=.65*(1-t);action.lk=action.rk=1.1*(1-t);}
+    }else if(names==='keeper-punch'){action.laX=-2.5*f;action.raX=-2.5*f;action.le=action.re=.05;action.y=.35*f;}
+    else if(names==='keeper-block'){action.laZ=-1.2;action.raZ=1.2;action.llZ=-.45;action.rlZ=.45;action.y=-.25*f;action.lk=action.rk=.45;}
+    else if(names==='keeper-roll'){action.raX=Math.sin(t*Math.PI*2)*.9;action.re=.15;action.pitch=.6*f;action.y=-.15*f;}
+    else if(names==='keeper-throw'){action.raX=t<.4?2.6*t:-2.6*f;action.re=.3;action.yaw=-f*.3;action.laX=-.4;}
+  }else if(names==='sprint-start'){action.pitch=.35*f;action.le=action.re=1;}
+  else if(names==='miss'||names==='concede'){action.laX=action.raX=-2;action.le=action.re=1.8;action.headPitch=.3;}
+  else if(names==='card-reaction'){action.laZ=-.8;action.raZ=.8;action.le=action.re=.7;action.headPitch=-.12;}
+  else if(names==='card'){action.laX=-2.8;action.le=.05;}
+  else if(names==='applaud'){action.laX=action.raX=-1.1;action.le=action.re=1;action.laZ=-.2+Math.sin(time*16)*.1;action.raZ=.2-Math.sin(time*16)*.1;}
+  else if(names.startsWith('celebrate')||names==='wave'){
+    action.pitch=0;
+    if(names==='celebrate-slide'){action.y=-.6;action.lk=action.rk=1.9;action.llX=action.rlX=-.25;action.laZ=-1.2;action.raZ=1.2;}
+    else if(names==='celebrate-jump'){action.y=Math.abs(Math.sin(t*Math.PI*3))*.55;action.laZ=-2.5;action.raZ=2.5;action.lk=action.rk=.35*f;}
+    else if(names==='celebrate-arms'){action.laZ=-1.65;action.raZ=1.65;action.le=action.re=.1;}
+    else if(names==='celebrate-calm'){action.laX=action.raX=-.5;action.headPitch=-.1;}
+    else if(names==='celebrate-point'||names==='wave'){action.raX=-2.2;action.re=.1;action.laZ=-.3;}
+    else{action.raX=-2.6;action.re=1.2+Math.sin(time*10)*.3;action.laZ=-.5;}
+  }
+  const keepDown=['fall','roll-fall','slide-tackle','keeper-dive','get-up','keeper-get-up'].includes(names);
+  const weight=keepDown?(names.includes('get-up')?1:smooth(a.time/.10)):smooth(a.time/.09)*smooth((a.duration-a.time)/.16);
+  for(const key of Object.keys(pose))pose[key]+=(action[key]-pose[key])*weight;
+  return pose;
+}

@@ -1,0 +1,131 @@
+import { escapeHTML as e,clockText } from '../config.js';
+import { DEFAULT_KEYS,CONTROL_NAMES,keyLabel } from '../settings.js';
+import { statRows,playerOfMatch } from '../match/stats.js';
+import { kitSwatch,teamKit } from '../kits.js';
+import { teamOverall,staminaCapacity } from '../ratings.js';
+export const $=id=>document.getElementById(id);
+export class Menus {
+  constructor(app){this.app=app;this.returnToPause=false;this.bind();}
+  bind(){
+    const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
+    on('play-now',()=>a.selectTeams());on('selection-back',()=>a.home());
+    on('start-match',()=>a.start());on('home-settings',()=>this.settings());on('match-options',()=>this.settings('game'));
+    for(const side of ['user','cpu']){
+      on(side+'-bench',()=>this.squad(side));
+      $(side+'-lineup').addEventListener('click',ev=>{const row=ev.target.closest('[data-profile]');if(row)this.squad(side,row.dataset.profile);});
+    }
+    for(const side of ['user','cpu'])for(const direction of ['prev','next'])on(side+'-'+direction,()=>a.cycle(side,direction==='next'?1:-1));
+    $('season-select').addEventListener('change',ev=>a.changeSeason(ev.target.value));
+    on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());
+    on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
+    on('restart-match',()=>this.confirm('RESTART MATCH?',()=>a.start()));on('quit-home',()=>this.confirm('QUIT TO HOME?',()=>a.home()));
+    on('confirm-cancel',()=>{$('confirm-dialog').close();$('pause-dialog').showModal();});
+    on('confirm-yes',()=>{$('confirm-dialog').close();this.confirmAction?.();});
+    on('rotate-dismiss',()=>$('rotate-hint').classList.add('dismissed'));
+    on('confirm-sub',()=>this.confirmSub());
+    on('reset-bindings',()=>{a.settings.set('keys',{...DEFAULT_KEYS});this.renderBindings();this.keyboardHint();});
+    document.addEventListener('bindings-changed',()=>{this.renderBindings();this.keyboardHint();});
+    document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>this.closeDialog(b.dataset.close)));
+    document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>this.tab(b.dataset.tab)));
+    for(const kind of ['graphics','difficulty','duration','camera'])document.querySelectorAll('[data-'+kind+']').forEach(b=>b.addEventListener('click',()=>{
+      a.settings.set(kind,kind==='duration'?Number(b.dataset[kind]):b.dataset[kind]);
+      if(kind==='graphics')a.renderer.applyGraphics(a.settings.value.graphics);
+      if(kind==='camera'&&a.match)a.match.settings.camera=a.settings.value.camera;
+      this.renderSettings();this.matchSummary();
+    }));
+    $('bindings').addEventListener('click',ev=>{
+      const button=ev.target.closest('[data-bind]');if(!button)return;
+      a.controls.clear();a.controls.rebinding=button.dataset.bind;this.renderBindings();
+    });
+    $('sub-out').addEventListener('click',ev=>{const b=ev.target.closest('[data-player]');if(b){this.out=b.dataset.player;this.renderSubs();}});
+    $('sub-in').addEventListener('click',ev=>{const b=ev.target.closest('[data-player]');if(b){this.in=b.dataset.player;this.renderSubs();}});
+    $('result-actions').addEventListener('click',ev=>{
+      const action=ev.target.closest('[data-result]')?.dataset.result;
+      if(action==='continue'){a.controls.clear();a.match.continueHalf();}
+      if(action==='subs')this.subs();if(action==='rematch')a.start();if(action==='teams')a.selectTeams();if(action==='home')a.home();
+    });
+    for(const id of ['settings-dialog','subs-dialog','squad-dialog'])$(id).addEventListener('cancel',ev=>{ev.preventDefault();this.closeDialog(id);});
+    $('pause-dialog').addEventListener('cancel',ev=>{ev.preventDefault();this.resume();});
+    $('confirm-dialog').addEventListener('cancel',ev=>{ev.preventDefault();$('confirm-dialog').close();$('pause-dialog').showModal();});
+  }
+  closeAll(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());this.app.controls.rebinding=null;this.returnToPause=false;}
+  closeDialog(id){$(id).close();this.app.controls.rebinding=null;this.app.controls.clear();if(this.returnToPause){$('pause-dialog').showModal();this.returnToPause=false;}else if(id==='subs-dialog'&&this.app.match.phase==='halftime')this.results();}
+  show(screen){
+    for(const id of ['home','selection','stats-screen'])$(id).hidden=id!==screen;
+    $('match-hud').hidden=screen!=='match';$('intro-overlay').hidden=true;$('notice').hidden=true;
+    this.screen=screen;this.app.controls.enabled=screen==='match';this.app.controls.clear();
+    if(screen==='stats-screen')$('stats-screen').scrollTop=0;
+  }
+  selection(){
+    this.show('selection');const a=this.app;
+    $('season-select').innerHTML=a.data.seasons.map(s=>'<option value="'+e(s.year)+'">'+e(s.year)+'</option>').join('');
+    $('season-select').value=a.settings.value.season;this.renderTeams();this.matchSummary();
+  }
+  renderTeams(){
+    for(const side of ['user','cpu']){
+      const team=this.app.selected[side];if(!team)continue;
+      $(side+'-name').textContent=team.name;$(side+'-division').textContent=team.division;
+      $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team.lineup)??'—');
+      $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.name+' badge';
+      const color=side==='cpu'?this.app.cpuKit():team.kit;
+      $(side+'-kit').style.background=kitSwatch(color===team.kit?team.uniform:teamKit('',team.id,color));
+      $(side+'-lineup').innerHTML=team.lineup.map(p=>'<li><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(p.name)+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span><span class="number">'+(p.jersey===null?'':e(p.jersey))+'</span></button></li>').join('');
+      $(side+'-bench').textContent='VIEW SQUAD · '+team.bench.length+' SUBSTITUTES ↗';
+    }
+    $('cpu-kit-label').textContent=this.app.cpuKit()!==this.app.selected.cpu.kit?'CONTRAST KIT':'AWAY';
+  }
+  squad(side,playerId=null){
+    const team=this.app.selected[side];this.returnToPause=false;$('squad-title').textContent=team.name+' · '+(teamOverall(team.lineup)??'—')+' TEAM OVR';
+    $('squad-profiles').innerHTML=[...team.lineup,...team.bench].map(p=>'<details class="profile-card" '+(p.id===playerId?'open':'')+'><summary><span class="ovr">'+(p.overall??'—')+'<small>OVR</small></span><span><strong>'+e(p.name)+'</strong><small>'+e(p.role||p.position)+' · '+(team.lineup.some(s=>s.id===p.id)?'STARTER':'BENCH')+(p.leadershipRole==='captain'?' · CAPTAIN':'')+'</small><em>'+e(p.playstyle?.label||'Profile unavailable')+'</em></span></summary><p>'+e(p.playstyle?.description||'No website profile is available.')+'</p><div class="profile-traits">'+(p.playstyle?.traits||[]).map(t=>'<span>'+e(t)+'</span>').join('')+'</div></details>').join('');
+    $('squad-dialog').showModal();
+    if(playerId)$('squad-profiles').querySelector('details[open]')?.scrollIntoView({block:'nearest'});
+  }
+  matchSummary(){$('match-summary').textContent=this.app.settings.value.difficulty.toUpperCase()+' · '+this.app.settings.value.duration+' MINUTES';}
+  settings(tab='graphics'){
+    this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();
+    this.app.controls.clear();this.renderSettings();this.tab(tab);$('settings-dialog').showModal();
+  }
+  tab(tab){document.querySelectorAll('[data-settings-panel]').forEach(el=>el.hidden=el.dataset.settingsPanel!==tab);document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));}
+  renderSettings(){
+    for(const kind of ['graphics','difficulty','duration','camera'])document.querySelectorAll('[data-'+kind+']').forEach(b=>b.classList.toggle('active',String(this.app.settings.value[kind])===b.dataset[kind]));
+    $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase();this.renderBindings();
+  }
+  renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
+  keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT / TACKLE'],['skill','SKILL'],['sprint','SPRINT']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
+  pause(){this.app.controls.clear();$('pause-dialog').showModal();}
+  resume(){this.closeAll();this.app.controls.clear();this.app.match.pause(false);}
+  confirm(title,action){$('pause-dialog').close();$('confirm-title').textContent=title;this.confirmAction=action;$('confirm-dialog').showModal();}
+  enterMatch(){
+    this.closeAll();this.show('match');const m=this.app.match;
+    $('hud-user').textContent=m.teams[0].name.toUpperCase();$('hud-cpu').textContent=m.teams[1].name.toUpperCase();this.keyboardHint();
+    $('intro-overlay').hidden=false;
+  }
+  phase(phase){if(phase==='halftime'||phase==='fulltime'){this.results();return;}if(phase==='home')return;if(this.screen!=='match')this.show('match');$('intro-overlay').hidden=phase!=='intro';}
+  notice({title,subtitle,seconds}){$('notice').querySelector('strong').textContent=title;$('notice').querySelector('span').textContent=subtitle;$('notice').hidden=false;this.noticeTime=seconds;}
+  updateNotice(dt){if(this.noticeTime>0){this.noticeTime-=dt;if(this.noticeTime<=0)$('notice').hidden=true;}}
+  subs(){this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();this.out=this.in=null;$('sub-feedback').textContent='';this.renderSubs();$('subs-dialog').showModal();}
+  renderSubs(){
+    const m=this.app.match;
+    $('subs-team-ovr').textContent=(teamOverall(m.active(0))??'—')+' TEAM OVR · Current lineup';
+    $('sub-out').innerHTML=m.active(0).map(p=>'<button class="sub-player '+(this.out===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(p.name)+'</span><small>'+p.role+' · '+(p.data.overall??'—')+' OVR</small><small>'+Math.round(p.stamina*100)+'% / '+Math.round(p.maxStamina*100)+'% stamina'+(p.exhausted?' · Exhausted until stoppage':'')+'</small><small>'+e(p.data.playstyle?.label||'')+'</small><span class="sub-stamina" style="width:'+Math.round(p.stamina*100)+'%"></span></button>').join('');
+    $('sub-in').innerHTML=m.benches[0].length?m.benches[0].map(p=>'<button class="sub-player '+(this.in===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(p.name)+'</span><small>'+e(p.position)+' · '+(p.overall??'—')+' OVR</small><small>'+Math.round(staminaCapacity(p.overall)*100)+'% stamina · Fresh</small><small>'+e(p.playstyle?.label||'')+'</small></button>').join(''):'<p class="muted-copy">All substitutes have been used.</p>';
+    $('confirm-sub').disabled=!this.out||!this.in;
+    if(m.pending.length)$('sub-feedback').textContent=m.pending.map(s=>s.out.name+' → '+s.incoming.name).join(' · ')+' · Next stoppage';
+  }
+  confirmSub(){
+    try{const instant=['halftime','restart'].includes(this.app.match.phase);this.app.match.queueSubstitution(this.out,this.in);this.out=this.in=null;this.renderSubs();$('sub-feedback').textContent=instant?'Substitution complete.':'Substitution queued for the next stoppage.';}catch(error){$('sub-feedback').textContent=error.message;}
+  }
+  results(){
+    const m=this.app.match,half=m.phase==='halftime';this.closeAll();this.show('stats-screen');
+    $('result-title').textContent=half?'HALFTIME':'FULL TIME';
+    $('result-kicker').textContent=half?'TIME TO REGROUP':m.stats[0].goals===m.stats[1].goals?'HONOURS EVEN':m.stats[0].goals>m.stats[1].goals?'VICTORY':'CPU WINS';
+    $('result-season').textContent=this.app.settings.value.season+' · '+m.settings.duration+' MIN MATCH';
+    $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'</span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' — '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'</span></div>';
+    const potm=playerOfMatch([...m.players,...m.archive]);
+    $('result-highlight').innerHTML=half?'The second half changes ends. CPU kicks off.':potm?'<div class="potm"><span>✦</span><small>PLAYER OF THE MATCH</small><strong>'+e(potm.name)+'</strong><span>'+e(m.teams[potm.team].shortName)+'</span></div>':'';
+    $('stats-table').innerHTML=statRows(m).map(([label,a,b])=>'<div class="stat-row"><b>'+a+'</b><span>'+label+'</span><b>'+b+'</b></div>').join('');
+    $('goal-list').innerHTML=m.goalEvents.length?m.goalEvents.map(g=>'<div class="moment">⚽ '+e(g.name)+(g.ownGoal?' (OG)':'')+' <small>'+clockText(g.time)+' · '+e(m.teams[g.team].name)+(g.assist?' · Assist: '+e(g.assist):'')+'</small></div>').join(''):'<p class="muted-copy">No goals yet.</p>';
+    $('sub-list').innerHTML=m.subEvents.map(s=>'<div class="moment">↔ '+e(s.in)+'<small>Replaced '+e(s.out)+' · '+clockText(s.time)+'</small></div>').join('')||'No substitutions';
+    $('result-actions').innerHTML=half?'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
+  }
+}
