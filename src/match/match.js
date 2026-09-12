@@ -1,5 +1,6 @@
 import { FIELD,PLAY,FORMATION,fieldUnits as u,DIFFICULTY,clamp,distance,normalize } from '../config.js';
 import { Player } from './player.js';
+import { playerLabel } from '../player-label.js';
 import { Ball } from './ball.js';
 import { updateAI,bestPass,ballIntercept } from './ai.js';
 import { boundaryEvent,goalFrameCollision,foulRestart } from './rules.js';
@@ -225,6 +226,7 @@ export class Match {
     p.tackles++;p.cooldown=.5;victim.cooldown=.7;
   }
   foul(offender,victim,severity='none'){
+    const foulNames=playerLabel(offender)+' · Foul on '+playerLabel(victim);
     this.stats[offender.team].fouls++;
     let title='FOUL';
     if(severity==='yellow'){offender.yellow++;this.stats[offender.team].yellows++;title='YELLOW CARD';}
@@ -236,7 +238,7 @@ export class Match {
     victim.animate(severity==='red'?'roll-fall':'fall',.8,{side:Math.sign(victim.z-offender.z)||1});
     offender.animate('card-reaction',2);this.moment={type:'card',player:this.referee,time:1.6};
     this.referee.watch(offender);
-    this.notify(title,offender.name,3);
+    this.notify(title,foulNames,3);
     this.event('card',{player:offender,card:title});
     if(offender.sentOff&&this.active(offender.team).length<3){
       this.stats[1-offender.team].goals=Math.max(this.stats[1-offender.team].goals,this.stats[offender.team].goals+3);
@@ -250,7 +252,7 @@ export class Match {
     if(scorer?.team===team)scorer.goals++;
     const assistant=assist&&assist!==scorer&&assist.team===team&&scorer?.team===team?assist:null;
     if(assistant)assistant.assists++;
-    this.goalEvents.push({team,name:scorer?.name||this.teams[team].name,playerId:scorer?.id,assist:assistant?.name||null,ownGoal:scorer?.team!==team,time:this.elapsed});
+    this.goalEvents.push({team,name:scorer?.name||this.teams[team].name,jersey:scorer?.jersey??null,playerId:scorer?.id,assist:assistant?.name||null,assistJersey:assistant?.jersey??null,ownGoal:scorer?.team!==team,time:this.elapsed});
     this.scoringTeam=team;this.ball.owner=null;this.ball.settleInNet(this.direction(team));
     this.celebratingPlayer=scorer?.team===team?scorer:this.active(team).find(p=>p.role==='FWD');
     const celebrations=['celebrate-slide','celebrate-jump','celebrate-arms','celebrate-point','celebrate-fist','celebrate-calm'];
@@ -259,7 +261,7 @@ export class Match {
     this.celebratingPlayer?.animate(celebration,3.8);
     if(celebration==='celebrate-slide'&&this.celebratingPlayer){this.celebratingPlayer.vx=this.direction(team)*3.2;this.celebratingPlayer.vz=0;}
     this.players.filter(p=>p.team!==team).forEach(p=>p.animate(p.role==='GK'?'concede':'miss',2.4));
-    this.setPhase('goal');this.notify('GOAL!',(scorer?.name||'')+' · '+this.teams[team].name,4);this.event('goal',this.goalEvents.at(-1));
+    this.setPhase('goal');this.notify('GOAL!',playerLabel(scorer)+' · '+this.teams[team].name,4);this.event('goal',this.goalEvents.at(-1));
   }
   beginRestart(data){
     this.applySubstitutions();this.autoSubstitute();
@@ -337,7 +339,7 @@ export class Match {
       const saved={x:out.x,z:out.z,slot:out.slot,team:out.team,role:out.role};
       const next=new Player(incoming,team,out.slot,this.direction(team));Object.assign(out,next,saved);
       this.benches[team]=this.benches[team].filter(p=>p.id!==incoming.id);
-      this.stats[team].substitutions++;const event={team,out:this.archive.at(-1).name,in:incoming.name,time:this.elapsed};this.subEvents.push(event);
+      this.stats[team].substitutions++;const event={team,out:this.archive.at(-1).name,outJersey:this.archive.at(-1).jersey??null,in:incoming.name,inJersey:incoming.jersey??null,time:this.elapsed};this.subEvents.push(event);
       this.event('substitution',{player:out,...event});
       out.animate('wave',1.2);this.moment={type:'substitution',player:out,time:1.2};
     }this.pending=[];

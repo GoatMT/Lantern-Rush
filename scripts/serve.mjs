@@ -13,4 +13,4 @@ http.createServer(async (req, res) => {
     const body = await fs.readFile(file);
     res.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' }).end(body);
   } catch { res.writeHead(404).end('Not found'); }
-}).listen(port, '0.0.0.0', () => console.log(`LSL Kickoff ready: http://localhost:${port}/`));
+}).listen(port, '0.0.0.0', () => console.log(`Lantern Rush ready: http://localhost:${port}/`));

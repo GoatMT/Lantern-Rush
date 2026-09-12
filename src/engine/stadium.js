@@ -29,7 +29,7 @@ export class Stadium{
     const L=FIELD.halfLength,W=FIELD.halfWidth;
     this.structure.box(235,.8,180,0,-.7,0,'#263332');this.structure.box(L*2+18,.10,W*2+16,0,-.07,0,'#345b34');
     this.turf=createTurf();this.pitch=this.turf.pitch;this.root.add(this.pitch,createMarkings());
-    this.boardTextures=[textTexture('LSL   /   KICKOFF',{background:'#102a32',color:'#ede1aa',font:38}),textTexture('YOUR LEAGUE. YOUR GAME.',{background:'#d9d5bd',color:'#143638',font:28})];
+    this.boardTextures=[textTexture('LSL   /   LANTERN RUSH',{background:'#102a32',color:'#ede1aa',font:38}),textTexture('YOUR LEAGUE. YOUR GAME.',{background:'#d9d5bd',color:'#143638',font:28})];
     for(const side of [-1,1]){
       this.structure.box(L*2+17,.035,.22,0,.004,side*(W+3.6),'#69716b');this.structure.box(.22,.035,W*2+7.2,side*(L+8.4),.004,0,'#69716b');
       this.structure.box(L*2+24,.06,5.5,0,-.015,side*(W+8),'#48524f');this.structure.box(5.5,.06,W*2+25,side*(L+13),-.015,0,'#48524f');
@@ -55,9 +55,6 @@ export class Stadium{
       if(row===4)place(0,out+1,height+.24,span,.05,.1,'#d6dcd6',this.extras);
     }
     place(0,edge+13.3,4.8,span+1,9.6,.7,'#24363d');place(0,edge-1.8,1.25,span+1,2.5,.55,'#21373d');place(0,edge-1.8,2.52,span+1,.10,.68,'#a0b4b4');
-    place(0,edge+5.6,12.1,span+4,.4,18.2,'#425765');place(0,edge-3.5,11.9,span+4,.72,.28,'#d4dcd8');place(0,edge+14.6,11.9,span+4,.8,.25,'#1b303c');
-    for(let along=-span/2+4;along<span/2;along+=12){place(along,edge+12.6,7,.30,14,.30,'#9eaeb0');place(along,edge+5.7,11.7,.24,.32,17.8,'#bac6c6',this.extras);}
-    for(let i=0;i<5;i++)place(0,edge-1+i*3.4,12.35,span+4,.12,.10,'#657d8a',this.extras);
   }
   buildBoards(side){
     const L=FIELD.halfLength,W=FIELD.halfWidth,[dark,light]=this.boardTextures;
@@ -97,7 +94,7 @@ export class Stadium{
     }
   }
   screen(side){
-    this.scoreTexture||=textTexture('LSL KICKOFF',{width:1024,height:320,font:90});
+    this.scoreTexture||=textTexture('LANTERN RUSH',{width:1024,height:320,font:90});
     const z=side*(FIELD.halfWidth+26),screen=new T.Mesh(new T.PlaneGeometry(18,5.625),new T.MeshBasicMaterial({map:this.scoreTexture}));screen.position.set(0,17,z);if(side>0)screen.rotation.y=Math.PI;this.root.add(screen);
     this.structure.box(18.5,6,.4,0,17,z+side*.22,'#142a36');for(const x of [-7.5,7.5])this.structure.box(.4,16,.4,x,8,z,'#6f828a');
   }
@@ -141,7 +138,7 @@ export class Stadium{
   }
   score(a,b){
     const c=this.scoreTexture.image.getContext('2d');c.fillStyle='#0b1e2b';c.fillRect(0,0,1024,320);c.fillStyle='#d8c78e';c.fillRect(32,31,960,4);
-    c.textAlign='center';c.textBaseline='middle';c.font='700 30px Arial';c.fillText('LSL KICKOFF  /  GRENOBLE FIELD',512,65);c.fillStyle='#f0f1e8';c.font='800 110px Arial';c.fillText(a+'  :  '+b,512,173);
+    c.textAlign='center';c.textBaseline='middle';c.font='700 30px Arial';c.fillText('LANTERN RUSH  /  GRENOBLE FIELD',512,65);c.fillStyle='#f0f1e8';c.font='800 110px Arial';c.fillText(a+'  :  '+b,512,173);
     c.font='700 22px Arial';c.fillStyle='#aebfc0';c.fillText((this.teamNames||['LANTERN SOCCER LEAGUE']).join('   /   '),512,268,940);this.scoreTexture.needsUpdate=true;
   }
   update(t,match){

@@ -7,6 +7,7 @@ import {Controls} from './input/controls.js';
 import {MobileControls} from './input/mobile.js';
 import {Menus,$} from './ui/menus.js';
 import {HUD} from './ui/hud.js';
+import { playerLabel } from './player-label.js';
 import { SEASON_KITS,teamKit } from './kits.js';
 
 async function badgeColor(team){
@@ -61,7 +62,7 @@ class App {
     if(type==='phase')this.menus.phase(data);
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
-    if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:data.out+' → '+data.in,seconds:3});}
+    if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:3});}
   }
   home(){this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');}
   selectTeams(){this.menus.closeAll();if(this.match)this.match.phase='home';this.menus.selection();}
@@ -103,7 +104,7 @@ class App {
   registerTools(){
     if(!document.modelContext?.registerTool)return;
     try{Promise.resolve(document.modelContext.registerTool({
-      name:'read_lantern_rush_match',title:'Read LSL Kickoff match',description:'Read the current match phase, selected teams, score, clock and rendering performance.',
+      name:'read_lantern_rush_match',title:'Read Lantern Rush match',description:'Read the current match phase, selected teams, score, clock and rendering performance.',
       inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},
       execute:()=>({phase:this.match.phase,teams:this.match.teams.map(t=>t.name),score:this.match.stats.map(s=>s.goals),elapsed:this.match.elapsed,half:this.match.half,framesPerSecond:Math.round(this.loop.fps),graphics:this.renderer.quality,lighting:this.renderer.lighting.name,drawCalls:this.renderer.renderer.info.render.calls,triangles:this.renderer.renderer.info.render.triangles,renderScale:this.renderer.adaptiveScale,playerScale:this.renderer.actorScale})
     })).catch(()=>{});}catch{}

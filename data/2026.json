@@ -49,7 +49,7 @@
         {
           "id": "abdul-ghiyas-solyman",
           "name": "Abdul Ghiyas Solyman",
-          "jersey": null,
+          "jersey": 7,
           "position": "Striker/Winger",
           "leadershipRole": "assistant",
           "profileId": "abdul-ghiyas-solyman",
@@ -204,7 +204,7 @@
         {
           "id": "uthman",
           "name": "Uthman Manjra",
-          "jersey": null,
+          "jersey": 1,
           "position": "Striker",
           "leadershipRole": "assistant",
           "profileId": "uthman",
@@ -222,7 +222,7 @@
         {
           "id": "saad-khan",
           "name": "Saad Khan",
-          "jersey": null,
+          "jersey": 2,
           "position": "Goalie",
           "leadershipRole": "assistant",
           "profileId": "saad-khan",
@@ -240,7 +240,7 @@
         {
           "id": "mubashir-kharooti",
           "name": "Mubashir Kharooti",
-          "jersey": null,
+          "jersey": 3,
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "mubashir-kharooti",
@@ -258,7 +258,7 @@
         {
           "id": "umair-saiyad",
           "name": "Umair Saiyad",
-          "jersey": null,
+          "jersey": 4,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "umair-saiyad",
@@ -276,7 +276,7 @@
         {
           "id": "tulha-ahmed",
           "name": "Tulha Ahmed",
-          "jersey": null,
+          "jersey": 5,
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "tulha-ahmed",
@@ -294,7 +294,7 @@
         {
           "id": "muneeb",
           "name": "Muneeb",
-          "jersey": null,
+          "jersey": 6,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "muneeb",
@@ -312,7 +312,7 @@
         {
           "id": "syed-zaeem-arshad",
           "name": "Syed Zaeem Arshad",
-          "jersey": null,
+          "jersey": 7,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "syed-zaeem-arshad",
@@ -330,7 +330,7 @@
         {
           "id": "murtaza-syed",
           "name": "Murtaza Syed",
-          "jersey": null,
+          "jersey": 8,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "murtaza-syed",
@@ -348,7 +348,7 @@
         {
           "id": "mohammed-ibrahim",
           "name": "Mohammad Ibrahim",
-          "jersey": null,
+          "jersey": 9,
           "position": "Striker",
           "leadershipRole": "captain",
           "profileId": "mohammed-ibrahim",
@@ -366,7 +366,7 @@
         {
           "id": "zakariya-chhibu",
           "name": "Zakariya Chhibu",
-          "jersey": null,
+          "jersey": 10,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "zakariya-chhibu",
@@ -395,7 +395,7 @@
         {
           "id": "muzamil-kharooti",
           "name": "Muzamil Kharooti",
-          "jersey": null,
+          "jersey": 7,
           "position": "Striker",
           "leadershipRole": "assistant",
           "profileId": "muzamil-kharooti",
@@ -539,7 +539,7 @@
         {
           "id": "haroon-ahmadi",
           "name": "Haroon Ahmadi",
-          "jersey": null,
+          "jersey": 10,
           "position": "Striker",
           "leadershipRole": "captain",
           "profileId": "haroon-ahmadi",
@@ -586,7 +586,7 @@
         {
           "id": "mudassir",
           "name": "Mudassir",
-          "jersey": null,
+          "jersey": 2,
           "position": "Attacking Midfielder",
           "leadershipRole": "captain",
           "profileId": "mudassir",
@@ -604,7 +604,7 @@
         {
           "id": "ajmal-shakkari",
           "name": "Ajmal Chakkari",
-          "jersey": null,
+          "jersey": 3,
           "position": "Winger",
           "leadershipRole": null,
           "profileId": "ajmal-shakkari",
@@ -622,7 +622,7 @@
         {
           "id": "subhanullah-sharza",
           "name": "Subhanallah Sharzah",
-          "jersey": null,
+          "jersey": 4,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "subhanullah-sharza",
@@ -694,7 +694,7 @@
         {
           "id": "usman-ahmad-popal",
           "name": "Usman Ahmad Popal",
-          "jersey": null,
+          "jersey": 6,
           "position": "Goalie",
           "leadershipRole": null,
           "profileId": "usman-ahmad-popal",
@@ -712,7 +712,7 @@
         {
           "id": "muhammad-teli",
           "name": "Muhummud Teli",
-          "jersey": null,
+          "jersey": 8,
           "position": "Winger",
           "leadershipRole": "assistant",
           "profileId": "muhammad-teli",
@@ -730,7 +730,7 @@
         {
           "id": "abubakr-manjra",
           "name": "Abu Bakr Manjra",
-          "jersey": null,
+          "jersey": 9,
           "position": "Defender",
           "leadershipRole": "assistant",
           "profileId": "abubakr-manjra",
@@ -748,7 +748,7 @@
         {
           "id": "sayem-mohammed-sadi",
           "name": "Sayem Mohamed Saad",
-          "jersey": null,
+          "jersey": 7,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "sayem-mohammed-sadi",
@@ -986,7 +986,7 @@
         {
           "id": "hammad-shaikh",
           "name": "Hammad Shaikh",
-          "jersey": null,
+          "jersey": 2,
           "position": "Goalie",
           "leadershipRole": "assistant",
           "profileId": "hammad-shaikh",
@@ -1004,7 +1004,7 @@
         {
           "id": "ahmad-ingar",
           "name": "Ahmad Ingar",
-          "jersey": null,
+          "jersey": 3,
           "position": "Winger",
           "leadershipRole": "assistant",
           "profileId": "ahmad-ingar",
@@ -1148,7 +1148,7 @@
         {
           "id": "ilyas-salim",
           "name": "Ilyas Salim",
-          "jersey": null,
+          "jersey": 10,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ilyas-salim",
@@ -1368,7 +1368,7 @@
         {
           "id": "ahmed-bhaiyat",
           "name": "Ahmed Bhaiyat",
-          "jersey": null,
+          "jersey": 1,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ahmed-bhaiyat",
@@ -1386,7 +1386,7 @@
         {
           "id": "ali-razzaq",
           "name": "Ali Razzaq",
-          "jersey": null,
+          "jersey": 2,
           "position": "Goalie",
           "leadershipRole": "assistant",
           "profileId": "ali-razzaq",
@@ -1404,7 +1404,7 @@
         {
           "id": "muhammad-salim",
           "name": "Muhammad Salim",
-          "jersey": null,
+          "jersey": 3,
           "position": "Defender",
           "leadershipRole": "assistant",
           "profileId": "muhammad-salim",
@@ -1422,7 +1422,7 @@
         {
           "id": "yousuf-nathani",
           "name": "Yousuf Nathani",
-          "jersey": null,
+          "jersey": 4,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "yousuf-nathani",
@@ -1440,7 +1440,7 @@
         {
           "id": "shafiullah",
           "name": "Shafiullah",
-          "jersey": null,
+          "jersey": 5,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "shafiullah",
@@ -1458,7 +1458,7 @@
         {
           "id": "zaeem-kapil-parakot",
           "name": "Zaeem Kapil Parakot",
-          "jersey": null,
+          "jersey": 6,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "zaeem-kapil-parakot",
@@ -1512,7 +1512,7 @@
         {
           "id": "uzair-sidat",
           "name": "Uzair Sidat",
-          "jersey": null,
+          "jersey": 8,
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "uzair-sidat",
@@ -1530,7 +1530,7 @@
         {
           "id": "muhammad-shah",
           "name": "Muhammad Shah",
-          "jersey": null,
+          "jersey": 9,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "muhammad-shah",
@@ -1548,7 +1548,7 @@
         {
           "id": "sajadullah-khalil",
           "name": "Sajadullah Khalil",
-          "jersey": null,
+          "jersey": 10,
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "sajadullah-khalil",

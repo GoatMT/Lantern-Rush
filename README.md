@@ -1,4 +1,4 @@
-# LSL Kickoff
+# Lantern Rush
 
 An original, silent 3D 7v7 arcade soccer game for desktop and mobile browsers. Built with Three.js and plain JavaScript modules. This folder is the complete standalone website; it does not depend on the adjacent LSL Website folder at runtime.
 
@@ -158,26 +158,28 @@ Requires WebGL 2 in a current browser. Network is needed to initially load the s
 
 ## Matchday visuals
 
-The rebuilt stadium includes covered seating on four sides, stair aisles and concourses, instanced spectators, team LED boards, a tunnel, dugouts with glass backs, floodlight towers, two live score screens, round metal goal frames and fine net meshes. Corners have animated flags. Goal nets deform near the ball impact and settle with damping; their goalpost attachments remain pinned.
+The rebuilt stadium includes open-air seating on four sides, stair aisles and concourses, instanced spectators, team LED boards, a tunnel, dugouts with glass backs, floodlight towers, two live score screens, round metal goal frames and fine net meshes. Corners have animated flags. Goal nets deform near the ball impact and settle with damping; their goalpost attachments remain pinned.
 
 The turf uses original generated textures: 16 mowing bands, grain and blade variation, lightly worn goalmouths and a tiled bump layer. Painted line ribbons retain a physical width and include penalty arcs, corner arcs and technical areas. All artwork is generated locally; there are no copied FC Mobile assets or external texture/model requests.
 
 **Graphics → Match lighting** selects Day, Evening or Night and saves locally. Each mode changes the procedural sky, exposure, light direction, warmth, fill and stadium lamps. ACES tone mapping and physical materials give fabric, skin, grass and metal a consistent response. Low preserves the lighting palette with inexpensive contact shadows.
 
-The original LSL Kickoff interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
+The original Lantern Rush interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
 
 ### Jersey-number provenance
 
-`data/jersey-audit.json` lists every assignment and records source hashes, unavailable values and source conflicts. Current source coverage: 2024 **81/81**, 2025 **115/115**, and 2026 **7/82** known numbers. The 75 unlisted 2026 values stay blank. One conflicting profile and four duplicate-number groups are flagged; the published team roster has precedence. Numbers from other seasons or representative tournament squads are never silently substituted.
+`data/jersey-audit.json` lists every assignment and records source hashes, unavailable values and source conflicts. Current source coverage: 2024 **81/81**, 2025 **115/115**, and 2026 **39/82** known numbers. The 43 unlisted 2026 values stay blank. One conflicting profile and seven duplicate-number groups are flagged; the published team roster has precedence. Numbers from other seasons or representative tournament squads are never silently substituted.
 
 To verify against a fresh website checkout:
 
     node scripts/check-jerseys.mjs "../LSL Website"
 
+The supplied 2026 number list is recorded in the website rosters and covered by `tests/fixtures/confirmed-jerseys.json`. Abdul Ghiyas Solyman uses #8 in 2024, #1 in 2025, and #7 in 2026. Other players and seasons keep their source numbers, including source duplicates. Player labels, lineup/profile/intro cards, goal and foul notices, assists, substitutions and results use the same name-and-number format. Match events retain the number at the time of the event, even after a substitution.
+
 The regular release check also validates the bundled audit. Update the website's correct season/team roster first, run the sync command, then rerun the checks to publish new numbers.
 
 ## Credits
 
-Game identity, code, stadium and character models: original LSL Kickoff implementation.
+Game identity, code, stadium and character models: original Lantern Rush implementation.
 League names, badges and rosters: supplied Lantern Soccer League project.
 Three.js: the Three.js authors, MIT license in vendor/THREE-LICENSE.txt.

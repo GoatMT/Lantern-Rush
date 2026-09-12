@@ -9,7 +9,7 @@
   "files": [
     {
       "file": "data/2024/teams.json",
-      "sha256": "df3f5ddfbef8677af77b2e186fed6f59d7e86f908289884539d442c2969282a7"
+      "sha256": "0eb41eaa1aee6372cc13aa4fb70fdbfc64b39c97987f8c15feedde4610f93f10"
     },
     {
       "file": "data/2024/players.json",
@@ -17,7 +17,7 @@
     },
     {
       "file": "data/2025/teams.json",
-      "sha256": "1f6aa88d73211ec19e55f22113c6750c9a0af0b2362d0ff1fdeb948ceb7b8f12"
+      "sha256": "989b74967c05f62c99ed269660a898b1bb7a959ea9a0fb1a404d2ad23aef1e15"
     },
     {
       "file": "data/2025/players.json",
@@ -25,7 +25,7 @@
     },
     {
       "file": "data/2026/teams.json",
-      "sha256": "b44e4425783a83c83dd80cbfc00db4255e47ad409633a548a29c4581cd209cdd"
+      "sha256": "2187815601c7d9cb24a1b61694720289e4d9155492d6186e91394f5b5e314f7c"
     },
     {
       "file": "data/2026/players.json",
@@ -34,10 +34,10 @@
   ],
   "summary": {
     "total": 278,
-    "known": 203,
-    "missing": 75,
+    "known": 235,
+    "missing": 43,
     "conflicts": 1,
-    "duplicateGroups": 4
+    "duplicateGroups": 7
   },
   "seasons": [
     {
@@ -53,6 +53,14 @@
           "playerIds": [
             "muzamil-kharooti",
             "sufyan-munshi"
+          ]
+        },
+        {
+          "teamId": "shifa-pharmacy-fc",
+          "jersey": 8,
+          "playerIds": [
+            "abdul-ghiyas-solyman",
+            "muhammad-affan"
           ]
         },
         {
@@ -258,7 +266,7 @@
           "teamId": "shifa-pharmacy-fc",
           "playerId": "abdul-ghiyas-solyman",
           "name": "Abdul Ghiyas Solyman",
-          "jersey": 1,
+          "jersey": 8,
           "source": "data/2024/teams.json"
         },
         {
@@ -650,6 +658,14 @@
       ],
       "duplicates": [
         {
+          "teamId": "asif-gangat-united-2025",
+          "jersey": 1,
+          "playerIds": [
+            "mohammed-rayyan-sayed",
+            "abdul-ghiyas-solyman"
+          ]
+        },
+        {
           "teamId": "umer-memon-fc-2025",
           "jersey": 7,
           "playerIds": [
@@ -699,7 +715,7 @@
           "teamId": "asif-gangat-united-2025",
           "playerId": "abdul-ghiyas-solyman",
           "name": "Abdul Ghiya Solyman",
-          "jersey": 5,
+          "jersey": 1,
           "source": "data/2025/teams.json"
         },
         {
@@ -1477,10 +1493,19 @@
     {
       "year": "2026",
       "total": 82,
-      "known": 7,
-      "missing": 75,
+      "known": 39,
+      "missing": 43,
       "conflicts": [],
-      "duplicates": [],
+      "duplicates": [
+        {
+          "teamId": "refuel-rovers",
+          "jersey": 7,
+          "playerIds": [
+            "abdul-ghiyas-solyman",
+            "mohammad-usman"
+          ]
+        }
+      ],
       "entries": [
         {
           "teamId": "refuel-rovers",
@@ -1500,8 +1525,8 @@
           "teamId": "refuel-rovers",
           "playerId": "abdul-ghiyas-solyman",
           "name": "Abdul Ghiyas Solyman",
-          "jersey": null,
-          "source": null
+          "jersey": 7,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "refuel-rovers",
@@ -1556,78 +1581,78 @@
           "teamId": "rawaha-royals",
           "playerId": "uthman",
           "name": "Uthman Manjra",
-          "jersey": null,
-          "source": null
+          "jersey": 1,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "saad-khan",
           "name": "Saad Khan",
-          "jersey": null,
-          "source": null
+          "jersey": 2,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "mubashir-kharooti",
           "name": "Mubashir Kharooti",
-          "jersey": null,
-          "source": null
+          "jersey": 3,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "umair-saiyad",
           "name": "Umair Saiyad",
-          "jersey": null,
-          "source": null
+          "jersey": 4,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "tulha-ahmed",
           "name": "Tulha Ahmed",
-          "jersey": null,
-          "source": null
+          "jersey": 5,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "muneeb",
           "name": "Muneeb",
-          "jersey": null,
-          "source": null
+          "jersey": 6,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "syed-zaeem-arshad",
           "name": "Syed Zaeem Arshad",
-          "jersey": null,
-          "source": null
+          "jersey": 7,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "murtaza-syed",
           "name": "Murtaza Syed",
-          "jersey": null,
-          "source": null
+          "jersey": 8,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "mohammed-ibrahim",
           "name": "Mohammad Ibrahim",
-          "jersey": null,
-          "source": null
+          "jersey": 9,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "rawaha-royals",
           "playerId": "zakariya-chhibu",
           "name": "Zakariya Chhibu",
-          "jersey": null,
-          "source": null
+          "jersey": 10,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "em-haulers-fc",
           "playerId": "muzamil-kharooti",
           "name": "Muzamil Kharooti",
-          "jersey": null,
-          "source": null
+          "jersey": 7,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "em-haulers-fc",
@@ -1682,8 +1707,8 @@
           "teamId": "em-haulers-fc",
           "playerId": "haroon-ahmadi",
           "name": "Haroon Ahmadi",
-          "jersey": null,
-          "source": null
+          "jersey": 10,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "em-haulers-fc",
@@ -1696,22 +1721,22 @@
           "teamId": "leeward-lions",
           "playerId": "mudassir",
           "name": "Mudassir",
-          "jersey": null,
-          "source": null
+          "jersey": 2,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "leeward-lions",
           "playerId": "ajmal-shakkari",
           "name": "Ajmal Chakkari",
-          "jersey": null,
-          "source": null
+          "jersey": 3,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "leeward-lions",
           "playerId": "subhanullah-sharza",
           "name": "Subhanallah Sharzah",
-          "jersey": null,
-          "source": null
+          "jersey": 4,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "leeward-lions",
@@ -1738,29 +1763,29 @@
           "teamId": "leeward-lions",
           "playerId": "usman-ahmad-popal",
           "name": "Usman Ahmad Popal",
-          "jersey": null,
-          "source": null
+          "jersey": 6,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "leeward-lions",
           "playerId": "muhammad-teli",
           "name": "Muhummud Teli",
-          "jersey": null,
-          "source": null
+          "jersey": 8,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "leeward-lions",
           "playerId": "abubakr-manjra",
           "name": "Abu Bakr Manjra",
-          "jersey": null,
-          "source": null
+          "jersey": 9,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "leeward-lions",
           "playerId": "sayem-mohammed-sadi",
           "name": "Sayem Mohamed Saad",
-          "jersey": null,
-          "source": null
+          "jersey": 7,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "memon-mavericks",
@@ -1843,15 +1868,15 @@
           "teamId": "gangat-warriors",
           "playerId": "hammad-shaikh",
           "name": "Hammad Shaikh",
-          "jersey": null,
-          "source": null
+          "jersey": 2,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "gangat-warriors",
           "playerId": "ahmad-ingar",
           "name": "Ahmad Ingar",
-          "jersey": null,
-          "source": null
+          "jersey": 3,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "gangat-warriors",
@@ -1906,8 +1931,8 @@
           "teamId": "gangat-warriors",
           "playerId": "ilyas-salim",
           "name": "Ilyas Salim",
-          "jersey": null,
-          "source": null
+          "jersey": 10,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "sharp-strikers",
@@ -1983,43 +2008,43 @@
           "teamId": "amax-visionaries",
           "playerId": "ahmed-bhaiyat",
           "name": "Ahmed Bhaiyat",
-          "jersey": null,
-          "source": null
+          "jersey": 1,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "ali-razzaq",
           "name": "Ali Razzaq",
-          "jersey": null,
-          "source": null
+          "jersey": 2,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "muhammad-salim",
           "name": "Muhammad Salim",
-          "jersey": null,
-          "source": null
+          "jersey": 3,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "yousuf-nathani",
           "name": "Yousuf Nathani",
-          "jersey": null,
-          "source": null
+          "jersey": 4,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "shafiullah",
           "name": "Shafiullah",
-          "jersey": null,
-          "source": null
+          "jersey": 5,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "zaeem-kapil-parakot",
           "name": "Zaeem Kapil Parakot",
-          "jersey": null,
-          "source": null
+          "jersey": 6,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
@@ -2039,22 +2064,22 @@
           "teamId": "amax-visionaries",
           "playerId": "uzair-sidat",
           "name": "Uzair Sidat",
-          "jersey": null,
-          "source": null
+          "jersey": 8,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "muhammad-shah",
           "name": "Muhammad Shah",
-          "jersey": null,
-          "source": null
+          "jersey": 9,
+          "source": "data/2026/teams.json"
         },
         {
           "teamId": "amax-visionaries",
           "playerId": "sajadullah-khalil",
           "name": "Sajadullah Khalil",
-          "jersey": null,
-          "source": null
+          "jersey": 10,
+          "source": "data/2026/teams.json"
         }
       ]
     }

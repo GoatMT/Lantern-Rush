@@ -3,6 +3,7 @@ import { DEFAULT_KEYS,CONTROL_NAMES,keyLabel } from '../settings.js';
 import { statRows,playerOfMatch } from '../match/stats.js';
 import { kitSwatch,teamKit } from '../kits.js';
 import { teamOverall,staminaCapacity } from '../ratings.js';
+import { playerLabel } from '../player-label.js';
 export const $=id=>document.getElementById(id);
 export class Menus {
   constructor(app){this.app=app;this.returnToPause=false;this.bind();}
@@ -71,14 +72,14 @@ export class Menus {
       const color=side==='cpu'?this.app.cpuKit():team.kit;
       document.querySelector('.'+(side==='user'?'you':'cpu')+'-card').style.setProperty('--team-color',color);
       $(side+'-kit').style.background=kitSwatch(color===team.kit?team.uniform:teamKit('',team.id,color));
-      $(side+'-lineup').innerHTML=team.lineup.map(p=>'<li><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(p.name)+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span><span class="number">'+(p.jersey===null?'':e(p.jersey))+'</span></button></li>').join('');
+      $(side+'-lineup').innerHTML=team.lineup.map(p=>'<li><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(playerLabel(p))+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span></button></li>').join('');
       $(side+'-bench').textContent='VIEW SQUAD · '+team.bench.length+' SUBSTITUTES ↗';
     }
     $('cpu-kit-label').textContent=this.app.cpuKit()!==this.app.selected.cpu.kit?'CONTRAST KIT':'AWAY';
   }
   squad(side,playerId=null){
     const team=this.app.selected[side];this.returnToPause=false;$('squad-title').textContent=team.name+' · '+(teamOverall(team.lineup)??'—')+' TEAM OVR';
-    $('squad-profiles').innerHTML=[...team.lineup,...team.bench].map(p=>'<details class="profile-card" '+(p.id===playerId?'open':'')+'><summary><span class="ovr">'+(p.overall??'—')+'<small>OVR</small></span><span><strong>'+e(p.name)+'</strong><small>'+e(p.role||p.position)+' · '+(team.lineup.some(s=>s.id===p.id)?'STARTER':'BENCH')+(p.leadershipRole==='captain'?' · CAPTAIN':'')+'</small><em>'+e(p.playstyle?.label||'Profile unavailable')+'</em></span></summary><p>'+e(p.playstyle?.description||'No website profile is available.')+'</p><div class="profile-traits">'+(p.playstyle?.traits||[]).map(t=>'<span>'+e(t)+'</span>').join('')+'</div></details>').join('');
+    $('squad-profiles').innerHTML=[...team.lineup,...team.bench].map(p=>'<details class="profile-card" '+(p.id===playerId?'open':'')+'><summary><span class="ovr">'+(p.overall??'—')+'<small>OVR</small></span><span><strong>'+e(playerLabel(p))+'</strong><small>'+e(p.role||p.position)+' · '+(team.lineup.some(s=>s.id===p.id)?'STARTER':'BENCH')+(p.leadershipRole==='captain'?' · CAPTAIN':'')+'</small><em>'+e(p.playstyle?.label||'Profile unavailable')+'</em></span></summary><p>'+e(p.playstyle?.description||'No website profile is available.')+'</p><div class="profile-traits">'+(p.playstyle?.traits||[]).map(t=>'<span>'+e(t)+'</span>').join('')+'</div></details>').join('');
     $('squad-dialog').showModal();
     if(playerId)$('squad-profiles').querySelector('details[open]')?.scrollIntoView({block:'nearest'});
   }
@@ -122,10 +123,10 @@ export class Menus {
   renderSubs(){
     const m=this.app.match;
     $('subs-team-ovr').textContent=(teamOverall(m.active(0))??'—')+' TEAM OVR · Current lineup';
-    $('sub-out').innerHTML=m.active(0).map(p=>'<button class="sub-player '+(this.out===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(p.name)+'</span><small>'+p.role+' · '+(p.data.overall??'—')+' OVR</small><small>'+Math.round(p.stamina*100)+'% / '+Math.round(p.maxStamina*100)+'% stamina'+(p.exhausted?' · Exhausted until stoppage':'')+'</small><small>'+e(p.data.playstyle?.label||'')+'</small><span class="sub-stamina" style="width:'+Math.round(p.stamina*100)+'%"></span></button>').join('');
-    $('sub-in').innerHTML=m.benches[0].length?m.benches[0].map(p=>'<button class="sub-player '+(this.in===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(p.name)+'</span><small>'+e(p.position)+' · '+(p.overall??'—')+' OVR</small><small>'+Math.round(staminaCapacity(p.overall)*100)+'% stamina · Fresh</small><small>'+e(p.playstyle?.label||'')+'</small></button>').join(''):'<p class="muted-copy">All substitutes have been used.</p>';
+    $('sub-out').innerHTML=m.active(0).map(p=>'<button class="sub-player '+(this.out===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(playerLabel(p))+'</span><small>'+p.role+' · '+(p.data.overall??'—')+' OVR</small><small>'+Math.round(p.stamina*100)+'% / '+Math.round(p.maxStamina*100)+'% stamina'+(p.exhausted?' · Exhausted until stoppage':'')+'</small><small>'+e(p.data.playstyle?.label||'')+'</small><span class="sub-stamina" style="width:'+Math.round(p.stamina*100)+'%"></span></button>').join('');
+    $('sub-in').innerHTML=m.benches[0].length?m.benches[0].map(p=>'<button class="sub-player '+(this.in===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(playerLabel(p))+'</span><small>'+e(p.position)+' · '+(p.overall??'—')+' OVR</small><small>'+Math.round(staminaCapacity(p.overall)*100)+'% stamina · Fresh</small><small>'+e(p.playstyle?.label||'')+'</small></button>').join(''):'<p class="muted-copy">All substitutes have been used.</p>';
     $('confirm-sub').disabled=!this.out||!this.in;
-    if(m.pending.length)$('sub-feedback').textContent=m.pending.map(s=>s.out.name+' → '+s.incoming.name).join(' · ')+' · Next stoppage';
+    if(m.pending.length)$('sub-feedback').textContent=m.pending.map(s=>playerLabel(s.out)+' → '+playerLabel(s.incoming)).join(' · ')+' · Next stoppage';
   }
   confirmSub(){
     try{const instant=['halftime','restart'].includes(this.app.match.phase);this.app.match.queueSubstitution(this.out,this.in);this.out=this.in=null;this.renderSubs();$('sub-feedback').textContent=instant?'Substitution complete.':'Substitution queued for the next stoppage.';}catch(error){$('sub-feedback').textContent=error.message;}
@@ -137,13 +138,13 @@ export class Menus {
     $('result-season').textContent=this.app.settings.value.season+' · '+m.settings.duration+' MIN MATCH';
     $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'<small>YOU · '+(teamOverall(m.active(0))??'—')+' OVR</small></span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'<small>CPU · '+(teamOverall(m.active(1))??'—')+' OVR</small></span></div>';
     const potm=playerOfMatch([...m.players,...m.archive]);
-    $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Make your changes. CPU takes the second-half kickoff.</span></p>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(potm.name)+(potm.jersey!=null?' <em>#'+e(potm.jersey)+'</em>':'')+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
+    $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Make your changes. CPU takes the second-half kickoff.</span></p>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(playerLabel(potm))+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
     $('stats-table').innerHTML=statRows(m).map(([label,a,b])=>{
       const va=parseFloat(a)||0,vb=parseFloat(b)||0,total=va+vb;
       return '<div class="stat-row"><b>'+a+'</b><span>'+label+'</span><b>'+b+'</b><div class="stat-bars" aria-hidden="true"><span><i style="width:'+(total?va/total*100:0)+'%"></i></span><span><i style="width:'+(total?vb/total*100:0)+'%"></i></span></div></div>';
     }).join('');
-    $('goal-list').innerHTML=m.goalEvents.length?m.goalEvents.map(g=>'<div class="moment">⚽ '+e(g.name)+(g.ownGoal?' (OG)':'')+' <small>'+clockText(g.time)+' · '+e(m.teams[g.team].name)+(g.assist?' · Assist: '+e(g.assist):'')+'</small></div>').join(''):'<p class="muted-copy">No goals yet.</p>';
-    $('sub-list').innerHTML=m.subEvents.map(s=>'<div class="moment">↔ '+e(s.in)+'<small>Replaced '+e(s.out)+' · '+clockText(s.time)+'</small></div>').join('')||'No substitutions';
+    $('goal-list').innerHTML=m.goalEvents.length?m.goalEvents.map(g=>'<div class="moment">⚽ '+e(playerLabel(g))+(g.ownGoal?' (OG)':'')+' <small>'+clockText(g.time)+' · '+e(m.teams[g.team].name)+(g.assist?' · Assist: '+e(playerLabel({name:g.assist,jersey:g.assistJersey})):'')+'</small></div>').join(''):'<p class="muted-copy">No goals yet.</p>';
+    $('sub-list').innerHTML=m.subEvents.map(s=>'<div class="moment">↔ '+e(playerLabel({name:s.in,jersey:s.inJersey}))+'<small>Replaced '+e(playerLabel({name:s.out,jersey:s.outJersey}))+' · '+clockText(s.time)+'</small></div>').join('')||'No substitutions';
     $('result-actions').innerHTML=half?'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
   }
 }

@@ -2,6 +2,7 @@ import { $ } from './menus.js';
 import { FIELD,clockText,clamp } from '../config.js';
 import { MatchIntro } from './intro.js';
 import { teamOverall } from '../ratings.js';
+import { playerLabel } from '../player-label.js';
 export class HUD{
   constructor(app){this.app=app;this.labels=new Map();this.ctx=$('minimap').getContext('2d');this.acc=0;this.intro=new MatchIntro();}
   reset(){this.labels.clear();$('player-labels').replaceChildren();}
@@ -11,7 +12,7 @@ export class HUD{
     $('score-user').textContent=m.stats[0].goals;$('score-cpu').textContent=m.stats[1].goals;
     $('hud-user-ovr').textContent=(teamOverall(m.active(0))??'—')+' OVR';$('hud-cpu-ovr').textContent=(teamOverall(m.active(1))??'—')+' OVR';
     $('match-clock').textContent=clockText(m.elapsed);$('half-label').textContent=m.half===1?'FIRST HALF':'SECOND HALF';
-    $('controlled-name').textContent=p.name+(p.jersey!==null?'  #'+p.jersey:'');$('stamina-fill').style.width=Math.round(p.stamina*100)+'%';
+    $('controlled-name').textContent=playerLabel(p);$('stamina-fill').style.width=Math.round(p.stamina*100)+'%';
     $('stamina-status').textContent=p.exhausted?'EXHAUSTED · NEXT STOPPAGE':Math.round(p.stamina*100)+'% / '+Math.round(p.maxStamina*100)+'% STAMINA';
     $('stamina-fill').classList.toggle('exhausted',p.exhausted);
     $('controlled-profile').textContent=p.role+' · '+(p.data.overall??'—')+' OVR · '+(p.data.playstyle?.label||'');
@@ -20,14 +21,17 @@ export class HUD{
     $('set-piece-hint').hidden=m.phase!=='restart';
     if(m.phase==='restart'){const r=m.restart;$('set-piece-hint').innerHTML='<strong>'+r.type+' · '+(r.team===0?'YOU':'CPU')+'</strong>'+(r.team===0?'Aim with movement · Hold Shoot or tap Pass':'Finding the restart…');}
     const intro=m.phase==='intro';this.intro.update(m);
+    const controlledPos=this.app.renderer.project(p.x,this.app.renderer.playerLabelHeight(),p.z);
     $('touch-controls').hidden=intro||m.phase==='goal';
     for(const player of m.players){
       let label=this.labels.get(player);
       if(!label){label=document.createElement('div');label.className='pitch-label';$('player-labels').append(label);this.labels.set(player,label);}
-      const show=!player.sentOff&&(intro?m.phaseTime>=9.8:m.phase==='goal'?player===m.celebratingPlayer:player===m.controlled);label.hidden=!show;if(!show)continue;
+      const show=!player.sentOff&&(intro?m.phaseTime>=9.8:m.phase==='goal'?player===m.celebratingPlayer:player===m.controlled||player===m.ball.owner);label.hidden=!show;if(!show)continue;
       label.classList.toggle('you',player.team===0);
-      label.textContent=(intro?player.role+' · ':m.phase==='goal'?'SCORER · ':player.team===0?'YOU · ':'')+player.name+(player.jersey!==null?' #'+player.jersey:'');
-      const pos=this.app.renderer.project(player.x,this.app.renderer.playerLabelHeight(),player.z);label.hidden=!pos.visible;label.style.left=pos.x+'px';label.style.top=pos.y+'px';
+      label.textContent=(intro?player.role+' · ':m.phase==='goal'?'SCORER · ':player===m.controlled?'YOU · ':'')+playerLabel(player);
+      const pos=this.app.renderer.project(player.x,this.app.renderer.playerLabelHeight(),player.z);
+      if(!intro&&m.phase!=='goal'&&player!==p&&Math.abs(pos.x-controlledPos.x)<160&&Math.abs(pos.y-controlledPos.y)<26)pos.y=controlledPos.y-27;
+      label.hidden=!pos.visible;label.style.left=pos.x+'px';label.style.top=pos.y+'px';
     }
     this.acc+=dt;if(this.acc>.1){this.acc=0;this.radar();}
   }

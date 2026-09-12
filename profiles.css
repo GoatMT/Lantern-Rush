@@ -1,6 +1,6 @@
 .home-title .creator-credit{display:block;margin-top:10px}
 .lineup li{display:block;padding:0}
-.lineup-player{width:100%;display:grid;grid-template-columns:28px minmax(0,1fr) 30px 17px;align-items:center;gap:7px;text-align:left;border:0;background:transparent;color:var(--cream);padding:7px 0;font:inherit;min-height:45px;border-radius:4px}
+.lineup-player{width:100%;display:grid;grid-template-columns:28px minmax(0,1fr) 30px;align-items:center;gap:7px;text-align:left;border:0;background:transparent;color:var(--cream);padding:7px 0;font:inherit;min-height:45px;border-radius:4px}
 .lineup-player:hover,.lineup-player:focus-visible{background:#e6ce8d14;outline:1px solid #d6c89d70}
 .lineup-player .name{min-width:0;line-height:1.25}
 .lineup-player .name small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
