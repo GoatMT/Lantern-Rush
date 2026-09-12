@@ -166,6 +166,12 @@ The turf uses original generated textures: 16 mowing bands, grain and blade vari
 
 The original Lantern Rush interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
 
+### Pitch-side advertising
+
+The grass apron has 24 freestanding boards featuring the supplied Raz.aep poster, white Lantern logo and LSL crest. Full images retain their proportions, with large lettering beside them for broadcast readability. Boards leave the playing area, goals, corner approaches, benches and tunnel clear. They stay visible at every graphics setting and use three shared artwork textures and four instanced draws. They are decorative stadium artwork, with no ad network or tracking.
+
+Update artwork entries in `src/advertisements.js`; placement and rendering are in `src/engine/advertising.js`. Images are bundled under `assets/ads/` and the existing `assets/lsl-logo.png`, so they also load on GitHub Pages. The original supplied images are preserved.
+
 ### Jersey-number provenance
 
 `data/jersey-audit.json` lists every assignment and records source hashes, unavailable values and source conflicts. Current source coverage: 2024 **81/81**, 2025 **115/115**, and 2026 **39/82** known numbers. The 43 unlisted 2026 values stay blank. One conflicting profile and seven duplicate-number groups are flagged; the published team roster has precedence. Numbers from other seasons or representative tournament squads are never silently substituted.

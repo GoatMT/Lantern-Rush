@@ -29,7 +29,7 @@ class App {
   async init(){
     this.settings=new Settings();this.controls=new Controls(this.settings);this.data=new LeagueData();
     $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);
-    await this.data.load(progress=>{$('load-progress').value=15+progress*45;});
+    await Promise.all([this.data.load(progress=>{$('load-progress').value=15+progress*45;}),this.renderer.stadium.advertising.ready]);
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
     Object.values(this.data.teams).flat().forEach(t=>t.uniform||=teamKit(t.season,t.id,t.kit));$('load-progress').value=80;
     this.menus=new Menus(this);this.hud=new HUD(this);this.mobile=new MobileControls(this.controls);

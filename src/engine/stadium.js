@@ -2,6 +2,7 @@ import * as T from '../../vendor/three.module.js';
 import {FIELD} from '../config.js';
 import {textTexture} from './models.js';
 import {createTurf,createMarkings} from './turf.js';
+import {PitchAdvertising} from './advertising.js';
 
 const PALETTE=['#20343f','#345267','#9caaa7','#c49d71','#d9d3bd','#795045','#4b6859','#bec8c5'];
 const physical=color=>new T.MeshStandardMaterial({color,roughness:.83,metalness:.06});
@@ -36,6 +37,7 @@ export class Stadium{
       this.buildStand(side,false);this.buildStand(side,true);this.goal(side);for(const zSide of [-1,1])this.cornerFlag(side*L,zSide*W);
       this.buildBoards(side);this.screen(side);
     }
+    this.advertising=new PitchAdvertising(this.root);
     this.buildTunnel();this.buildBenches();this.buildLights();this.buildCrowd();this.buildSurroundings();
     this.structure.build();this.extras.build();this.seatBatch.build();this.quality('medium');this.score(0,0);
   }
@@ -60,12 +62,12 @@ export class Stadium{
     const L=FIELD.halfLength,W=FIELD.halfWidth,[dark,light]=this.boardTextures;
     for(let i=0;i<10;i++){
       const x=(i-4.5)*12.7,panel=new T.Mesh(new T.PlaneGeometry(12.3,1.05),new T.MeshBasicMaterial({map:i%3?dark:light}));
-      panel.position.set(x,.76,side*(W+6.5));if(side>0)panel.rotation.y=Math.PI;this.root.add(panel);this.banners.push(panel);
+      panel.position.set(x,.76,side*(W+6.4));if(side>0)panel.rotation.y=Math.PI;this.root.add(panel);this.banners.push(panel);
       this.structure.box(12.4,1.35,.25,x,.68,side*(W+6.6),'#101b22');
     }
     for(let i=-3;i<=3;i++){
       const panel=new T.Mesh(new T.PlaneGeometry(10.5,1.05),new T.MeshBasicMaterial({map:i%2?dark:light}));
-      panel.position.set(side*(L+10),.76,i*11.2);panel.rotation.y=-side*Math.PI/2;this.root.add(panel);this.banners.push(panel);this.structure.box(.25,1.35,10.6,side*(L+10.1),.68,i*11.2,'#101b22');
+      panel.position.set(side*(L+9.9),.76,i*11.2);panel.rotation.y=-side*Math.PI/2;this.root.add(panel);this.banners.push(panel);this.structure.box(.25,1.35,10.6,side*(L+10.1),.68,i*11.2,'#101b22');
     }
   }
   buildTunnel(){
@@ -129,7 +131,7 @@ export class Stadium{
   }
   quality(level,anisotropy=8){
     this.level=level;this.detail.visible=level!=='low';this.crowd.count=Math.round(this.crowdCount*(level==='low'?.28:level==='medium'?.63:1));this.heads.count=this.crowd.count;this.heads.visible=level!=='low';
-    this.turf.quality(level,anisotropy);this.nets.forEach(net=>net.material.opacity=level==='low'?.38:.55);
+    this.turf.quality(level,anisotropy);this.advertising.quality(level,anisotropy);this.nets.forEach(net=>net.material.opacity=level==='low'?.38:.55);
   }
   setLighting(name){this.lamps.forEach(l=>l.material.color.set(name==='day'?'#a4b7bd':name==='evening'?'#e5e6d0':'#f1f7ff'));}
   setTeams(teams){
