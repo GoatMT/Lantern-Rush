@@ -70,7 +70,7 @@ export class Menus {
       const team=this.app.selected[side];if(!team)continue;
       $(side+'-name').textContent=team.name;$(side+'-division').textContent=team.division;
       $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team.lineup)??'—');
-      $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.name+' badge';
+      $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.logoFallback?'Lantern Soccer League':team.name+' badge';
       const color=side==='cpu'?this.app.cpuKit():team.kit;
       document.querySelector('.'+(side==='user'?'you':'cpu')+'-card').style.setProperty('--team-color',color);
       $(side+'-kit').style.background=kitSwatch(color===team.kit?team.uniform:teamKit('',team.id,color));
@@ -110,6 +110,7 @@ export class Menus {
     $('hud-user').textContent=m.teams[0].name.toUpperCase();$('hud-cpu').textContent=m.teams[1].name.toUpperCase();this.keyboardHint();
     for(const [i,side] of ['user','cpu'].entries()){
       $('hud-'+side+'-logo').src=m.teams[i].logo;
+      $('hud-'+side+'-logo').alt=m.teams[i].logoFallback?'Lantern Soccer League':m.teams[i].name+' badge';
       $('hud-'+side+'-logo').closest('.hud-team').style.setProperty('--team-color',m.teams[i].kit);
     }
     $('intro-overlay').hidden=false;

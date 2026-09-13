@@ -1,11 +1,12 @@
-import { FIELD,PLAY,clamp,distance,normalize } from '../config.js';
+import { FIELD,clamp,distance } from '../config.js';
+import { predictBall } from './physics.js';
 
 export function saveContext(keeper,ball){
   const lateral=(ball.x-keeper.x)*keeper.faceZ-(ball.z-keeper.z)*keeper.faceX;
   return {side:Math.sign(lateral)||1,height:ball.y,reach:Math.min(2.3,Math.abs(lateral)),ball:{x:ball.x,y:ball.y,z:ball.z}};
 }
 export function updateKeeper(match,p,dt){
-  const b=match.ball,d=match.direction(p.team),own=-d*FIELD.halfLength,state=p.keeperState;
+  const b=match.ball,d=match.direction(p.team),own=-d*FIELD.halfLength,state=p.keeperState,config=match.aiConfig(p.team);
   p.watch(b);
   if(b.owner===p&&p===match.controlled)return;
   if(b.owner===p&&b.controlMode==='hands'){
@@ -19,17 +20,20 @@ export function updateKeeper(match,p,dt){
   const depth=(b.x-own)*d,attacker=b.owner&&b.owner.team!==p.team?b.owner:null;
   const cover=match.active(p.team).filter(o=>o!==p).some(o=>distance(o,b)<distance(p,b)-2);
   const rush=attacker&&depth<FIELD.boxDepth*1.1&&Math.abs(b.z)<FIELD.boxHalf*.8&&!cover;
-  const forward=rush?clamp(depth*.5,3.2,11):attacker?clamp(8-depth*.07,3.0,7):clamp(3.6+depth*.026,3.6,6.5);
+  const forward=rush?clamp(depth*.5,3.2,11):attacker?clamp(8-depth*.07,3.0,7):clamp(2.3+(45-depth)*.06,2.3,5.4);
   let tx=own+d*forward,tz=clamp(b.z*(forward/Math.max(depth,forward+1)+.10),-FIELD.goalHalf+.65,FIELD.goalHalf-.65),sprint=!!rush;
   const incoming=!b.owner&&b.vx*d<-.5&&b.lastTouch?.team!==p.team;
   if(incoming){
-    if(state.flight!==b.flightId){state.flight=b.flightId;state.reaction=match.aiConfig(p.team).reaction*(.30+(1-p.attributes.dribble)*.12);state.dived=false;}
+    if(state.flight!==b.flightId){state.flight=b.flightId;state.reaction=config.reaction*(.18+(1-p.attributes.dribble)*.05);state.dived=false;}
     state.reaction=Math.max(0,(state.reaction||0)-dt);
-    const time=(tx-b.x)/b.vx;
+    let time=(tx-b.x)/b.vx,point;
+    if(time>0&&time<2){
+      for(let i=0;i<2;i++){point=predictBall(b,time);if(Math.abs(point.vx)<.5)break;time=clamp(time+(tx-point.x)/point.vx,.001,3);}
+    }
     if(time>0&&time<2&&state.reaction<=0){
-      const turn=b.spin*.018*time*.45,z=b.z+(b.vz+b.vx*turn)*time*(1-PLAY.airDrag*time*.5),y=Math.max(FIELD.ballRadius,b.y+b.vy*time-PLAY.gravity*time*time*.5);
+      const {z,y}=predictBall(b,time);
       tz=clamp(z,-FIELD.goalHalf+.3,FIELD.goalHalf-.3);sprint=time<1;
-      if(!state.dived&&time<.48&&Math.abs(z-p.z)>1&&Math.abs(z)<FIELD.goalHalf+1&&y<3.6&&p.cooldown<=0){
+      if(!state.dived&&time<config.diveLead&&Math.abs(z-p.z)>1&&Math.abs(z)<FIELD.goalHalf+1&&y<3.6&&p.cooldown<=0){
         const context=saveContext(p,{x:tx,z,y});state.dived=true;
         p.animate('keeper-dive',.6,{...context,high:y>1.7,oneHand:Math.abs(z-p.z)>2});
         // The dive moves the goalkeeper toward the predicted ball, with a finite reach.
@@ -51,14 +55,21 @@ export function keeperContact(match,p){
   const b=match.ball,d=match.direction(p.team),gap=distance(p,b),speed=Math.hypot(b.vx,b.vz);
   if(p.cooldown>0||p.x*d>-FIELD.halfLength+FIELD.boxDepth||Math.abs(p.z)>FIELD.boxHalf||gap>2.5||b.y>3.5)return false;
   const context=saveContext(p,b),cross=!!b.pass&&b.y>1.4,close=!!b.owner;
-  const ability=clamp(match.aiConfig(p.team).keeper*p.attributes.keeper,.4,.98);
-  const reaction=(p.keeperState.reaction||0)>0?.2:0;
-  const easy=gap<1.3&&speed<20&&b.y<2.2;
-  const success=gap<.75||easy||match.random()<clamp(ability-speed*.0027-reaction-(gap>1.8?.1:0),.12,.97);
-  if(!success){p.cooldown=.55;if(!p.action)p.animate('keeper-dive',.65,{...context,high:b.y>1.7});return true;}
+  const config=match.aiConfig(p.team),ability=clamp(config.keeper*(.65+p.attributes.keeper*.35),.4,1);
+  const reaction=(p.keeperState.reaction||0)>0?config.reaction*.1:0;
+  // Judge a straight shot by its path through the keeper, not the outer reach boundary.
+  const toward=speed>.1?((p.x-b.x)*b.vx+(p.z-b.z)*b.vz)/(speed*speed):0;
+  const miss=speed>.1?Math.abs((b.x-p.x)*b.vz-(b.z-p.z)*b.vx)/speed:gap;
+  const atBody=predictBall(b,clamp(toward,0,.15));
+  const direct=!close&&toward>=-.015&&toward<.16&&miss<.82&&atBody.y<2.65;
+  const easy=gap<1.45&&speed<24&&b.y<2.4;
+  const probability=direct?clamp(.955+config.keeper*.043,.97,.9995)
+    :clamp(ability-speed*.0015*(1.2-config.keeper)-reaction-(gap>1.8?.1*(1.2-config.keeper):0),.18,.995);
+  const success=gap<.75||easy||match.random()<probability;
+  if(!success){p.cooldown=.16;if(!p.action)p.animate('keeper-dive',.65,{...context,high:b.y>1.7});return false;}
   if(b.shot){match.onTarget();match.stats[p.team].saves++;p.saves++;}
   const pressure=match.active(1-p.team).some(o=>distance(o,b)<3);
-  const catchable=(close||speed<29)&&b.y<2.8&&(!cross||!pressure)&&gap<1.9;
+  const catchable=(close||speed<29||(direct&&speed<32+config.keeper*6))&&b.y<2.8&&(!cross||!pressure)&&gap<1.9;
   if(catchable){
     match.claim(p,{hands:true});p.animate(close?'keeper-smother':cross?'keeper-cross-catch':'keeper-catch',.65,context);
   }else{

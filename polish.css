@@ -86,3 +86,7 @@ dialog{border-color:#adc3bf38;background:linear-gradient(145deg,#19343b,#0d252e)
 
 #match-hud[data-phase="goal"] .selected-player,#match-hud[data-phase="goal"] #minimap,#match-hud[data-phase="goal"] .keyboard-hint{visibility:hidden}
 @media(max-height:600px) and (orientation:landscape){#notice[data-kind="goal"]{bottom:7%}}
+
+/* Four difficulty choices remain thumb-friendly on narrow phones. */
+[data-settings-panel="game"]>.option-row:not(.compact){display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:560px){[data-settings-panel="game"]>.option-row:not(.compact){grid-template-columns:repeat(2,minmax(0,1fr))}}

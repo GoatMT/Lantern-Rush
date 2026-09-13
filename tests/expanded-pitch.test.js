@@ -48,7 +48,7 @@ test('crosses land near the advertised receiving point instead of falling short'
   p.x=u(24);p.z=FIELD.halfWidth-1;target.x=u(26);target.z=0;
   m.players.forEach(o=>{if(o!==p&&o!==target)o.sentOff=true;});m.ball.take(p);m.pass(p);
   const landing={x:m.ball.pass.x,z:m.ball.pass.z};assert(m.ball.vy>8);
-  let airborne=false;for(let i=0;i<600;i++){m.ball.update(1/120);if(m.ball.y>2)airborne=true;if(airborne&&m.ball.y<=FIELD.ballRadius)break;}
+  let airborne=false;for(let i=0;i<600;i++){const falling=m.ball.vy<0;m.ball.update(1/120);if(m.ball.y>2)airborne=true;if(airborne&&falling&&m.ball.vy>=0)break;}
   assert(airborne);assert(distance(m.ball,landing)<3);
 });
 test('a through-ball receiver makes a forward run and can collect a long pass without a manual switch',()=>{

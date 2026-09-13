@@ -1,5 +1,6 @@
 import { FIELD,PLAY,normalize,clamp,distance } from '../config.js';
 import { contactFoot } from './shooting.js';
+import { advanceBallMotion } from './physics.js';
 export class Ball {
   constructor(){this.flightId=0;this.reset();}
   reset(x=0,z=0){if(this.owner)this.owner.hasBall=false;Object.assign(this,{x,z,y:FIELD.ballRadius,vx:0,vz:0,vy:0,owner:null,lastTouch:null,previousTouch:null,lock:0,shot:null,pass:null,
@@ -47,19 +48,9 @@ export class Ball {
   }
   release(vx=this.vx,vz=this.vz,vy=this.vy){if(this.owner)this.owner.hasBall=false;this.owner=null;this.controlMode='feet';this.vx=vx;this.vz=vz;this.vy=vy;this.touchClock=0;}
   integrate(dt){
-    const airborne=this.y>FIELD.ballRadius+.015||this.vy>.1,speed=Math.hypot(this.vx,this.vz);
-    if(airborne){
-      const angle=this.spin*.018*dt,cos=Math.cos(angle),sin=Math.sin(angle),oldX=this.vx;
-      this.vx=oldX*cos-this.vz*sin;this.vz=oldX*sin+this.vz*cos;
-      const drag=Math.exp(-PLAY.airDrag*dt);this.vx*=drag;this.vz*=drag;this.vy-=PLAY.gravity*dt;
-    }else if(speed>0){
-      const next=Math.max(0,speed*Math.exp(-PLAY.groundDrag*dt)-PLAY.rollingResistance*dt);
-      this.vx*=next/speed;this.vz*=next/speed;
-    }
-    this.x+=this.vx*dt;this.z+=this.vz*dt;this.y+=this.vy*dt;
-    if(this.y<=FIELD.ballRadius){this.y=FIELD.ballRadius;this.vy=Math.abs(this.vy)>1.8?-this.vy*PLAY.bounceDamping:0;}
-    this.spin*=Math.exp(-(airborne?.25:1.7)*dt);this.rollX+=this.vz*dt/FIELD.ballRadius;this.rollZ-=this.vx*dt/FIELD.ballRadius;this.rotationY+=this.spin*dt;
-    if(Math.hypot(this.vx,this.vz)<PLAY.stopSpeed){this.vx=this.vz=0;if(this.y===FIELD.ballRadius)this.spin=0;}
+    const x=this.x,z=this.z;
+    this.rotationY+=advanceBallMotion(this,dt);
+    this.rollX+=(this.z-z)/FIELD.ballRadius;this.rollZ-=(this.x-x)/FIELD.ballRadius;
   }
   update(dt){
     this.lock=Math.max(0,this.lock-dt);this.flightTime+=dt;

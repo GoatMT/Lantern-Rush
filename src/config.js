@@ -15,13 +15,14 @@ export const PLAY = Object.freeze({
   runSpeed:7.3, sprintSpeed:11.8, staminaDrain:.045, staminaRecovery:.012,
   acceleration:32, sprintAcceleration:28, braking:48, turnAcceleration:78, turnRate:14, sprintTurnRate:11,
   groundDrag:.38, rollingResistance:3.0, airDrag:.095, gravity:16, bounceDamping:.22, stopSpeed:.24,
-  passMin:12, passMax:46, shotBase:30, shotPower:19,
+  passMin:8, passMax:46, shotBase:30, shotPower:19,
   supportGap:fieldUnits(3), pressureCover:fieldUnits(4), shootingRange:fieldUnits(17)
 });
 export const DIFFICULTY = {
-  easy:{ reaction:.85, pressure:.62, accuracy:.63, keeper:.62 },
-  normal:{ reaction:.5, pressure:.82, accuracy:.82, keeper:.8 },
-  hard:{ reaction:.26, pressure:1, accuracy:.95, keeper:.92 }
+  easy:{ reaction:.9, pressure:.58, accuracy:.60, keeper:.70, awareness:.45, shotRange:25, coverGap:6.5, diveLead:.42, kickoffShot:.025 },
+  normal:{ reaction:.46, pressure:.80, accuracy:.82, keeper:.86, awareness:.72, shotRange:29, coverGap:5.2, diveLead:.52, kickoffShot:.04 },
+  hard:{ reaction:.23, pressure:.96, accuracy:.95, keeper:.96, awareness:.91, shotRange:34, coverGap:4.3, diveLead:.62, kickoffShot:.055 },
+  insane:{ reaction:.10, pressure:1, accuracy:.992, keeper:1.03, awareness:1, shotRange:38, coverGap:3.6, diveLead:.72, kickoffShot:.07 }
 };
 export const FORMATION = Object.freeze([
   {role:'GK',x:-29,z:0}, {role:'DEF',x:-19,z:-8}, {role:'DEF',x:-19,z:8},

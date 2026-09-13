@@ -14,7 +14,7 @@ export class Player {
   }
   reset(direction){
     const h=FORMATION[this.slot];this.x=h.x*direction;this.z=h.z;this.vx=this.vz=0;this.faceX=direction;this.faceZ=0;this.lookX=direction;this.lookZ=0;this.cooldown=.35;
-    this.action=null;this.skillPlan=null;this.skill=0;this.animationTime=0;this.animation=this.role==='GK'?'ready':'idle';this.locomotion='idle';this.keeperState={};this.gait=0;this.hasBall=false;this.striking=false;this.aiTarget=null;this.cutTime=0;
+    this.action=null;this.skillPlan=null;this.skill=0;this.animationTime=0;this.animation=this.role==='GK'?'ready':'idle';this.locomotion='idle';this.keeperState={};this.gait=0;this.hasBall=false;this.striking=false;this.aiTarget=null;this.cutTime=0;this.receivedFrom=null;
   }
   move(dx,dz,intensity,dt,sprint=false,facing=null){
     if(this.striking){dx=dz=intensity=0;sprint=false;}

@@ -27,7 +27,7 @@ export class LeagueData{
       this.teams[season.year]=payload.teams.filter(t=>t.roster?.length>=7).map(t=>{
         const lineup=createLineup(t.roster);
         const official=SEASON_KITS[season.year]?.[t.id];
-        return {...t,season:season.year,lineup,bench:t.roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit:official?.primary||t.colors?.primary||null,uniform:official?teamKit(season.year,t.id):null};
+        return {...t,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,season:season.year,lineup,bench:t.roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit:official?.primary||t.colors?.primary||null,uniform:official?teamKit(season.year,t.id):null};
       });
       progress((i+1)/this.seasons.length);
     }
