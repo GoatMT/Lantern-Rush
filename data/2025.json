@@ -17,7 +17,7 @@
           "position": "Goalkeeper",
           "leadershipRole": null,
           "profileId": "mohammed-rayyan-sayed",
-          "overall": 88,
+          "overall": 89,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -35,7 +35,7 @@
           "position": "Forward",
           "leadershipRole": "captain",
           "profileId": "hafizullah",
-          "overall": 96,
+          "overall": 97,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -53,7 +53,7 @@
           "position": "Forward",
           "leadershipRole": "assistant",
           "profileId": "muhammad-affan",
-          "overall": 85,
+          "overall": 87,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -71,7 +71,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "sayem-mohammed-sadi",
-          "overall": 82,
+          "overall": 80,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -89,7 +89,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "abdul-ghiyas-solyman",
-          "overall": 93,
+          "overall": 92,
           "playstyle": {
             "label": "Creator",
             "traits": [
@@ -107,7 +107,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "hammad-shaikh",
-          "overall": 77,
+          "overall": 83,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -143,7 +143,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "huzaifa-ahmad-vadia",
-          "overall": 74,
+          "overall": 75,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -161,7 +161,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "haroon-sarood",
-          "overall": 65,
+          "overall": 68,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -179,7 +179,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-shah",
-          "overall": 68,
+          "overall": 72,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -197,7 +197,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abdullah-patel",
-          "overall": 58,
+          "overall": 60,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -215,7 +215,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "bilal-sami-ahmad",
-          "overall": 65,
+          "overall": 68,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -226,7 +226,8 @@
             "description": "Bilal Sami Syed brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 79
     },
     {
       "id": "umer-memon-fc-2025",
@@ -244,7 +245,7 @@
           "position": "Goalkeeper",
           "leadershipRole": null,
           "profileId": "saad-khan",
-          "overall": 97,
+          "overall": 99,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -280,7 +281,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "yousaf-hosseinzada",
-          "overall": 79,
+          "overall": 75,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -298,7 +299,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "azizullah",
-          "overall": 84,
+          "overall": 79,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -316,7 +317,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "muhammad-teli",
-          "overall": 94,
+          "overall": 92,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -334,7 +335,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ishaaq-ali",
-          "overall": 80,
+          "overall": 77,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -370,7 +371,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohammed-hanzala",
-          "overall": 68,
+          "overall": 64,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -406,7 +407,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "uwais-bemat",
-          "overall": 90,
+          "overall": 86,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -424,7 +425,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "hasan-hatia",
-          "overall": 64,
+          "overall": 61,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -453,7 +454,8 @@
             "description": "Abdul Ahad Muabir brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 80
     },
     {
       "id": "islamic-bookstore-runners",
@@ -489,7 +491,7 @@
           "position": "Forward",
           "leadershipRole": "captain",
           "profileId": "mudassir",
-          "overall": 95,
+          "overall": 98,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -507,7 +509,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "ahmad-ingar",
-          "overall": 61,
+          "overall": 65,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -525,7 +527,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "tayyib-mohammed",
-          "overall": 91,
+          "overall": 88,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -543,7 +545,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "zain-adam",
-          "overall": 56,
+          "overall": 54,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -579,7 +581,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "mohammed-hasan",
-          "overall": 58,
+          "overall": 74,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -597,7 +599,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "basir-ahmad-dastagiri",
-          "overall": 70,
+          "overall": 66,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -680,7 +682,8 @@
             "description": "Zakariyya Dualeh is still building a clearer LSL profile. More matches will show whether the style leans toward scoring, creating, defending, or all-around impact."
           }
         }
-      ]
+      ],
+      "overall": 63
     },
     {
       "id": "amax-optical-kickers",
@@ -698,7 +701,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ataa-shaikh",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -716,7 +719,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "uthman",
-          "overall": 80,
+          "overall": 87,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -734,7 +737,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "tulha-ahmed",
-          "overall": 85,
+          "overall": 84,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -752,7 +755,7 @@
           "position": "Field",
           "leadershipRole": "captain",
           "profileId": "taha-nakhuda",
-          "overall": 89,
+          "overall": 88,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -770,7 +773,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "hamza-akalwala",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -788,7 +791,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ammar-mamun",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -806,7 +809,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "subhan-ali-syed",
-          "overall": 54,
+          "overall": 58,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -824,7 +827,7 @@
           "position": "Forward",
           "leadershipRole": null,
           "profileId": "mumin-milhan",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -842,7 +845,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "aamir-jogiat",
-          "overall": 66,
+          "overall": 67,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -860,7 +863,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "maaz",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -878,7 +881,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "hammad-hatia",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -896,7 +899,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "zakariyya-motala",
-          "overall": 51,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -914,7 +917,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "sufyan-munshi",
-          "overall": 69,
+          "overall": 71,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -925,7 +928,8 @@
             "description": "Sufyan Munshi brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 63
     },
     {
       "id": "im-construction-sc",
@@ -961,7 +965,7 @@
           "position": "Forward",
           "leadershipRole": "captain",
           "profileId": "rehaan-adam",
-          "overall": 88,
+          "overall": 91,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -979,7 +983,7 @@
           "position": "Forward",
           "leadershipRole": "assistant",
           "profileId": "omar-ajmal",
-          "overall": 82,
+          "overall": 83,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1015,7 +1019,7 @@
           "position": "Forward",
           "leadershipRole": "assistant",
           "profileId": "amadu",
-          "overall": 77,
+          "overall": 90,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -1033,7 +1037,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abdul-basit-mesbah",
-          "overall": 70,
+          "overall": 74,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1051,7 +1055,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ayub-jan",
-          "overall": 91,
+          "overall": 85,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1069,7 +1073,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "rehan-ahmed-mohammed",
-          "overall": 87,
+          "overall": 89,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1123,7 +1127,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ayaan-tutla",
-          "overall": 67,
+          "overall": 68,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1141,7 +1145,7 @@
           "position": "Goalkeeper",
           "leadershipRole": null,
           "profileId": "ali-razzaq",
-          "overall": 94,
+          "overall": 97,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -1152,7 +1156,8 @@
             "description": "Ali Razzaq plays as a goalkeeper, so the biggest impact is organizing the defense, staying composed under pressure, and giving the team a steady last line."
           }
         }
-      ]
+      ],
+      "overall": 80
     },
     {
       "id": "refuel-juicery-athletic",
@@ -1224,7 +1229,7 @@
           "position": "Forward",
           "leadershipRole": "assistant",
           "profileId": "mohammed-ibrahim",
-          "overall": 93,
+          "overall": 94,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -1242,7 +1247,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ziyad-adam",
-          "overall": 80,
+          "overall": 77,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1260,7 +1265,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abdur-rakib",
-          "overall": 81,
+          "overall": 79,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1278,7 +1283,7 @@
           "position": "Forward",
           "leadershipRole": null,
           "profileId": "nasibullah",
-          "overall": 76,
+          "overall": 78,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1332,7 +1337,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "taha-ahmed",
-          "overall": 78,
+          "overall": 76,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1368,7 +1373,7 @@
           "position": "Goalkeeper",
           "leadershipRole": null,
           "profileId": "rizwan-haque",
-          "overall": 92,
+          "overall": 93,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -1386,7 +1391,7 @@
           "position": "Forward",
           "leadershipRole": "assistant",
           "profileId": "m-yahya",
-          "overall": 96,
+          "overall": 95,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1397,7 +1402,8 @@
             "description": "M Yahya brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 80
     },
     {
       "id": "dhahabiya-strikers",
@@ -1415,7 +1421,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "azaan",
-          "overall": 69,
+          "overall": 62,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1433,7 +1439,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "saifan",
-          "overall": 69,
+          "overall": 62,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1451,7 +1457,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mustafa-sakhiyar",
-          "overall": 73,
+          "overall": 51,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1469,7 +1475,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "shafiullah",
-          "overall": 78,
+          "overall": 57,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1487,7 +1493,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohammed-wahedi",
-          "overall": 98,
+          "overall": 96,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -1505,7 +1511,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abdullah-juniors",
-          "overall": 69,
+          "overall": 62,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1523,7 +1529,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "hasibullah-kharooti",
-          "overall": 84,
+          "overall": 68,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1541,7 +1547,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohammed-maaz-aswat",
-          "overall": 69,
+          "overall": 62,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1559,7 +1565,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "aijaz-khan",
-          "overall": 69,
+          "overall": 62,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1577,7 +1583,7 @@
           "position": "Forward",
           "leadershipRole": "captain",
           "profileId": "ajmal-shakkari",
-          "overall": 99,
+          "overall": 91,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -1595,7 +1601,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "rafiullah",
-          "overall": 76,
+          "overall": 54,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1606,7 +1612,8 @@
             "description": "Rafiullah profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 66
     },
     {
       "id": "the-travel-builder-united",
@@ -1624,7 +1631,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "syed-zaeem-arshad",
-          "overall": 67,
+          "overall": 60,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1642,7 +1649,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "hammad-parekh",
-          "overall": 53,
+          "overall": 48,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1660,7 +1667,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ammar-haque",
-          "overall": 56,
+          "overall": 52,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1696,7 +1703,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "umar-manjra",
-          "overall": 72,
+          "overall": 70,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1714,7 +1721,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ahmed-ibadullah-minhas",
-          "overall": 53,
+          "overall": 48,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1732,7 +1739,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "suleman-asmal",
-          "overall": 53,
+          "overall": 48,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1750,7 +1757,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "yahya-mohammed",
-          "overall": 53,
+          "overall": 48,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1768,7 +1775,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ali-shadab-shaikh",
-          "overall": 74,
+          "overall": 63,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1797,7 +1804,8 @@
             "description": "Idrees Nawabi is still building a clearer LSL profile. More matches will show whether the style leans toward scoring, creating, defending, or all-around impact."
           }
         }
-      ]
+      ],
+      "overall": 55
     },
     {
       "id": "em-truck-repair-fc",
@@ -1815,7 +1823,7 @@
           "position": "Field",
           "leadershipRole": "captain",
           "profileId": "mubashir-kharooti",
-          "overall": 88,
+          "overall": 80,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1833,7 +1841,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "umair",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1851,7 +1859,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "arifur-rahman",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1869,7 +1877,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "azizur-rahman",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1887,7 +1895,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "raees-gauri",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1905,7 +1913,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "jamal-mujaddidi",
-          "overall": 71,
+          "overall": 66,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1923,7 +1931,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "raffan-mohammed",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1941,7 +1949,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "murtaza-ahmadi",
-          "overall": 52,
+          "overall": 50,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1959,7 +1967,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "huzaifa-kotwal",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1977,7 +1985,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abrar-makrod",
-          "overall": 50,
+          "overall": 45,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1988,7 +1996,8 @@
             "description": "Abrar Makrod is still building a clearer LSL profile. More matches will show whether the style leans toward scoring, creating, defending, or all-around impact."
           }
         }
-      ]
+      ],
+      "overall": 51
     },
     {
       "id": "rafik-enterprise-fc",
@@ -2006,7 +2015,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "zakariya",
-          "overall": 61,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -2024,7 +2033,7 @@
           "position": "Field",
           "leadershipRole": "captain",
           "profileId": "ilyas-salim",
-          "overall": 86,
+          "overall": 71,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -2042,7 +2051,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "yonus-dualeh",
-          "overall": 61,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -2060,7 +2069,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "mohammed-hammad-syed",
-          "overall": 97,
+          "overall": 95,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -2078,7 +2087,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ibad-sheikh",
-          "overall": 61,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -2096,7 +2105,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "ibrahim-syed",
-          "overall": 79,
+          "overall": 63,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -2114,7 +2123,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "raiyan-jahir",
-          "overall": 61,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -2132,7 +2141,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ammar-kazi",
-          "overall": 87,
+          "overall": 73,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -2150,7 +2159,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ibrahim-jawal-ahmed",
-          "overall": 61,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -2168,7 +2177,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "rehan-patel",
-          "overall": 61,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -2179,7 +2188,8 @@
             "description": "Rehan Patel brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 63
     }
   ]
 }

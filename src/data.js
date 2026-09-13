@@ -16,12 +16,12 @@ export function createLineup(roster){
 }
 export class LeagueData{
   async load(progress=()=>{}){
-    const response=await fetch(new URL('../data/seasons.json',import.meta.url));
+    const response=await fetch(new URL('../data/seasons.json',import.meta.url),{cache:'no-cache'});
     if(!response.ok)throw Error('Season list could not be loaded.');
     this.seasons=await response.json();this.teams={};
     for(let i=0;i<this.seasons.length;i++){
       const season=this.seasons[i];
-      const res=await fetch(new URL('../'+season.file,import.meta.url));
+      const res=await fetch(new URL('../'+season.file,import.meta.url),{cache:'no-cache'});
       if(!res.ok)throw Error('Roster unavailable: '+season.year);
       const payload=await res.json();
       this.teams[season.year]=payload.teams.filter(t=>t.roster?.length>=7).map(t=>{

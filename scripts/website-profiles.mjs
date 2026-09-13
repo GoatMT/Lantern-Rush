@@ -30,9 +30,11 @@ export async function loadWebsiteProfiles(source){
     const career=seasonStats.flatMap(rows=>rows.filter(row=>row.id===p.id));
     return [p.id,{overall:engine.playerOVR(p,pool),playstyle:style(p,career)}];
   }));
+  const ratings=new Map(engine.playersWithOVR(pool,pool).map(p=>[p.id,p.ovr]));
+  const teamRatings=new Map(seasons.map(season=>[String(season.year),new Map(season.teams.map(team=>[team.id,engine.teamOVR(team,ratings)]))]));
   const aliases=JSON.parse(await fs.readFile(path.join(source,'data/player-aliases.json'),'utf8'));
   const files=['js/dataLoader.js','js/leagueEngine.js','js/playerProfile.js','js/config.js','data/player-aliases.json'];
   for(const season of seasons)for(const file of ['teams','players','matches','awards','playoffs'])files.push('data/'+season.year+'/'+file+'.json');
   const hashes={};for(const file of files){try{hashes[file]=createHash('sha256').update(await fs.readFile(path.join(source,file))).digest('hex');}catch(error){if(error.code!=='ENOENT')throw error;}}
-  return {profiles,aliases,provenance:{basis:'LSL Website career OVR and inferPlayerStyle, all games; not season-only ratings',seasons:seasons.map(s=>s.year),files:hashes}};
+  return {profiles,aliases,teamRatings,provenance:{teamBasis:'LSL Website teamOVR using the full published season roster and career player ratings',basis:'LSL Website career OVR and inferPlayerStyle, all games; not season-only ratings',seasons:seasons.map(s=>s.year),files:hashes}};
 }

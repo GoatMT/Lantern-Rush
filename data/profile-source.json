@@ -1,4 +1,5 @@
 {
+  "teamBasis": "LSL Website teamOVR using the full published season roster and career player ratings",
   "basis": "LSL Website career OVR and inferPlayerStyle, all games; not season-only ratings",
   "seasons": [
     "2024",
@@ -7,9 +8,9 @@
     "2027"
   ],
   "files": {
-    "js/dataLoader.js": "b406c1ac194f546b36897151e126441a93ce522e5c1d07d603e4baded70893ae",
-    "js/leagueEngine.js": "b6e6d8245a761a72e7dfad729de87c7dbf9d17ed14ffb6fe90797f821f7249ff",
-    "js/playerProfile.js": "db55a9dd188a022e1aed63b951d69cfc416d1bddd6e4ff9d469d620e3c714933",
+    "js/dataLoader.js": "4c75766d9a730cf0e2cb313cd7287a18c29d665df02745d335103e844c1284e1",
+    "js/leagueEngine.js": "0e6115fd7526b7fcd0cb8138ce52409e6b5cd85ac962b9d7e3e2d80c8de7a6b3",
+    "js/playerProfile.js": "37f0be88e9feff64039f142539ec12b79c68d2a0b9b7b3e956dea06effffd697",
     "js/config.js": "cdfbd9360d2436bc9e21a89f27e0a902841bb07fad1b11f3d10d5752d6c99b39",
     "data/player-aliases.json": "9647f9d41f86cf33e049887e24e926e354d52dc2eaada0b824ff4128506df805",
     "data/2024/teams.json": "0eb41eaa1aee6372cc13aa4fb70fdbfc64b39c97987f8c15feedde4610f93f10",

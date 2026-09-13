@@ -17,7 +17,7 @@
           "position": "Striker",
           "leadershipRole": "assistant",
           "profileId": "mosa-fazli",
-          "overall": 73,
+          "overall": 85,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -35,7 +35,7 @@
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "yousaf-hosseinzada",
-          "overall": 79,
+          "overall": 75,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -53,7 +53,7 @@
           "position": "Striker/Winger",
           "leadershipRole": "assistant",
           "profileId": "abdul-ghiyas-solyman",
-          "overall": 93,
+          "overall": 92,
           "playstyle": {
             "label": "Creator",
             "traits": [
@@ -71,7 +71,7 @@
           "position": "Defender",
           "leadershipRole": "captain",
           "profileId": "ishaaq-ali",
-          "overall": 80,
+          "overall": 77,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -89,7 +89,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ibrahim-syed",
-          "overall": 79,
+          "overall": 63,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -107,7 +107,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "azizullah",
-          "overall": 84,
+          "overall": 79,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -125,7 +125,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "mohammad-usman",
-          "overall": 60,
+          "overall": 62,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -143,7 +143,7 @@
           "position": "Goalie",
           "leadershipRole": null,
           "profileId": "zakariya-mohmed-bemat",
-          "overall": 92,
+          "overall": 93,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -161,7 +161,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ayub-jan",
-          "overall": 91,
+          "overall": 85,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -179,7 +179,7 @@
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "hasibullah-kharooti",
-          "overall": 84,
+          "overall": 68,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -190,7 +190,8 @@
             "description": "Hasibullah Kharooti brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 78
     },
     {
       "id": "rawaha-royals",
@@ -208,7 +209,7 @@
           "position": "Striker",
           "leadershipRole": "assistant",
           "profileId": "uthman",
-          "overall": 80,
+          "overall": 87,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -226,7 +227,7 @@
           "position": "Goalie",
           "leadershipRole": "assistant",
           "profileId": "saad-khan",
-          "overall": 97,
+          "overall": 99,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -244,7 +245,7 @@
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "mubashir-kharooti",
-          "overall": 88,
+          "overall": 80,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -262,7 +263,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "umair-saiyad",
-          "overall": 59,
+          "overall": 61,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -280,7 +281,7 @@
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "tulha-ahmed",
-          "overall": 85,
+          "overall": 84,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -298,7 +299,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "muneeb",
-          "overall": 59,
+          "overall": 61,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -316,7 +317,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "syed-zaeem-arshad",
-          "overall": 67,
+          "overall": 60,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -334,7 +335,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "murtaza-syed",
-          "overall": 59,
+          "overall": 61,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -352,7 +353,7 @@
           "position": "Striker",
           "leadershipRole": "captain",
           "profileId": "mohammed-ibrahim",
-          "overall": 93,
+          "overall": 94,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -381,7 +382,8 @@
             "description": "Zakariya Chhibu profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 77
     },
     {
       "id": "em-haulers-fc",
@@ -417,7 +419,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ammar-kazi",
-          "overall": 87,
+          "overall": 73,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -435,7 +437,7 @@
           "position": "Goalie",
           "leadershipRole": null,
           "profileId": "mohammed-wahedi",
-          "overall": 98,
+          "overall": 96,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -525,7 +527,7 @@
           "position": "Attacking Midfielder",
           "leadershipRole": "assistant",
           "profileId": "uwais-bemat",
-          "overall": 90,
+          "overall": 86,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -561,7 +563,7 @@
           "position": "Attacking Midfielder",
           "leadershipRole": null,
           "profileId": "tayyib-mohammed",
-          "overall": 91,
+          "overall": 88,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -572,7 +574,8 @@
             "description": "Tayyib Mohammed brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
           }
         }
-      ]
+      ],
+      "overall": 84
     },
     {
       "id": "leeward-lions",
@@ -590,7 +593,7 @@
           "position": "Attacking Midfielder",
           "leadershipRole": "captain",
           "profileId": "mudassir",
-          "overall": 95,
+          "overall": 98,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -608,7 +611,7 @@
           "position": "Winger",
           "leadershipRole": null,
           "profileId": "ajmal-shakkari",
-          "overall": 99,
+          "overall": 91,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -626,7 +629,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "subhanullah-sharza",
-          "overall": 83,
+          "overall": 82,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -644,7 +647,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "abdullah-hosseinzadah",
-          "overall": 71,
+          "overall": 73,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -680,7 +683,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ibrahim-kadam",
-          "overall": 65,
+          "overall": 66,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -698,7 +701,7 @@
           "position": "Goalie",
           "leadershipRole": null,
           "profileId": "usman-ahmad-popal",
-          "overall": 95,
+          "overall": 96,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -716,7 +719,7 @@
           "position": "Winger",
           "leadershipRole": "assistant",
           "profileId": "muhammad-teli",
-          "overall": 94,
+          "overall": 92,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -752,7 +755,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "sayem-mohammed-sadi",
-          "overall": 82,
+          "overall": 80,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -763,7 +766,8 @@
             "description": "Sayem Mohamed Saad profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 82
     },
     {
       "id": "memon-mavericks",
@@ -799,7 +803,7 @@
           "position": "Goalie",
           "leadershipRole": "captain",
           "profileId": "hasan-hamraz",
-          "overall": 72,
+          "overall": 55,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -817,7 +821,7 @@
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "muhammad-affan",
-          "overall": 85,
+          "overall": 87,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -889,7 +893,7 @@
           "position": "Field/Goalie",
           "leadershipRole": null,
           "profileId": "muhammad-zaidan",
-          "overall": 89,
+          "overall": 78,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -907,7 +911,7 @@
           "position": "Striker",
           "leadershipRole": "assistant",
           "profileId": "nasibullah",
-          "overall": 76,
+          "overall": 78,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -954,7 +958,8 @@
             "description": "Idris Nawabi profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 60
     },
     {
       "id": "gangat-warriors",
@@ -972,7 +977,7 @@
           "position": "Striker",
           "leadershipRole": "captain",
           "profileId": "taha-nakhuda",
-          "overall": 89,
+          "overall": 88,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -990,7 +995,7 @@
           "position": "Goalie",
           "leadershipRole": "assistant",
           "profileId": "hammad-shaikh",
-          "overall": 77,
+          "overall": 83,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -1008,7 +1013,7 @@
           "position": "Winger",
           "leadershipRole": "assistant",
           "profileId": "ahmad-ingar",
-          "overall": 61,
+          "overall": 65,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1026,7 +1031,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "huzaifa-ahmad-vadia",
-          "overall": 74,
+          "overall": 75,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1044,7 +1049,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ayaan-tutla",
-          "overall": 67,
+          "overall": 68,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1062,7 +1067,7 @@
           "position": "Attacking Midfielder",
           "leadershipRole": null,
           "profileId": "yahya-adil-butt",
-          "overall": 55,
+          "overall": 58,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1080,7 +1085,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "rafiullah",
-          "overall": 76,
+          "overall": 54,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1098,7 +1103,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "bayram-loukil",
-          "overall": 57,
+          "overall": 59,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1116,7 +1121,7 @@
           "position": "Winger",
           "leadershipRole": null,
           "profileId": "umar-manjra",
-          "overall": 72,
+          "overall": 70,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1152,7 +1157,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ilyas-salim",
-          "overall": 86,
+          "overall": 71,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1163,7 +1168,8 @@
             "description": "Ilyas Salim profiles as a defense-first player who also adds surprise attacking value when chances open up. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 68
     },
     {
       "id": "sharp-strikers",
@@ -1199,7 +1205,7 @@
           "position": "Goalie",
           "leadershipRole": null,
           "profileId": "mohammed-hammad-syed",
-          "overall": 97,
+          "overall": 95,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -1217,7 +1223,7 @@
           "position": "Striker",
           "leadershipRole": "captain",
           "profileId": "m-yahya",
-          "overall": 96,
+          "overall": 95,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1235,7 +1241,7 @@
           "position": "Striker",
           "leadershipRole": "assistant",
           "profileId": "rehan-ahmed-mohammed",
-          "overall": 87,
+          "overall": 89,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1253,7 +1259,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "mohammad-erfan-noorzai",
-          "overall": 64,
+          "overall": 70,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1271,7 +1277,7 @@
           "position": "Striker",
           "leadershipRole": null,
           "profileId": "mohammed-rayyan-sayed",
-          "overall": 88,
+          "overall": 89,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1289,7 +1295,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "younes-meraidia",
-          "overall": 64,
+          "overall": 70,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1325,7 +1331,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "jamal-mujaddidi",
-          "overall": 71,
+          "overall": 66,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1343,7 +1349,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "samiullah-naimat",
-          "overall": 64,
+          "overall": 70,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1354,7 +1360,8 @@
             "description": "Samiullah Naimat profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 82
     },
     {
       "id": "amax-visionaries",
@@ -1372,7 +1379,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "ahmed-bhaiyat",
-          "overall": 55,
+          "overall": 56,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1390,7 +1397,7 @@
           "position": "Goalie",
           "leadershipRole": "assistant",
           "profileId": "ali-razzaq",
-          "overall": 94,
+          "overall": 97,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -1426,7 +1433,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "yousuf-nathani",
-          "overall": 55,
+          "overall": 56,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1444,7 +1451,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "shafiullah",
-          "overall": 78,
+          "overall": 57,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1462,7 +1469,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "zaeem-kapil-parakot",
-          "overall": 55,
+          "overall": 56,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1516,7 +1523,7 @@
           "position": "Midfielder",
           "leadershipRole": null,
           "profileId": "uzair-sidat",
-          "overall": 59,
+          "overall": 61,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1534,7 +1541,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "muhammad-shah",
-          "overall": 68,
+          "overall": 72,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1552,7 +1559,7 @@
           "position": "Defender",
           "leadershipRole": null,
           "profileId": "sajadullah-khalil",
-          "overall": 55,
+          "overall": 56,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -1563,7 +1570,8 @@
             "description": "Sajadullah Khalil profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
           }
         }
-      ]
+      ],
+      "overall": 69
     }
   ]
 }

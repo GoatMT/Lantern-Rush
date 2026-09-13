@@ -34,7 +34,6 @@ export class Match {
     if(this.pendingStrike&&phase!=='playing'){this.pendingStrike.p.striking=false;this.pendingStrike=null;}
     if(phase!=='playing'){this.manualKeeper=false;this.keeperReturn=false;this.defensiveRoles=null;this.kickoffAttack=null;}
     this.phase=phase;this.phaseTime=0;this.charge=0;this.curveRequested=false;
-    if(['restart','goal','halftime'].includes(phase))this.players.forEach(p=>p.allowRecovery());
     this.event('phase',phase);
   }
   resetFormation(){this.players.forEach(p=>p.reset(this.direction(p.team)));this.ball.reset();}
@@ -101,7 +100,7 @@ export class Match {
       if(this.phaseTime>PRESENTATION.goal){this.resetFormation();this.beginRestart({type:'KICK OFF',team:1-this.scoringTeam,x:0,z:0});}
       return;
     }
-    if(this.phase==='restart'){this.players.forEach(p=>p.updateStamina(dt));this.updateRestart(dt,input);return;}
+    if(this.phase==='restart'){this.updateRestart(dt,input);return;}
     if(this.phase!=='playing')return;
     this.elapsed+=dt;
     for(const p of this.players){p.previousX=p.x;p.previousZ=p.z;}
@@ -448,9 +447,15 @@ export class Match {
   }
   autoSubstitute(){
     if(this.stats[1].substitutions>=3||!this.benches[1].length)return;
-    const tired=this.active(1).filter(p=>p.role!=='GK'&&p.stamina<p.maxStamina*.52).sort((a,b)=>a.stamina/a.maxStamina-b.stamina/b.maxStamina)[0];
-    if(!tired)return;
-    const incoming=this.benches[1].find(p=>!/goal|keeper/i.test(p.position))||this.benches[1][0];
-    this.pending.push({out:tired,incoming,team:1});this.applySubstitutions();
+    // Rotate at spaced second-half stoppages, prioritizing cautioned players.
+    const threshold=this.settings.duration*60*(.5+this.stats[1].substitutions*.16);
+    if(this.elapsed<threshold)return;
+    const out=this.active(1).filter(p=>p.role!=='GK'&&!this.used[1].some(q=>q.id===p.id))
+      .sort((a,b)=>b.yellow-a.yellow||a.involvement-b.involvement)[0];
+    if(!out)return;
+    const options=this.benches[1].filter(p=>!/goal|keeper/i.test(p.position));
+    const role=p=>/def/i.test(p.position)?'DEF':/mid/i.test(p.position)?'MID':'FWD';
+    const incoming=options.find(p=>role(p)===out.role)||options[0];if(!incoming)return;
+    this.pending.push({out,incoming,team:1});this.applySubstitutions();
   }
 }

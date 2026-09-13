@@ -21,7 +21,7 @@ export class MatchIntro{
     if(stage!==this.stage){
       this.stage=stage;
       if(stage==='stadium')this.root.innerHTML='<div class="intro-establish"><span class="eyebrow">LANTERN SOCCER LEAGUE · '+e(teams[0].season)+'</span><h1>THIS IS<br>MATCHDAY.</h1><p>GRENOBLE FIELD <i>•</i> LANTERN RUSH</p></div>';
-      if(stage==='versus')this.root.innerHTML='<div class="intro-versus">'+teams.map((t,i)=>'<article><span class="tag">'+(i?'CPU':'YOU')+'</span><img src="'+e(t.logo)+'" alt="'+e(t.logoFallback?'Lantern Soccer League':t.name+' badge')+'"><h2>'+e(t.name)+'</h2><span>2 — 2 — 2 · '+(teamOverall(match.active(i))??'—')+' TEAM OVR</span></article>'+(i?'':'<strong>VS</strong>')).join('')+'</div>';
+      if(stage==='versus')this.root.innerHTML='<div class="intro-versus">'+teams.map((t,i)=>'<article><span class="tag">'+(i?'CPU':'YOU')+'</span><img src="'+e(t.logo)+'" alt="'+e(t.logoFallback?'Lantern Soccer League':t.name+' badge')+'"><h2>'+e(t.name)+'</h2><span>2 — 2 — 2 · '+(teamOverall(match.teams[i])??'—')+' TEAM OVR</span></article>'+(i?'':'<strong>VS</strong>')).join('')+'</div>';
       if(stage==='user'||stage==='cpu')this.playerId=null;
       if(stage==='watch')this.root.innerHTML='<div class="intro-watch"><header><span class="eyebrow">MAKE THE DIFFERENCE</span><h2>PLAYERS TO WATCH</h2></header><div>'+teams.map((team,i)=>{const p=match.active(i).filter(p=>p.role!=='GK').sort((a,b)=>(b.data.overall||0)-(a.data.overall||0))[0];return '<section><span class="tag">'+(i?'CPU':'YOU')+'</span>'+card(p,team,0,true)+'</section>';}).join('')+'</div></div>';
       if(stage==='walk')this.root.innerHTML='<div class="intro-walk"><span class="eyebrow">GRENOBLE FIELD · 7v7</span><h2>READY FOR KICKOFF.</h2><p>'+e(teams[0].name)+' <b>VS</b> '+e(teams[1].name)+'</p></div>';
@@ -29,7 +29,7 @@ export class MatchIntro{
     if(stage==='user'||stage==='cpu'){
       const p=introPlayer(match);if(p&&this.playerId!==p.id){
         this.playerId=p.id;const team=teams[p.team];
-        this.root.innerHTML='<div class="intro-single"><header><span class="tag">'+(p.team?'CPU':'YOU')+'</span><h2>'+e(team.name)+'</h2><span>STARTING SEVEN · '+(p.slot+1)+' / 7</span></header>'+card(p,team,p.slot)+'<footer>2 — 2 — 2 · '+(teamOverall(match.active(p.team))??'—')+' TEAM OVR</footer></div>';
+        this.root.innerHTML='<div class="intro-single"><header><span class="tag">'+(p.team?'CPU':'YOU')+'</span><h2>'+e(team.name)+'</h2><span>STARTING SEVEN · '+(p.slot+1)+' / 7</span></header>'+card(p,team,p.slot)+'<footer>2 — 2 — 2 · '+(teamOverall(match.teams[p.team])??'—')+' TEAM OVR</footer></div>';
         this.root.querySelector('.intro-card').classList.add('revealed');
       }
     }

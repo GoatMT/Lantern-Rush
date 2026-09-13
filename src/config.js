@@ -12,7 +12,7 @@ export const FIELD = Object.freeze({
   ballRadius:.32, postRadius:.1, playerMargin:1
 });
 export const PLAY = Object.freeze({
-  runSpeed:7.3, sprintSpeed:11.8, staminaDrain:.045, staminaRecovery:.012,
+  runSpeed:7.3, sprintSpeed:11.8,
   acceleration:32, sprintAcceleration:28, braking:48, turnAcceleration:78, turnRate:14, sprintTurnRate:11,
   groundDrag:.38, rollingResistance:3.0, airDrag:.095, gravity:16, bounceDamping:.22, stopSpeed:.24,
   passMin:8, passMax:46, shotBase:30, shotPower:19,

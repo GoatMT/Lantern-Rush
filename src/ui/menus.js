@@ -2,7 +2,7 @@ import { escapeHTML as e,clockText } from '../config.js';
 import { DEFAULT_KEYS,CONTROL_NAMES,keyLabel } from '../settings.js';
 import { statRows,playerOfMatch } from '../match/stats.js';
 import { kitSwatch,teamKit } from '../kits.js';
-import { teamOverall,staminaCapacity } from '../ratings.js';
+import { teamOverall } from '../ratings.js';
 import { playerLabel } from '../player-label.js';
 export const $=id=>document.getElementById(id);
 export class Menus {
@@ -69,7 +69,7 @@ export class Menus {
     for(const side of ['user','cpu']){
       const team=this.app.selected[side];if(!team)continue;
       $(side+'-name').textContent=team.name;$(side+'-division').textContent=team.division;
-      $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team.lineup)??'—');
+      $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team)??'—');
       $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.logoFallback?'Lantern Soccer League':team.name+' badge';
       const color=side==='cpu'?this.app.cpuKit():team.kit;
       document.querySelector('.'+(side==='user'?'you':'cpu')+'-card').style.setProperty('--team-color',color);
@@ -80,7 +80,7 @@ export class Menus {
     $('cpu-kit-label').textContent=this.app.cpuKit()!==this.app.selected.cpu.kit?'CONTRAST KIT':'AWAY';
   }
   squad(side,playerId=null){
-    const team=this.app.selected[side];this.returnToPause=false;$('squad-title').textContent=team.name+' · '+(teamOverall(team.lineup)??'—')+' TEAM OVR';
+    const team=this.app.selected[side];this.returnToPause=false;$('squad-title').textContent=team.name+' · '+(teamOverall(team)??'—')+' TEAM OVR';
     $('squad-profiles').innerHTML=[...team.lineup,...team.bench].map(p=>'<details class="profile-card" '+(p.id===playerId?'open':'')+'><summary><span class="ovr">'+(p.overall??'—')+'<small>OVR</small></span><span><strong>'+e(playerLabel(p))+'</strong><small>'+e(p.role||p.position)+' · '+(team.lineup.some(s=>s.id===p.id)?'STARTER':'BENCH')+(p.leadershipRole==='captain'?' · CAPTAIN':'')+'</small><em>'+e(p.playstyle?.label||'Profile unavailable')+'</em></span></summary><p>'+e(p.playstyle?.description||'No website profile is available.')+'</p><div class="profile-traits">'+(p.playstyle?.traits||[]).map(t=>'<span>'+e(t)+'</span>').join('')+'</div></details>').join('');
     $('squad-dialog').showModal();
     if(playerId)$('squad-profiles').querySelector('details[open]')?.scrollIntoView({block:'nearest'});
@@ -128,9 +128,9 @@ export class Menus {
   subs(){this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();this.out=this.in=null;$('sub-feedback').textContent='';this.renderSubs();$('subs-dialog').showModal();}
   renderSubs(){
     const m=this.app.match;
-    $('subs-team-ovr').textContent=(teamOverall(m.active(0))??'—')+' TEAM OVR · Current lineup';
-    $('sub-out').innerHTML=m.active(0).map(p=>'<button class="sub-player '+(this.out===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(playerLabel(p))+'</span><small>'+p.role+' · '+(p.data.overall??'—')+' OVR</small><small>'+Math.round(p.stamina*100)+'% / '+Math.round(p.maxStamina*100)+'% stamina'+(p.exhausted?' · Exhausted until stoppage':'')+'</small><small>'+e(p.data.playstyle?.label||'')+'</small><span class="sub-stamina" style="width:'+Math.round(p.stamina*100)+'%"></span></button>').join('');
-    $('sub-in').innerHTML=m.benches[0].length?m.benches[0].map(p=>'<button class="sub-player '+(this.in===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(playerLabel(p))+'</span><small>'+e(p.position)+' · '+(p.overall??'—')+' OVR</small><small>'+Math.round(staminaCapacity(p.overall)*100)+'% stamina · Fresh</small><small>'+e(p.playstyle?.label||'')+'</small></button>').join(''):'<p class="muted-copy">All substitutes have been used.</p>';
+    $('subs-team-ovr').textContent=(teamOverall(m.teams[0])??'—')+' TEAM OVR · LSL Website';
+    $('sub-out').innerHTML=m.active(0).map(p=>'<button class="sub-player '+(this.out===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(playerLabel(p))+'</span><small>'+p.role+' · '+(p.data.overall??'—')+' OVR</small><small>'+e(p.data.playstyle?.label||'')+'</small></button>').join('');
+    $('sub-in').innerHTML=m.benches[0].length?m.benches[0].map(p=>'<button class="sub-player '+(this.in===p.id?'selected':'')+'" data-player="'+e(p.id)+'"><span>'+e(playerLabel(p))+'</span><small>'+e(p.position)+' · '+(p.overall??'—')+' OVR</small><small>'+e(p.playstyle?.label||'')+'</small></button>').join(''):'<p class="muted-copy">All substitutes have been used.</p>';
     $('confirm-sub').disabled=!this.out||!this.in;
     if(m.pending.length)$('sub-feedback').textContent=m.pending.map(s=>playerLabel(s.out)+' → '+playerLabel(s.incoming)).join(' · ')+' · Next stoppage';
   }
@@ -142,7 +142,7 @@ export class Menus {
     $('result-title').textContent=half?'HALFTIME':'FULL TIME';
     $('result-kicker').textContent=half?'TIME TO REGROUP':m.stats[0].goals===m.stats[1].goals?'HONOURS EVEN':m.stats[0].goals>m.stats[1].goals?'VICTORY':'CPU WINS';
     $('result-season').textContent=this.app.settings.value.season+' · '+m.settings.duration+' MIN MATCH';
-    $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'<small>YOU · '+(teamOverall(m.active(0))??'—')+' OVR</small></span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'<small>CPU · '+(teamOverall(m.active(1))??'—')+' OVR</small></span></div>';
+    $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'<small>YOU · '+(teamOverall(m.teams[0])??'—')+' OVR</small></span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'<small>CPU · '+(teamOverall(m.teams[1])??'—')+' OVR</small></span></div>';
     const potm=playerOfMatch([...m.players,...m.archive]);
     $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Make your changes. CPU takes the second-half kickoff.</span></p>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(playerLabel(potm))+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
     $('stats-table').innerHTML=statRows(m).map(([label,a,b])=>{

@@ -6,7 +6,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const source = path.resolve(process.argv[2] || '../LSL Website');
 const years = (process.argv[3] || '2024,2025,2026').split(',');
 const manifest = [];
-const {profiles,aliases,provenance}=await loadWebsiteProfiles(source);
+const {profiles,aliases,teamRatings,provenance}=await loadWebsiteProfiles(source);
 const jerseyAudit=await auditWebsiteJerseys(source,years);
 await fs.mkdir(path.join(root, 'assets/logos'), { recursive: true });
 for (const year of years) {
@@ -31,7 +31,7 @@ for (const year of years) {
       try { await fs.copyFile(sourceLogo, path.join(root, dest)); logo = dest; } catch { console.warn(`Missing badge: ${team.name}`); }
     }
     teams.push({ id: team.id, name: team.name, shortName: team.shortName, division: team.division,
-      logo, logoBg: team.logoBg || '#ffffff', colors: team.colors || null, roster });
+      overall:teamRatings.get(String(year))?.get(team.id)??null, logo, logoBg: team.logoBg || '#ffffff', colors: team.colors || null, roster });
   }
   await fs.writeFile(path.join(root, `data/${year}.json`), JSON.stringify({ season: year, teams }, null, 2) + '\n');
   manifest.push({ year, file: `data/${year}.json` });

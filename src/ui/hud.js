@@ -12,11 +12,9 @@ export class HUD{
     const m=this.app.match;if(!m||this.app.menus.screen!=='match')return;const p=m.controlled;
     $('match-hud').dataset.phase=m.phase;
     $('score-user').textContent=m.stats[0].goals;$('score-cpu').textContent=m.stats[1].goals;
-    $('hud-user-ovr').textContent=(teamOverall(m.active(0))??'—')+' OVR';$('hud-cpu-ovr').textContent=(teamOverall(m.active(1))??'—')+' OVR';
+    $('hud-user-ovr').textContent=(teamOverall(m.teams[0])??'—')+' OVR';$('hud-cpu-ovr').textContent=(teamOverall(m.teams[1])??'—')+' OVR';
     $('match-clock').textContent=clockText(m.elapsed);$('half-label').textContent=m.half===1?'FIRST HALF':'SECOND HALF';
-    $('controlled-name').textContent=playerLabel(p);$('stamina-fill').style.width=Math.round(p.stamina*100)+'%';
-    $('stamina-status').textContent=p.exhausted?'EXHAUSTED · NEXT STOPPAGE':Math.round(p.stamina*100)+'% / '+Math.round(p.maxStamina*100)+'% STAMINA';
-    $('stamina-fill').classList.toggle('exhausted',p.exhausted);
+    $('controlled-name').textContent=playerLabel(p);
     $('controlled-profile').textContent=p.role+' · '+(p.data.overall??'—')+' OVR · '+(p.data.playstyle?.label||'');
     $('power-meter').hidden=m.charge<=0;$('power-fill').style.width=Math.round(m.charge*100)+'%';
     const keeperKick=p.role==='GK'&&m.ball.owner===p;

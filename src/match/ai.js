@@ -1,6 +1,6 @@
 import { updateKeeper } from './goalkeeper.js';
 import { predictBall } from './physics.js';
-import { defensivePair,coverPoint,attackingDecision } from './tactics.js';
+import { defensiveShape,pressurePoint,coverPoint,attackingDecision } from './tactics.js';
 import { FORMATION,FIELD,PLAY,fieldUnits as u,clamp,distance,normalize } from '../config.js';
 
 export function bestPass(match,player,aim=null){
@@ -41,21 +41,13 @@ export function updateAI(match,dt){
   for(let team=0;team<2;team++){
     const direction=match.direction(team),squad=match.active(team),field=squad.filter(p=>p.role!=='GK');
     const config=match.aiConfig(team);
-    const chasers=possession===team?[]:defensivePair(match,team,field,b);
-    // Each nearby threat gets at most one marker; two players press and cover.
-    const marks=new Map(),available=field.filter(p=>!chasers.includes(p));
-    const threats=match.active(1-team).filter(p=>p.role!=='GK'&&p!==owner)
-      .sort((a,c)=>a.x*direction-c.x*direction);
-    if(possession!==team)for(const threat of threats){
-      const marker=available.filter(p=>!marks.has(p)&&Math.abs(threat.z-FORMATION[p.slot].z)<u(13))
-        .sort((a,c)=>distance(a,threat)-distance(c,threat))[0];
-      if(marker&&distance(marker,threat)<u(13))marks.set(marker,threat);
-    }
+    const defense=possession===team?{chasers:[],marks:new Map(),doubleTeam:false}:defensiveShape(match,team,field,b);
+    const {chasers,marks}=defense;
     for(const p of squad){
       if(match.phase!=='playing')return;
       if(p===match.controlled&&(p.role!=='GK'||owner===p||match.manualKeeper))continue;
       if(p.striking){p.move(0,0,0,dt);continue;}
-      const home=FORMATION[p.slot];let tx=home.x*direction,tz=home.z,sprint=false;
+      const home=FORMATION[p.slot];let tx=home.x*direction,tz=home.z,sprint=false,pace=1;
       if(p.role==='GK'){updateKeeper(match,p,dt);continue;
       }else if(owner===p){
         const goalDistance=FIELD.halfLength-p.x*direction;
@@ -83,9 +75,17 @@ export function updateAI(match,dt){
         tx=meetAtTarget?b.pass.x:point.x;tz=meetAtTarget?b.pass.z:point.z;sprint=distance(p,b)>u(5);
       }else if(chasers.includes(p)){
         const first=chasers[0]===p,point=ballIntercept(b);
-        if(first){tx=point.x;tz=point.z;sprint=distance(p,b)>1.6||!!owner?.boosting;}
-        else{const cover=coverPoint(match,team,chasers[0]);tx=cover.x;tz=cover.z;sprint=Math.hypot(tx-p.x,tz-p.z)>3;}
-        if(first&&owner&&owner.team!==team&&distance(p,owner)<2.05&&distance(p,b)<1.8&&p.cooldown<=0&&p.decision<=0){
+        if(first){
+          const target=owner?pressurePoint(match,team,p):point;tx=target.x;tz=target.z;
+          const gap=distance(p,b),closingSpeed=owner?Math.hypot(owner.vx,owner.vz):0;
+          sprint=gap>10||(gap>3.2&&closingSpeed>PLAY.runSpeed*.9)||(gap>4&&!owner);
+          pace=sprint?1:gap<3.2?.60:Math.max(.76,Math.min(1,closingSpeed/PLAY.runSpeed+.08));
+        }else{
+          const cover=defense.doubleTeam?point:coverPoint(match,team,chasers[0]);tx=cover.x;tz=cover.z;
+          const displaced=Math.hypot(tx-p.x,tz-p.z);
+          sprint=displaced>10&&((p.x-b.x)*direction>0||!!owner?.boosting);pace=sprint?1:.70;
+        }
+        if((first||defense.doubleTeam)&&owner&&owner.team!==team&&distance(p,owner)<2.05&&distance(p,b)<1.8&&p.cooldown<=0&&p.decision<=0){
           p.decision=config.reaction;
           const approach=normalize(p.x-owner.x,p.z-owner.z);
           if(approach.x*owner.faceX+approach.z*owner.faceZ>-.3&&match.random()<config.pressure*(.55+config.awareness*.4))match.tackle(p,{standing:true});
@@ -98,7 +98,7 @@ export function updateAI(match,dt){
           tx=clamp(b.x*direction+u(11)*p.attributes.forwardRun,-u(4),FIELD.halfLength-u(2.5))*direction;
           const nearWing=Math.sign(home.z)===Math.sign(b.z),boxAttack=b.x*direction>FIELD.halfLength-FIELD.boxDepth*1.6;
           tz=boxAttack?(nearWing?Math.sign(b.z)*FIELD.goalHalf*.6:-Math.sign(b.z||1)*FIELD.goalHalf*.8):home.z*1.85;
-          tx-=u(1.5)*(1+Math.sin(match.tacticalTime*.6+p.slot));sprint=tx*direction-p.x*direction>u(6)&&p.stamina>.35;
+          tx-=u(1.5)*(1+Math.sin(match.tacticalTime*.6+p.slot));sprint=tx*direction-p.x*direction>u(6);
         }
         if(p.role==='MID'){
           const onBallSide=home.z*b.z>0,overlap=onBallSide&&owner?.role==='FWD'&&b.x*direction>0;
@@ -112,13 +112,17 @@ export function updateAI(match,dt){
         tz=clamp(home.z+b.z*.2,-FIELD.halfWidth+u(3),FIELD.halfWidth-u(3));
         const threat=marks.get(p);
         if(threat){
-          const tracking=.48+config.awareness*.46,lead=.22+config.awareness*.24;
-          tx=tx*(1-tracking)+(threat.x+threat.vx*lead-direction*2.5)*tracking;
-          tz=tz*(1-tracking)+(threat.z+threat.vz*lead)*tracking;
+          const lead=.20+config.awareness*.20;
+          const goalSide=normalize(-direction*FIELD.halfLength-threat.x,-threat.z);
+          const markingGap=2.3+(1-config.awareness)*1.3;
+          tx=threat.x+threat.vx*lead+goalSide.x*markingGap;
+          tz=threat.z+threat.vz*lead+goalSide.z*markingGap;
         }
-        sprint=(p.x-b.x)*direction>3||(!!threat&&distance(p,threat)>5&&threat.vx*direction<-.5);
+        const recovery=Math.hypot(tx-p.x,tz-p.z),runnerSpeed=threat?Math.hypot(threat.vx,threat.vz):0;
+        sprint=recovery>10&&((p.x-b.x)*direction>3||runnerSpeed>6)||!!threat&&recovery>3&&runnerSpeed>PLAY.runSpeed*.95;
+        pace=sprint?1:threat?clamp(runnerSpeed/PLAY.runSpeed+.14,.60,1):.68;
       }
-      if(!chasers.includes(p)&&b.pass?.target!==p){
+      if(!chasers.includes(p)&&!marks.has(p)&&b.pass?.target!==p){
         // Far-side players keep adjusting their lane and depth throughout the match.
         tz+=Math.sin(match.tacticalTime*.4+p.slot+team)*u(p.role==='DEF'?1.2:.75);
         tx+=Math.sin(match.tacticalTime*.28+p.slot+team)*u(p.role==='DEF'?1.4:.9)*direction;
@@ -130,10 +134,10 @@ export function updateAI(match,dt){
       tx=p.aiTarget.x;tz=p.aiTarget.z;const gap=Math.hypot(tx-p.x,tz-p.z);
       let sx=0,sz=0;
       for(const mate of squad){
-        if(mate===p)continue;const dist=distance(p,mate),space=chasers.includes(p)?2.1:PLAY.supportGap;
+        if(mate===p)continue;const dist=distance(p,mate),space=possession!==team?2.1:PLAY.supportGap;
         if(dist<space&&dist>.01){sx+=(p.x-mate.x)/dist*(space-dist);sz+=(p.z-mate.z)/dist*(space-dist);}
       }
-      p.move(tx-p.x+sx,tz-p.z+sz,Math.min(1,Math.hypot(tx-p.x+sx,tz-p.z+sz)/(direct?2:3)),dt,sprint,((possession!==team&&distance(p,b)<u(8))||(b.pass?.target===p&&distance(p,b)<12))?b:null);
+      p.move(tx-p.x+sx,tz-p.z+sz,Math.min(pace,Math.hypot(tx-p.x+sx,tz-p.z+sz)/(direct?2:3)),dt,sprint,((possession!==team&&!sprint)||(b.pass?.target===p&&distance(p,b)<12))?b:null);
     }
   }
 }

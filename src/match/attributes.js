@@ -10,7 +10,6 @@ export function playerAttributes(data={}){
     speed:.97+quality*.06,
     shotPower:.97+quality*.06,
     shotError:1.2-quality*.4-(finisher?.1:0),
-    endurance:style==='High-Activity Player'?1.12:style==='Steady Contributor'?1.06:1,
     passLead:style==='Creator'?1.15:1,
     forwardRun:finisher?1.1:1,
     defending:style==='Defensive Anchor'?1.12:1,

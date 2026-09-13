@@ -25,12 +25,12 @@ test('playable area is four times larger with 14 normal-sized actors and an unch
   assert(distance(m.players[1],m.players[2])>=32);assert(distance(m.players[3],m.players[4])>=48);
   assert.equal(FIELD.goalHalf,u(4.5));assert.equal(FIELD.goalHeight,u(3.2));
 });
-test('players can traverse the former boundaries and recover stamina slowly',()=>{
+test('players can traverse the former boundaries with unlimited sprint',()=>{
   const p=new Player({id:'runner',name:'Runner',overall:99},0,5,1);p.x=p.z=0;
   for(let i=0;i<1200;i++)p.move(1,.2,1,1/120,true);
-  assert(p.x>32&&p.z>15);assert(p.stamina>.54&&p.stamina<.56);assert(inside(p));
+  assert(p.x>32&&p.z>15);assert(p.boosting);assert(inside(p));
   for(let i=0;i<1200;i++)p.move(0,0,0,1/120,false);
-  assert(p.stamina>.66&&p.stamina<.68);
+  assert.equal(Math.hypot(p.vx,p.vz),0);
   for(let i=0;i<2400;i++)p.move(-1,1,1,1/120,true);
   assert(inside(p));assert(p.z>21);
 });

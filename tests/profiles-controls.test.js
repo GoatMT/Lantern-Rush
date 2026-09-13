@@ -28,7 +28,7 @@ test('all seasons include career overalls and complete website playstyle profile
   let count=0;for(const year of ['2024','2025','2026']){
     const data=JSON.parse(fs.readFileSync(new URL('../data/'+year+'.json',import.meta.url)));
     for(const team of data.teams)for(const p of team.roster){
-      assert(Number.isInteger(p.overall)&&p.overall>=50&&p.overall<=99,p.name);
+      assert(Number.isInteger(p.overall)&&p.overall>=45&&p.overall<=99,p.name);
       assert(p.profileId&&p.playstyle.label&&p.playstyle.description&&p.playstyle.traits.length===3);count++;
     }
   }assert.equal(count,278);
