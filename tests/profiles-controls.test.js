@@ -16,7 +16,7 @@ test('M passes in possession and switches to the closest active outfield player 
     m.update(1/120,input);assert.equal(m.controlled,m.players[2]);assert.equal(m.stats[0].passes,0);
   }
   const m=new Match(teams,{duration:3,difficulty:'normal'});m.phase='playing';m.ball.take(m.controlled);
-  m.update(1/120,input);assert.equal(m.stats[0].passes,1);assert(m.ball.pass?.target);
+  m.update(1/120,input);for(let i=0;i<70&&m.stats[0].passes===0;i++)m.update(1/120,{...input,pressed:new Set()});assert.equal(m.stats[0].passes,1);assert(m.ball.pass?.target);
 });
 test('manual nearest-player switching overrides the automatic pass receiver',()=>{
   const m=new Match(teams,{duration:3,difficulty:'normal'});m.phase='playing';m.ball.take(m.controlled);m.pass(m.controlled);

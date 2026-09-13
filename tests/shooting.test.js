@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { FIELD,PLAY } from '../src/config.js';
 import { planShot,shotTechnique,preferredFoot } from '../src/match/shooting.js';
+import { advanceStrike } from '../src/match/striking.js';
 import { Ball } from '../src/match/ball.js';
 import { Player } from '../src/match/player.js';
 import { Match } from '../src/match/match.js';
@@ -83,9 +84,9 @@ test('curved charge survives same-frame releases and cancellation cannot shoot l
 test('curved shots work on free kicks and penalties in both attacking directions',()=>{
   for(const half of [1,2])for(const type of ['FREE KICK','PENALTY']){
     const m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>.5});m.half=half;const dir=m.direction(0);
-    m.beginRestart({type,team:0,x:dir*(64-25),z:0});m.phaseTime=1;
+    m.beginRestart({type,team:0,x:dir*(64-25),z:0});m.phaseTime=5;
     m.updateRestart(.6,{held:new Set(['shoot','curve']),pressed:new Set(),released:new Set(),movement:()=>({x:0,z:0,intensity:0})});
     m.updateRestart(.01,{held:new Set(),pressed:new Set(),released:new Set(['shoot','curve']),movement:()=>({x:0,z:0,intensity:0})});
-    assert.equal(m.phase,'playing');assert.equal(m.ball.shot.kind,'finesse-shot');assert.equal(m.stats[0].shots,1);assert(m.ball.vx*dir>0);
+    advanceStrike(m,.5);assert.equal(m.phase,'playing');assert.equal(m.ball.shot.kind,'finesse-shot');assert.equal(m.stats[0].shots,1);assert(m.ball.vx*dir>0);
   }
 });

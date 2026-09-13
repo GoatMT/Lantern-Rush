@@ -18,6 +18,8 @@ export class Menus {
     for(const side of ['user','cpu'])for(const direction of ['prev','next'])on(side+'-'+direction,()=>a.cycle(side,direction==='next'?1:-1));
     $('season-select').addEventListener('change',ev=>a.changeSeason(ev.target.value));
     $('setting-lighting').addEventListener('change',ev=>{a.settings.set('lighting',ev.target.value);a.renderer.setLighting(ev.target.value);this.renderSettings();});
+    $('setting-mobile-layout').addEventListener('change',ev=>{a.settings.set('mobileLayout',ev.target.checked?'right':'left');a.mobile.applyLayout();this.renderSettings();});
+    $('setting-hold-switch').addEventListener('change',ev=>{a.settings.set('holdAutoSwitch',ev.target.checked);if(a.match)a.match.settings.holdAutoSwitch=ev.target.checked;});
     on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());
     on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
     on('restart-match',()=>this.confirm('RESTART MATCH?',()=>a.start()));on('quit-home',()=>this.confirm('QUIT TO HOME?',()=>a.home()));
@@ -92,11 +94,14 @@ export class Menus {
   renderSettings(){
     for(const kind of ['graphics','difficulty','duration','camera'])document.querySelectorAll('[data-'+kind+']').forEach(b=>b.classList.toggle('active',String(this.app.settings.value[kind])===b.dataset[kind]));
     $('setting-lighting').value=this.app.settings.value.lighting||'evening';
+    $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
+    $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
+    $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
     $('home-venue').textContent='GRENOBLE FIELD · '+$('setting-lighting').value.toUpperCase()+' MATCH';
     $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase();this.renderBindings();
   }
   renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
-  keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT / TACKLE'],['skill','SKILL'],['sprint','SPRINT']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
+  keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT'],['skill','SKILL'],['sprint','SPRINT'],['goalie','GOALIE']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
   pause(){this.app.controls.clear();$('pause-dialog').showModal();}
   resume(){this.closeAll();this.app.controls.clear();this.app.match.pause(false);}
   confirm(title,action){$('pause-dialog').close();$('confirm-title').textContent=title;this.confirmAction=action;$('confirm-dialog').showModal();}

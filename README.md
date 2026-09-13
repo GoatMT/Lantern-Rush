@@ -1,4 +1,4 @@
-# Lantern Rush
+# LANTERN RUSH
 
 An original, silent 3D 7v7 arcade soccer game for desktop and mobile browsers. Built with Three.js and plain JavaScript modules. This folder is the complete standalone website; it does not depend on the adjacent LSL Website folder at runtime.
 
@@ -32,21 +32,27 @@ Official publishing reference: https://docs.github.com/en/pages/getting-started-
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
-| Move / aim | W A S D | Right-side joystick |
-| Sprint | Hold P | Hold SPRINT |
-| Pass / closest player | M | PASS / SWITCH (hold to press when defending) |
-| Shoot / tackle | Hold and release K | Hold and release SHOOT / tap TACKLE |
+| Move / aim | W A S D | Left joystick (mirror in Settings) |
+| Sprint | Hold P | Hold SPRINT & SKILL |
+| Pass / closest player | M | PASS / SWITCH (hold to follow closest) |
+| Shoot | Hold and release K | Hold and release SHOOT |
 | Dribble skill | O | DRIBBLE |
+| Standing steal | Automatic when close to an exposed ball | Automatic; no button needed |
+| Goalkeeper / outfield | G | GOALIE, or hold SWITCH and drag up/down/left |
 
 | Pause | Escape | Top-right pause button |
 
-Hold Shoot to charge power. Moving the joystick farther increases running speed. Passes choose a teammate in the aimed direction, lead forward runs, and become crosses near the attacking wings. **M passes when you have the ball and selects your closest active outfield player otherwise.** Q no longer has a switching action. The separate touch SWITCH button also selects the closest eligible teammate. Hold Pass before receiving a teammate's pass for a first-time return; high balls can become header passes. While defending, Shoot tackles and holding Pass presses the ball carrier. Tapping Shoot beside a loose ball attempts a first-time shot, volley or header depending on its height.
+Hold Shoot to charge power. Low charge favors control, medium is balanced, and high charge trades accuracy for speed. **Maximum charge is very risky**: sprinting, a tight angle and a closed body greatly increase overbar misses.
+
+While charging, swipe **Sprint & Skill upward** or hold its upper edge for a curved shot. Sliding the shooting thumb upward is a one-thumb alternative. On PC hold Shift with Shoot (rebindable). Ball position, current contact foot, preferred foot and body/goal angles choose Finesse or Trivela deterministically. They have opposite spin, distinct strike poses and a compensated aiming arc. Without a shot charging, an upward Sprint & Skill swipe performs a skill. Canceling a touch cancels the shot. Multiple fingers and keyboard inputs retain independent ownership.
+
+ Moving the joystick farther increases running speed. Passes choose a teammate in the aimed direction, lead forward runs, and become crosses near the attacking wings. **M passes when your team has the ball and selects a useful nearby active outfield player when defending.** Q no longer has a switching action. Touch uses four compact outlined circular action buttons and one smaller GOALIE button. Shoot sits top-right, Dribble upper-left, Pass lower-left, and the larger Sprint & Skill lower-right. Move into range of an exposed ball to attempt an automatic standing steal. Reach, cooldown and ball protection still matter; misses and occasional fouls remain possible. The assist avoids dangerous challenges from behind and never steals a held goalkeeper catch. There is no separate Steal button or key. GOALIE toggles manual goalkeeper control until you switch back; keepers can move, pass and shoot. Settings → Controls uses a toggle to mirror the entire layout immediately and saves it. Holding Switch repeatedly selects the nearest eligible player; disable Hold Switch in the same panel to keep tap-only switching. Hold keyboard Pass before receiving a teammate's pass for a first-time return; high balls can become header passes. While defending, steals are automatic and holding keyboard Pass presses the ball carrier. Tapping Shoot beside a loose ball attempts a first-time shot, volley or header depending on its height.
 
 Move and tap Skill for a contextual feint, step-over, ball roll, quick cut, drag-back or other skill. Direction, speed and nearby defenders affect the choice. Skill while charging a shot performs a fake shot. Difficult skills can lose the ball, especially with lower control ratings. Skills have a cooldown.
 
 For penalties and free kicks, movement changes the gold aiming guide. Shoot or Pass takes the restart. Throw-ins and goal kicks use the same buttons. Restarts are taken automatically after a short timeout if there is no input.
 
-Settings supports rebindable keys, Easy/Normal/Hard difficulty, 3/4/5/6-minute games and Low/Medium/High graphics. The Camera section has Low (closer), Medium (balanced), High (tactical) and Broadcast (default sideline view). Camera changes apply immediately. Preferences and the last selected season/teams are saved locally when storage is available.
+Settings supports rebindable keys, Easy/Normal/Hard difficulty, 3/4/5/6-minute games and Low/Medium/High graphics. The Camera section has Low (closer), Medium (balanced), High (tactical), Broadcast (desktop default) and **Mobile Cam** (the starting view on touch devices when no camera preference is saved). Mobile Cam has closer, higher-angle framing, space above the touch controls, responsive tracking and controlled zoom for passes and airborne balls. Portrait mode adjusts the field of view while keeping movement axes consistent. Phone cameras cap the lens angle and compensate with distance to reduce stretched-looking players at the screen edges. Canvas proportions update on element/visual-viewport changes and before rendering, including after rotation or browser toolbar changes. Rotation cancels active touches without releasing a shot; the joystick has a small center dead zone. Performance scaling reacts sooner when phone frame rate drops. Existing saved camera choices are preserved. Camera changes apply immediately. Preferences and the last selected season/teams are saved locally when storage is available.
 
 ## Match rules and flow
 
@@ -57,9 +63,9 @@ Base running speed is 7.3 units/second (about 16% faster) and sprint speed is 11
 Field dimensions and gameplay tuning are centralized in **src/config.js**. Player-sized collision, tackle and dribble distances remain separate from pitch dimensions.
 
 - Seven starters per team: one goalkeeper and a 2–2–2 outfield formation.
-- A 14-second skippable intro: stadium opening, team badges, sequential user lineup cards, a shorter CPU lineup, players to watch, and a walk into formation. Overhead names appear for about four seconds before kickoff.
+- A 60-second skippable intro: stadium opening, team badges, every starter shown individually for three seconds on both teams, players to watch, and a six-second walk into formation. Each card shows the source name, number, position and OVR. The camera follows the featured player.
 - First half → halftime → second half → full time.
-- The selected duration is active real-time play split equally between halves. Restarts, goal celebrations, pauses and the halftime screen stop the clock.
+- The selected duration is active real-time play split equally between halves. Restarts, goal celebrations, pauses and the halftime screen stop the clock. Goals last 8.5 seconds; foul/card decisions last 4–5.5 seconds, substitutions receive five seconds, and corners/free kicks/penalties have longer setup and aiming windows. The shared presentation timing lives in src/presentation.js.
 - At halftime, make substitutions and choose Continue. Teams change ends and the CPU receives the second-half kickoff.
 - Corners, throw-ins, goal kicks, free kicks, penalties, yellow cards and red cards.
 - A second yellow dismisses the player. Red-carded players stay off the pitch. Fewer than three remaining players forfeits the game.
@@ -72,11 +78,11 @@ The game uses simplified arcade rules and physics, with contextual actions, assi
 
 ## Player and gameplay detail
 
-Characters have jointed knees and elbows, visible faces, deterministic generic hair/skin/build variations, kit textures, cleats, goalkeeper gloves and captain armbands where the source lists a captain. Their identity remains stable across matches and seasons. No generic appearance is presented as a real player's likeness.
+Characters have jointed knees and elbows, visible faces, deterministic generic hair/skin/build variations, kit textures, cleats, goalkeeper gloves and captain armbands where the source lists a captain. Their identity remains stable across matches and seasons. No generic appearance is presented as a real player's likeness. The current source does not publish preferred feet: players use an explicitly marked right-foot gameplay default. Future dominantFoot/preferredFoot/foot data supports left, right or both without changing shooting code; current contact foot follows the ball.
 
-Locomotion uses actual velocity and distance traveled, with acceleration, braking, turning limits, lean and pose blending. Separate contextual poses cover receiving, passing, shooting, skill moves, tackles, falls/recovery and celebrations. Goalkeepers use a ready stance, shuffles, dives toward the ball, catches, parries, punches, recovery and distribution. Fine facial geometry, hair detail, collars and boot studs appear at closer camera distances on Medium/High. Low keeps the animated silhouette, source numbers and original kit pattern. Static parts are merged per animated joint to reduce drawing work.
+Locomotion uses actual velocity and distance traveled, with acceleration, stronger braking, responsive sharp turns, lean and pose blending. Live passes and shots have a brief planted-foot windup; the ball is released at the contact phase, and a tackle or stoppage can cancel the strike. Separate contextual poses cover receiving, passing, shooting, skill moves, tackles, falls/recovery and celebrations. Goalkeepers use a ready stance, shuffles, dives toward the ball, catches, parries, punches, recovery and distribution. Fine facial geometry, hair detail, collars and boot studs appear at closer camera distances on Medium/High. Low keeps the animated silhouette, source numbers and original kit pattern. Static parts are merged per animated joint to reduce drawing work.
 
-Possession uses intermittent touches; the ball is free to move between them. Grass drag and rolling resistance stop loose balls, airborne drag and spin shape flight, and bounces lose energy. First touches cushion incoming passes according to speed, movement, rating and pressure. A successful goalkeeper catch holds the ball in the hands before a roll, throw or punt. Hard saves allow rebounds, and the net absorbs most goal momentum.
+Possession uses small intermittent touches; the ball is free to move between them. Reachable cutting and braking touches redirect old momentum, so unopposed 90–180 degree turns retain the ball. Sprint touches are slightly longer. Receiving a loose ball cushions it without a forward kick, and difficult pressured receptions can still produce a bad touch. Grass drag and rolling resistance stop loose balls, airborne drag and spin shape flight, and bounces lose energy. First touches cushion incoming passes according to speed, movement, rating and pressure. Keepers continuously face the ball, shift across their goal, narrow the angle, retreat and collect reachable loose balls. A successful goalkeeper catch holds the ball in the hands before a roll, throw or punt. The user gains control when their goalkeeper has possession: Pass distributes to a teammate and Shoot charges a long downfield kick. The user keeper waits for input and stays inside the box while holding the ball. CPU keepers distribute after a short hold. Hard saves allow rebounds, and the net absorbs most goal momentum.
 
 Both teams continuously update preferred zones, support lanes, pressing/cover roles, marking, overlaps, near/far-post runs and loose-ball targets. Only the nearest appropriate players pursue the ball; others retain useful spacing. Goalkeepers position for the shooting angle and judge when to leave their line. Camera overrides cover kickoffs, set pieces, cards, substitutions, goals and half/full time before returning to the saved view.
 
@@ -164,7 +170,7 @@ The turf uses original generated textures: 16 mowing bands, grain and blade vari
 
 **Graphics → Match lighting** selects Day, Evening or Night and saves locally. Each mode changes the procedural sky, exposure, light direction, warmth, fill and stadium lamps. ACES tone mapping and physical materials give fabric, skin, grass and metal a consistent response. Low preserves the lighting palette with inexpensive contact shadows.
 
-The original Lantern Rush interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
+The original LANTERN RUSH interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
 
 ### Pitch-side advertising
 
@@ -186,6 +192,6 @@ The regular release check also validates the bundled audit. Update the website's
 
 ## Credits
 
-Game identity, code, stadium and character models: original Lantern Rush implementation.
+Game identity, code, stadium and character models: original LANTERN RUSH implementation.
 League names, badges and rosters: supplied Lantern Soccer League project.
 Three.js: the Three.js authors, MIT license in vendor/THREE-LICENSE.txt.

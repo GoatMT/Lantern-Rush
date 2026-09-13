@@ -37,3 +37,39 @@
 @media (max-height:430px) { #touch-controls { --button:52px; --reach:53px; } #touch-controls #joystick { width:104px; height:104px; } }
 @media (max-width:600px) and (orientation:portrait) { #touch-controls { --button:50px; --reach:51px; --edge:16px; } #touch-controls .touch-movement { left:16px; } #touch-controls #joystick { width:100px; height:100px; } #power-meter { bottom:240px; } }
 @media (prefers-reduced-motion:reduce) { #touch-controls .touch-action { transition:none; } }
+
+/* Compact curved action cluster, with the reference's larger sprint button. */
+#touch-controls { --button:58px; --reach:62px; }
+#touch-controls .touch-actions { width:calc(var(--button)*2.6); height:calc(var(--button)*3.15); }
+#touch-controls .touch-action { --accent:#dfebe2; border:2px solid var(--accent); outline:2px solid #e4eee358; outline-offset:3px; background:#11262179; backdrop-filter:none; box-shadow:inset 0 0 0 2px #061e2340; font-size:10px; letter-spacing:0; color:#fff; }
+#touch-controls #touch-shoot { left:auto; right:2px; top:0; --accent:#e8915b; border-color:var(--accent); background:#11262179; }
+#touch-controls #touch-dribble { left:12px; top:calc(var(--button)*.72); --accent:#d6c75e; }
+#touch-controls #touch-pass { left:0; top:auto; bottom:0; --accent:#81b9dc; font-size:10px; }
+#touch-controls #touch-sprint { left:auto; right:0; top:auto; bottom:0; width:calc(var(--button)*1.2); height:calc(var(--button)*1.2); padding-top:7px; font-size:10px; --accent:#80c98b; }
+#touch-controls #touch-sprint::before { top:3px; font-size:10px; opacity:.7; }
+#touch-controls .touch-secondary { width:44px; height:44px; font-size:8px; outline-offset:2px; outline-width:1px; border-width:1px; --accent:#c9ddd4; }
+#touch-controls #touch-goalie { left:-52px; top:auto; bottom:8px; }
+#touch-controls .touch-action:disabled { opacity:.25; pointer-events:none; }
+#touch-controls #touch-goalie[aria-pressed="true"] { background:#76bc8f68; border-color:#b4ffd0; }
+#touch-controls .touch-action.held { background:#d4e5cb45; color:#fff; border-color:#fff; }
+.mobile-settings .muted-copy { font-size:11px; line-height:1.5; }
+.mobile-settings .layout-setting { justify-content:space-between; margin-top:0; font-size:13px; }
+.mobile-settings .toggle-setting small { font-size:10px; }
+.layout-setting input[role="switch"] { appearance:none; width:42px; height:24px; border:1px solid #acc7b570; border-radius:20px; background:#263f37; position:relative; cursor:pointer; transition:background .15s; }
+.layout-setting input[role="switch"]::before { content:''; position:absolute; width:16px; height:16px; top:3px; left:3px; border-radius:50%; background:#e6f0e6; transition:transform .15s; }
+.layout-setting input[role="switch"]:checked { background:#758f55; }
+.layout-setting input[role="switch"]:checked::before { transform:translateX(18px); }
+.layout-setting input:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+@media (max-height:430px), (max-width:600px) and (orientation:portrait) { #touch-controls { --button:52px; } #touch-controls .touch-action { font-size:9px; } #touch-controls .touch-secondary { font-size:8px; } }
+
+/* Leave separate thumb targets even on narrow portrait phones when mirrored. */
+.camera-options { flex-wrap:wrap; }
+.camera-options [data-camera="mobile"] { border-color:#90b991; }
+@media (max-width:600px) { .camera-options > button { flex:1 1 40%; min-height:58px; } }
+@media (max-width:360px) and (orientation:portrait) {
+  #touch-controls { --edge:max(12px,env(safe-area-inset-right)); }
+  #touch-controls .touch-movement { left:max(12px,env(safe-area-inset-left)); }
+  #touch-controls #joystick { width:88px; height:88px; }
+  #touch-controls[data-layout="right"] .touch-movement { left:auto; right:max(12px,env(safe-area-inset-right)); }
+  #touch-controls[data-layout="right"] .touch-actions { left:max(12px,env(safe-area-inset-left)); }
+}

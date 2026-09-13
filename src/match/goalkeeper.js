@@ -7,25 +7,27 @@ export function saveContext(keeper,ball){
 export function updateKeeper(match,p,dt){
   const b=match.ball,d=match.direction(p.team),own=-d*FIELD.halfLength,state=p.keeperState;
   p.watch(b);
+  if(b.owner===p&&p===match.controlled)return;
   if(b.owner===p&&b.controlMode==='hands'){
     const goalDepth=(p.x-own)*d,targetX=own+d*clamp(goalDepth,2,FIELD.boxDepth*.55);
     p.move(targetX-p.x,-p.z*.2,.35,dt,false,{x:p.x+d*20,z:0});
     if(!p.action||p.action.name==='keeper-get-up')p.animate('keeper-hold',.6);
-    if(p.holdTime>1.6&&p.action?.name!=='keeper-dive')match.pass(p);
+    if(p.holdTime>2.1&&p.action?.name!=='keeper-dive')match.requestPass(p);
     return;
   }
+  if(b.owner===p){p.move(0,0,0,dt,false,{x:p.x+d*20,z:0});if(p.holdTime>.9)match.requestPass(p);return;}
   const depth=(b.x-own)*d,attacker=b.owner&&b.owner.team!==p.team?b.owner:null;
   const cover=match.active(p.team).filter(o=>o!==p).some(o=>distance(o,b)<distance(p,b)-2);
-  const rush=attacker&&depth<FIELD.boxDepth*.82&&Math.abs(b.z)<FIELD.boxHalf*.68&&!cover;
-  let forward=rush?clamp(depth*.43,3.2,10):clamp(2.4+depth*.012,2.4,4.2);
-  let tx=own+d*forward,tz=clamp(b.z*forward/Math.max(depth,forward+1),-FIELD.goalHalf+.65,FIELD.goalHalf-.65),sprint=!!rush;
+  const rush=attacker&&depth<FIELD.boxDepth*1.1&&Math.abs(b.z)<FIELD.boxHalf*.8&&!cover;
+  const forward=rush?clamp(depth*.5,3.2,11):attacker?clamp(8-depth*.07,3.0,7):clamp(3.6+depth*.026,3.6,6.5);
+  let tx=own+d*forward,tz=clamp(b.z*(forward/Math.max(depth,forward+1)+.10),-FIELD.goalHalf+.65,FIELD.goalHalf-.65),sprint=!!rush;
   const incoming=!b.owner&&b.vx*d<-.5&&b.lastTouch?.team!==p.team;
   if(incoming){
     if(state.flight!==b.flightId){state.flight=b.flightId;state.reaction=match.aiConfig(p.team).reaction*(.30+(1-p.attributes.dribble)*.12);state.dived=false;}
     state.reaction=Math.max(0,(state.reaction||0)-dt);
     const time=(tx-b.x)/b.vx;
     if(time>0&&time<2&&state.reaction<=0){
-      const z=b.z+b.vz*time,y=Math.max(FIELD.ballRadius,b.y+b.vy*time-PLAY.gravity*time*time*.5);
+      const turn=b.spin*.018*time*.45,z=b.z+(b.vz+b.vx*turn)*time*(1-PLAY.airDrag*time*.5),y=Math.max(FIELD.ballRadius,b.y+b.vy*time-PLAY.gravity*time*time*.5);
       tz=clamp(z,-FIELD.goalHalf+.3,FIELD.goalHalf-.3);sprint=time<1;
       if(!state.dived&&time<.48&&Math.abs(z-p.z)>1&&Math.abs(z)<FIELD.goalHalf+1&&y<3.6&&p.cooldown<=0){
         const context=saveContext(p,{x:tx,z,y});state.dived=true;
@@ -35,7 +37,7 @@ export function updateKeeper(match,p,dt){
       }
     }
   }
-  if(!b.owner&&depth>0&&depth<FIELD.boxDepth*.75&&Math.abs(b.z)<FIELD.boxHalf*.8&&Math.hypot(b.vx,b.vz)<12&&!cover){
+  if(!b.owner&&depth>0&&depth<FIELD.boxDepth*.95&&Math.abs(b.z)<FIELD.boxHalf*.9&&Math.hypot(b.vx,b.vz)<16&&!cover){
     const rival=match.active(1-p.team).some(o=>distance(o,b)+2<distance(p,b));
     if(!rival){tx=b.x;tz=b.z;sprint=distance(p,b)>4;}
   }
@@ -51,11 +53,12 @@ export function keeperContact(match,p){
   const context=saveContext(p,b),cross=!!b.pass&&b.y>1.4,close=!!b.owner;
   const ability=clamp(match.aiConfig(p.team).keeper*p.attributes.keeper,.4,.98);
   const reaction=(p.keeperState.reaction||0)>0?.2:0;
-  const success=gap<.75||match.random()<clamp(ability-speed*.0035-reaction-(gap>1.8?.1:0),.12,.97);
+  const easy=gap<1.3&&speed<20&&b.y<2.2;
+  const success=gap<.75||easy||match.random()<clamp(ability-speed*.0027-reaction-(gap>1.8?.1:0),.12,.97);
   if(!success){p.cooldown=.55;if(!p.action)p.animate('keeper-dive',.65,{...context,high:b.y>1.7});return true;}
   if(b.shot){match.onTarget();match.stats[p.team].saves++;p.saves++;}
   const pressure=match.active(1-p.team).some(o=>distance(o,b)<3);
-  const catchable=(close||speed<27)&&b.y<2.8&&(!cross||!pressure)&&gap<1.9;
+  const catchable=(close||speed<29)&&b.y<2.8&&(!cross||!pressure)&&gap<1.9;
   if(catchable){
     match.claim(p,{hands:true});p.animate(close?'keeper-smother':cross?'keeper-cross-catch':'keeper-catch',.65,context);
   }else{

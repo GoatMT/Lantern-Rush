@@ -21,8 +21,8 @@ test('all published seasons preserve unique roster memberships and seven starter
     }
   }assert.equal(total,24);
 });
-test('match begins with 14 active players and a fourteen-second skippable presentation',()=>{
-  const m=match();assert.equal(m.players.length,14);for(let i=0;i<13;i++)m.update(1,idle);
+test('match begins with 14 active players and a sixty-second skippable presentation',()=>{
+  const m=match();assert.equal(m.players.length,14);for(let i=0;i<59;i++)m.update(1,idle);
   assert.equal(m.phase,'intro');assert.equal(m.elapsed,0);m.update(1.01,idle);assert.equal(m.phase,'restart');assert.equal(m.restart.type,'KICK OFF');
 });
 test('goals use the whole ball and both attacking directions',()=>{
@@ -80,7 +80,7 @@ test('queued substitutions wait for a stoppage and prevent duplicated players',(
 test('goals count once, include assists and give the opponent kickoff',()=>{
   const m=match(),p=m.players[5],a=m.players[4];m.phase='playing';m.ball.previousTouch=a;m.ball.lastTouch=p;m.goal(0);
   assert.equal(m.stats[0].goals,1);assert.equal(p.goals,1);assert.equal(a.assists,1);assert.equal(m.goalEvents[0].assist,a.name);
-  m.update(4.1,idle);assert.equal(m.phase,'restart');assert.equal(m.restart.team,1);
+  m.update(8.6,idle);assert.equal(m.phase,'restart');assert.equal(m.restart.team,1);
 });
 test('settings persist and conflicting keys swap instead of breaking controls',()=>{
   let json='{"graphics":"low"}';const storage={getItem:()=>json,setItem:(k,v)=>json=v};const s=new Settings(storage);

@@ -13,8 +13,8 @@ export const FIELD = Object.freeze({
 });
 export const PLAY = Object.freeze({
   runSpeed:7.3, sprintSpeed:11.8, staminaDrain:.045, staminaRecovery:.012,
-  acceleration:25, sprintAcceleration:21, braking:32,
-  groundDrag:.3, rollingResistance:2.2, airDrag:.095, gravity:16, bounceDamping:.3, stopSpeed:.16,
+  acceleration:32, sprintAcceleration:28, braking:48, turnAcceleration:78, turnRate:14, sprintTurnRate:11,
+  groundDrag:.38, rollingResistance:3.0, airDrag:.095, gravity:16, bounceDamping:.22, stopSpeed:.24,
   passMin:12, passMax:46, shotBase:30, shotPower:19,
   supportGap:fieldUnits(3), pressureCover:fieldUnits(4), shootingRange:fieldUnits(17)
 });

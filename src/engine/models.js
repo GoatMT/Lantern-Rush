@@ -123,7 +123,7 @@ export class PlayerModel{
     const near=quality!=='low'&&cameraDistance<(quality==='high'?44:28),close=quality==='high'&&cameraDistance<32;
     this.details.forEach(detail=>detail.visible=near);this.fineDetails.forEach(detail=>detail.visible=close);
     if(this.lastQuality!==quality){this.shirtMaterial.normalMap=quality==='low'?null:fabricNormalTexture();this.shirtMaterial.needsUpdate=true;this.lastQuality=quality;}
-    const target=animationPose(p,time),blend=1-Math.exp(-Math.min(dt,.1)*19);
+    const target=animationPose(p,time),blend=1-Math.exp(-Math.min(dt,.1)*(p.striking?38:23));
     if(!this.pose)this.pose={...target};else for(const key of Object.keys(target))this.pose[key]+=(target[key]-this.pose[key])*blend;
     const q=this.pose;this.body.position.set(q.x,q.y,0);this.body.rotation.set(q.pitch,q.yaw,q.roll);this.head.rotation.set(q.headPitch,q.headYaw,0);
     this.arms[0].rotation.set(q.laX,0,q.laZ);this.arms[1].rotation.set(q.raX,0,q.raZ);this.elbows[0].rotation.x=-q.le;this.elbows[1].rotation.x=-q.re;

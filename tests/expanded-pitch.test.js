@@ -60,9 +60,9 @@ test('a through-ball receiver makes a forward run and can collect a long pass wi
   for(let i=0;i<720&&!m.ball.owner;i++)m.update(1/120,idle);
   assert.equal(m.ball.owner,target);assert.equal(m.stats[0].completed,1);
 });
-test('a charged long shot reaches the enlarged goal line at useful speed',()=>{
-  const m=match(),p=m.players[5];p.x=10;p.z=0;m.phase='playing';m.ball.take(p);m.shoot(p,1);
-  assert(Math.hypot(m.ball.vx,m.ball.vz)>=47&&Math.hypot(m.ball.vx,m.ball.vz)<52);
+test('a strong submaximal long shot reaches the enlarged goal line at useful speed',()=>{
+  const m=match(),p=m.players[5];p.x=10;p.z=0;m.phase='playing';m.ball.take(p);m.shoot(p,.90);
+  assert(Math.hypot(m.ball.vx,m.ball.vz)>=44&&Math.hypot(m.ball.vx,m.ball.vz)<52);
   let event=null;for(let i=0;i<600&&!event;i++){const prev={...m.ball};m.ball.update(1/120);event=boundaryEvent(m.ball,prev,[1,-1]);}
   assert.equal(event?.type,'GOAL');assert(Math.hypot(m.ball.vx,m.ball.vz)>18);
 });
@@ -73,7 +73,7 @@ test('all four corners, both touchlines and goal kicks restart at enlarged bound
     const b={...prev,x:side*(FIELD.halfLength+.6),lastTouch:{team:1-attacking}};
     const corner=boundaryEvent(b,prev,dirs);assert.equal(corner.type,'CORNER');assert.equal(corner.team,attacking);
     assert(Math.abs(corner.x)>FIELD.halfLength-1&&Math.abs(corner.z)>FIELD.halfWidth-1);m.beginRestart(corner);assert(m.players.every(inside));
-    m.update(13,idle);assert.equal(m.phase,'playing');assert(Math.hypot(m.ball.vx,m.ball.vz)>0);
+    m.phaseTime=30;m.update(.01,idle);for(let i=0;i<100&&m.phase==='restart';i++)m.update(1/120,idle);assert.equal(m.phase,'playing');assert(Math.hypot(m.ball.vx,m.ball.vz)>0);
     const gk=boundaryEvent({...b,lastTouch:{team:attacking}},prev,dirs);assert.equal(gk.type,'GOAL KICK');
     m.beginRestart(gk);assert.equal(m.restart.taker.role,'GK');assert(m.players.every(inside));
     const ti=boundaryEvent({x:side*u(25),z:wing*(FIELD.halfWidth+.6),y:.32,lastTouch:{team:attacking}},

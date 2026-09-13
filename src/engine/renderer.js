@@ -1,5 +1,6 @@
 import * as T from '../../vendor/three.module.js';
 import { Stadium } from './stadium.js';
+import { canvasSize } from './viewport.js';
 import { PlayerModel,createBallMesh } from './models.js';
 import { BroadcastCamera } from './camera.js';
 import { MatchLighting } from './lighting.js';
@@ -16,6 +17,8 @@ export class GameRenderer{
     this.ballShadow=new T.Mesh(new T.PlaneGeometry(1.35,1.35),new T.MeshBasicMaterial({map:new T.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));this.ballShadow.rotation.x=-Math.PI/2;this.scene.add(this.ballShadow);
     this.time=0;this.quality=settings.graphics;this.applyGraphics(settings.graphics);this.setLighting(settings.lighting||'evening');this.resize();
     this.onResize=()=>this.resize();addEventListener('resize',this.onResize);
+    globalThis.visualViewport?.addEventListener('resize',this.onResize);
+    if(typeof ResizeObserver!=='undefined'){this.resizeObserver=new ResizeObserver(this.onResize);this.resizeObserver.observe(canvas);}
     this.projectVector=new T.Vector3();
     const aimGeometry=new T.BufferGeometry();aimGeometry.setAttribute('position',new T.BufferAttribute(new Float32Array(6),3));
     this.aimLine=new T.Line(aimGeometry,new T.LineDashedMaterial({color:'#f2e7a6',dashSize:.6,gapSize:.35,transparent:true,opacity:.8}));
@@ -26,15 +29,22 @@ export class GameRenderer{
   applyGraphics(level){this.quality=level;this.adaptiveScale=1;this.renderer.shadowMap.enabled=level!=='low';this.sun.shadow.mapSize.set(level==='high'?2048:1024,level==='high'?2048:1024);if(this.sun.shadow.map){this.sun.shadow.map.dispose();this.sun.shadow.map=null;}this.stadium.quality(level,this.renderer.capabilities.getMaxAnisotropy());this.resize();}
   setLighting(name){const preset=this.lighting.set(name);this.renderer.toneMappingExposure=preset.exposure;this.stadium.setLighting(this.lighting.name);}
   resize(){
-    const w=this.canvas.clientWidth||innerWidth,h=this.canvas.clientHeight||innerHeight;this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
+    const {width:w,height:h}=canvasSize(this.canvas,globalThis.innerWidth,globalThis.innerHeight);
+    const ratio=Math.min(globalThis.devicePixelRatio||1,this.quality==='low'?1:this.quality==='medium'?1.35:1.75)*this.adaptiveScale;
+    if(w===this.viewportWidth&&h===this.viewportHeight&&ratio===this.pixelRatio)return false;
+    const rotated=this.viewportWidth&&((w>h)!==(this.viewportWidth>this.viewportHeight));
+    this.viewportWidth=w;this.viewportHeight=h;this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
     this.compact=w<1050||h<550;this.actorScale=this.compact?PLAYER_VISUAL_SCALE.compact:PLAYER_VISUAL_SCALE.desktop;this.broadcast.compact=this.compact;
     for(const model of [...(this.models||[]),...(this.ref?[this.ref]:[])])model.setVisualScale(this.actorScale);
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,this.quality==='low'?1:this.quality==='medium'?1.35:1.75)*this.adaptiveScale);this.renderer.setSize(w,h,false);
+    if(ratio!==this.pixelRatio){this.renderer.setPixelRatio(ratio);this.pixelRatio=ratio;}
+    this.renderer.setSize(w,h,false);
+    if(rotated&&typeof document!=='undefined')document.dispatchEvent(new Event('game-viewport-changed'));
+    return true;
   }
   adaptPerformance(fps,dt){
     if(!this.compact)return;
-    this.slowFrames=fps<29?(this.slowFrames||0)+dt:Math.max(0,(this.slowFrames||0)-dt*.5);
-    if(this.slowFrames>7&&this.adaptiveScale>.76){this.adaptiveScale=Math.max(.75,this.adaptiveScale-.1);this.slowFrames=0;this.resize();}
+    this.slowFrames=fps<42?(this.slowFrames||0)+dt:Math.max(0,(this.slowFrames||0)-dt*.5);
+    if(this.slowFrames>3&&this.adaptiveScale>.76){this.adaptiveScale=Math.max(.75,this.adaptiveScale-.1);this.slowFrames=0;this.resize();}
   }
   playerLabelHeight(){return 3.1*this.actorScale;}
   setMatch(match){
@@ -51,12 +61,12 @@ export class GameRenderer{
     const model=new PlayerModel(player,match.teams[player.team].uniform||match.teams[player.team].kit);model.setVisualScale(this.actorScale);this.models[index]=model;this.scene.add(model.root);
   }
   render(dt,match){
+    this.resize();
     this.time+=dt;this.broadcast.update(dt,this.time,match);this.lighting.update(dt,match?.ball);
     for(const model of this.models){
       model.update(this.time,match?.controlled===model.player&&!['home','intro','goal'].includes(match?.phase),dt,this.quality,this.camera.position.distanceTo(model.root.position));
-      if(match?.phase==='intro'&&match.phaseTime<9.8)model.root.visible=false;
     }
-    if(this.ref){this.ref.update(this.time,false,dt,this.quality,this.camera.position.distanceTo(this.ref.root.position));if(match?.phase==='intro'&&match.phaseTime<9.8)this.ref.root.visible=false;}
+    if(this.ref)this.ref.update(this.time,false,dt,this.quality,this.camera.position.distanceTo(this.ref.root.position));
     if(match){
       const b=match.ball,height=b.owner&&b.controlMode==='hands'?b.y*this.actorScale/1.13:b.y;this.ballMesh.position.set(b.x,height,b.z);this.ballMesh.rotation.set(b.rollX,b.rotationY,b.rollZ);
       this.ballShadow.position.set(b.x,.027,b.z);this.ballShadow.scale.setScalar(1+Math.min(height,6)*.1);this.ballShadow.material.opacity=Math.max(.2,1-height*.07);
@@ -66,5 +76,5 @@ export class GameRenderer{
     }
     this.renderer.render(this.scene,this.camera);
   }
-  project(x,y,z){this.projectVector.set(x,y,z).project(this.camera);return {x:(this.projectVector.x*.5+.5)*this.canvas.clientWidth,y:(-.5*this.projectVector.y+.5)*this.canvas.clientHeight,visible:this.projectVector.z<1};}
+  project(x,y,z){this.projectVector.set(x,y,z).project(this.camera);return {x:(this.projectVector.x*.5+.5)*this.viewportWidth,y:(-.5*this.projectVector.y+.5)*this.viewportHeight,visible:this.projectVector.z>-1&&this.projectVector.z<1};}
 }

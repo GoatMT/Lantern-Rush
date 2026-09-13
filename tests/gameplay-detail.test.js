@@ -13,6 +13,7 @@ import {animationPose} from '../src/engine/animations.js';
 import {appearanceFor} from '../src/engine/appearance.js';
 import {BroadcastCamera} from '../src/engine/camera.js';
 import {Settings} from '../src/settings.js';
+import { advanceStrike } from '../src/match/striking.js';
 import {introStage} from '../src/ui/intro.js';
 const data=JSON.parse(fs.readFileSync(new URL('../data/2026.json',import.meta.url)));
 const teams=data.teams.slice(2,4).map(t=>{const lineup=createLineup(t.roster);return {...t,lineup,bench:t.roster.filter(p=>!lineup.some(l=>l.id===p.id))};});
@@ -23,7 +24,7 @@ test('movement accelerates, retains momentum through reversal, brakes and turns 
  const p=runner();p.move(1,0,1,1/120,true);assert(p.vx>0&&p.vx<.3);
  for(let i=0;i<120;i++){p.tick(1/120);p.move(1,0,1,1/120,true);}
  assert(p.vx>10);const x=p.x,angle=Math.atan2(p.faceX,p.faceZ);
- p.move(-1,0,1,1/120,true);assert(p.x>x&&p.vx>9);assert(Math.abs(angleDelta(angle,Math.atan2(p.faceX,p.faceZ)))<.04);
+ p.move(-1,0,1,1/120,true);assert(p.x>x&&p.vx>9);assert(Math.abs(angleDelta(angle,Math.atan2(p.faceX,p.faceZ)))<.10);
  for(let i=0;i<90;i++)p.move(0,0,0,1/120);
  assert(Math.hypot(p.vx,p.vz)<.01);
 });
@@ -47,7 +48,7 @@ test('first touches cushion at the actual contact point instead of attaching to 
 test('goalkeepers catch in their hands, hold securely and distribute',()=>{
  const m=match(),p=m.players[7];p.cooldown=0;Object.assign(m.ball,{x:p.x,z:p.z,y:1.5,vx:20,lastTouch:m.players[5],shot:{player:m.players[5],team:0}});
  assert(keeperContact(m,p));assert.equal(m.ball.owner,p);assert.equal(m.ball.controlMode,'hands');assert.equal(m.stats[1].saves,1);
- for(let i=0;i<240&&m.ball.owner;i++){p.tick(1/120);updateKeeper(m,p,1/120);m.ball.update(1/120);if(m.ball.owner)assert.equal(m.ball.y,1.64);}
+ for(let i=0;i<360&&m.ball.owner;i++){p.tick(1/120);advanceStrike(m,1/120);updateKeeper(m,p,1/120);m.ball.update(1/120);if(m.ball.owner)assert.equal(m.ball.y,1.64);}
  assert.equal(m.ball.owner,null);assert.equal(m.stats[1].passes,1);assert(['keeper-roll','keeper-throw','keeper-punt'].includes(p.action.name));
 });
 test('a hard save parries into play; dive direction follows the actual side of the ball',()=>{
@@ -97,11 +98,11 @@ test('camera selection survives refresh and invalid saved values use Medium',()=
  for(const mode of ['low','medium','high','broadcast']){s.set('camera',mode);assert.equal(new Settings(storage).value.camera,mode);}
 });
 test('intro reveals stages, walks to formations and can be skipped without using match time',()=>{
- assert.deepEqual([0,2,4,7,9,11].map(introStage),['stadium','versus','user','cpu','watch','walk']);
+ assert.deepEqual([0,4,8,29,50,55].map(introStage),['stadium','versus','user','cpu','watch','walk']);
  for(const skip of [true,false]){
-  const m=new Match(teams,{duration:3,difficulty:'normal'});for(let i=0;i<1200;i++)m.update(1/120,idle);
+  const m=new Match(teams,{duration:3,difficulty:'normal'});for(let i=0;i<6480;i++)m.update(1/120,idle);
   const before={x:m.players[1].x,z:m.players[1].z};for(let i=0;i<240;i++)m.update(1/120,idle);assert(distance(before,m.players[1])>1);
-  if(skip)m.skipIntro();else for(let i=0;i<241;i++)m.update(1/120,idle);
+  if(skip)m.skipIntro();else for(let i=0;i<481;i++)m.update(1/120,idle);
   assert.equal(m.phase,'restart');assert.equal(m.elapsed,0);assert.equal(m.restart.team,0);
  }
 });

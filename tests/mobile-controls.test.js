@@ -76,3 +76,44 @@ test('holding mobile Switch while receiving keeps possession instead of auto-pas
   buttons.pass.pointer('pointerdown',1);m.passHeldTime=0;m.collisions(1/120);controls.frame();m.update(.25,controls);
   assert.equal(m.ball.owner,p);assert.equal(m.stats[0].passes,0);
 });
+
+test('Switch drags select the keeper once and stop hold-switch repetition',()=>{
+  for(const [x,y] of [[28,-2],[28,58],[-2,28]]){
+    const {controls,buttons}=setup();buttons.pass.dataset.mode='switch';buttons.pass.pointer('pointerdown',1);controls.frame();
+    buttons.pass.pointer('pointermove',1,x,y);assert(controls.pressed.has('goalie'));assert(!controls.held.has('pass'));
+    controls.frame();buttons.pass.pointer('pointermove',1,x,y);assert(!controls.pressed.has('goalie'));buttons.pass.pointer('pointerup',1);
+  }
+});
+test('manual goalkeeper selection persists, moves under user input, and toggles back',()=>{
+  const m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>.5});m.resetFormation();m.phase='playing';m.restart=null;
+  const keeper=m.active(0).find(p=>p.role==='GK');m.toggleGoalkeeper();assert.equal(m.controlled,keeper);
+  const z=keeper.z;const input={pressed:new Set(),held:new Set(),released:new Set(),movement:()=>({x:0,z:1,intensity:1})};
+  for(let i=0;i<12;i++)m.update(1/120,input);assert.equal(m.controlled,keeper);assert(keeper.z>z);
+  m.toggleGoalkeeper();assert.notEqual(m.controlled.role,'GK');m.selectPlayer();assert.notEqual(m.controlled.role,'GK');
+  m.ball.take(keeper,{hands:true});m.controlled=keeper;m.toggleGoalkeeper();m.selectPlayer();assert.notEqual(m.controlled.role,'GK');
+});
+test('standing steal stays standing at sprint speed, wins on time, and can foul',()=>{
+  for(const random of [.99,0]){
+    const m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>random});m.resetFormation();m.phase='playing';
+    const p=m.players[5],victim=m.players[12];Object.assign(victim,{x:0,z:0,faceX:1,faceZ:0});Object.assign(p,{x:1,z:0,vx:12,vz:0,cooldown:0});m.ball.take(victim);
+    m.tackle(p,{standing:true});assert.notEqual(p.action?.name,'slide-tackle');
+    if(random)assert.equal(m.ball.owner,p);else assert.equal(m.stats[0].fouls,1);
+  }
+});
+test('goalkeeper bind persists, retired steal bind is removed, and custom keys remain',()=>{
+  const {settings,storage}=setup();assert.equal(settings.value.keys.steal,undefined);assert.equal(settings.value.keys.goalie,'KeyG');
+  settings.bind('goalie','KeyB');const restored=new Settings(storage);assert.equal(restored.value.keys.steal,undefined);assert.equal(restored.value.keys.goalie,'KeyB');
+  const old=new Settings({getItem:()=>JSON.stringify({controlsVersion:2,keys:{sprint:'KeyL',pass:'KeyG'}}),setItem:()=>{}});
+  assert.equal(old.value.keys.sprint,'KeyL');assert.equal(old.value.keys.pass,'KeyG');assert.equal(new Set(Object.values(old.value.keys)).size,Object.keys(old.value.keys).length);
+});
+
+test('tiny joystick movements stay neutral, while deliberate motion remains proportional',()=>{
+  const {controls,pad}=setup();pad.pointer('pointerdown',1,56,56);pad.pointer('pointermove',1,57,57);assert.equal(controls.movement().intensity,0);
+  pad.pointer('pointermove',1,76,56);const small=controls.movement();assert(small.x>0&&small.intensity<1&&small.z===0);
+  pad.pointer('pointermove',1,110,56);assert.equal(controls.movement().intensity,1);pad.pointer('pointerup',1);assert.equal(controls.movement().intensity,0);
+});
+test('rotating the viewport cancels every held finger without accidentally releasing a shot',()=>{
+  const {controls,pad,buttons}=setup();pad.pointer('pointerdown',1,80,50);buttons.sprint.pointer('pointerdown',2);buttons.shoot.pointer('pointerdown',3);
+  document.dispatchEvent(new Event('game-viewport-changed'));assert.equal(controls.held.size,0);assert.equal(controls.released.size,0);assert.equal(controls.movement().intensity,0);assert.equal(pad.captures.size,0);assert.equal(buttons.shoot.captures.size,0);
+  buttons.shoot.pointer('pointerup',3);assert(!controls.released.has('shoot'));
+});

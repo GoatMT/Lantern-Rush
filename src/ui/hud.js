@@ -3,6 +3,8 @@ import { FIELD,clockText,clamp } from '../config.js';
 import { MatchIntro } from './intro.js';
 import { teamOverall } from '../ratings.js';
 import { playerLabel } from '../player-label.js';
+import { SHOT_NAMES } from '../match/shooting.js';
+import { INTRO,introPlayer } from '../presentation.js';
 export class HUD{
   constructor(app){this.app=app;this.labels=new Map();this.ctx=$('minimap').getContext('2d');this.acc=0;this.intro=new MatchIntro();}
   reset(){this.labels.clear();$('player-labels').replaceChildren();}
@@ -17,18 +19,27 @@ export class HUD{
     $('stamina-fill').classList.toggle('exhausted',p.exhausted);
     $('controlled-profile').textContent=p.role+' · '+(p.data.overall??'—')+' OVR · '+(p.data.playstyle?.label||'');
     $('power-meter').hidden=m.charge<=0;$('power-fill').style.width=Math.round(m.charge*100)+'%';
-    const defending=m.ball.owner&&m.ball.owner.team===1;$('touch-shoot').textContent=defending?'TACKLE':'SHOOT';$('touch-pass').textContent=m.ball.owner===p?'PASS':'SWITCH';
+    const keeperKick=p.role==='GK'&&m.ball.owner===p;
+    const level=keeperKick?'balanced':m.charge>=.985?'max':m.charge>.78?'high':m.charge<.4?'low':'balanced';
+    $('power-meter').dataset.level=level;
+    $('power-label').textContent=keeperKick?'LONG KICK POWER':level==='max'?'MAX · HIGH MISS RISK':level==='high'?'HIGH · LESS ACCURATE':'SHOT POWER';
+    $('shot-type').textContent=m.charge>0?(keeperKick?'DOWNFIELD':SHOT_NAMES[m.previewShot().kind]||'SHOT'):'';
+    $('touch-shoot').textContent=m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT';
+    const passLabel=m.possessionTeam()===0?'PASS':'SWITCH';$('touch-pass').textContent=passLabel;$('touch-pass').setAttribute('aria-label',passLabel);$('touch-pass').dataset.mode=passLabel.toLowerCase();
+    $('touch-goalie').disabled=m.phase!=='playing';$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
+    $('touch-goalie').setAttribute('aria-label',p.role==='GK'?'Switch back to outfield player':'Switch to goalkeeper');
     $('set-piece-hint').hidden=m.phase!=='restart';
-    if(m.phase==='restart'){const r=m.restart;$('set-piece-hint').innerHTML='<strong>'+r.type+' · '+(r.team===0?'YOU':'CPU')+'</strong>'+(r.team===0?'Aim with movement · Hold Shoot or tap Pass':'Finding the restart…');}
+    if(m.phase==='restart'){const r=m.restart;$('set-piece-hint').innerHTML='<strong>'+r.type+' · '+(r.team===0?'YOU':'CPU')+'</strong>'+(m.phaseTime<r.readyAt?'Getting ready…':r.team===0?'Aim with movement · Hold Shoot or tap Pass':'Finding the restart…');}
     const intro=m.phase==='intro';this.intro.update(m);
     const controlledPos=this.app.renderer.project(p.x,this.app.renderer.playerLabelHeight(),p.z);
     $('touch-controls').hidden=intro||m.phase==='goal';
     for(const player of m.players){
       let label=this.labels.get(player);
       if(!label){label=document.createElement('div');label.className='pitch-label';$('player-labels').append(label);this.labels.set(player,label);}
-      const show=!player.sentOff&&(intro?m.phaseTime>=9.8:m.phase==='goal'?player===m.celebratingPlayer:player===m.controlled||player===m.ball.owner);label.hidden=!show;if(!show)continue;
+      const show=!player.sentOff&&(intro?m.phaseTime>=INTRO.walk||player===introPlayer(m):m.phase==='goal'?player===m.celebratingPlayer:player===m.controlled||player===m.ball.owner);label.hidden=!show;if(!show)continue;
       label.classList.toggle('you',player.team===0);
-      label.textContent=(intro?player.role+' · ':m.phase==='goal'?'SCORER · ':player===m.controlled?'YOU · ':'')+playerLabel(player);
+      const labelText=(intro?player.role+' · ':m.phase==='goal'?'SCORER · ':player===m.controlled?'YOU · ':'')+playerLabel(player);
+      if(label.textContent!==labelText)label.textContent=labelText;
       const pos=this.app.renderer.project(player.x,this.app.renderer.playerLabelHeight(),player.z);
       if(!intro&&m.phase!=='goal'&&player!==p&&Math.abs(pos.x-controlledPos.x)<160&&Math.abs(pos.y-controlledPos.y)<26)pos.y=controlledPos.y-27;
       label.hidden=!pos.visible;label.style.left=pos.x+'px';label.style.top=pos.y+'px';

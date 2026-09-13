@@ -17,19 +17,30 @@ export function animationPose(p,time){
     pose.y-=.09*set;pose.lk+=.22*set;pose.rk+=.22*set;pose.pitch=.07+set*.03;pose.laZ=-.21;pose.raZ=.21;pose.laX-=.38*set;pose.raX-=.38*set;pose.le=.65;pose.re=.65;
     pose.llZ-=.055*set;pose.rlZ+=.055*set;
   }
-  if(p.footTouch>0&&!p.action){pose.rlX-=.3;pose.rk+=.15;}
+  if(p.footTouch>0&&!p.action){pose[p.touchFoot==='left'?'llX':'rlX']-=.3;pose[p.touchFoot==='left'?'lk':'rk']+=.15;}
   const a=p.action;if(!a)return pose;
   const t=clamp(a.time/a.duration,0,1),c=a.context||{},side=c.side||1,f=Math.sin(t*Math.PI),action={...pose};
   const names=a.name,kickRight=side>0,leg=kickRight?'rlX':'llX',knee=kickRight?'rk':'lk',plant=kickRight?'llX':'rlX';
-  const shots=['shot','power-shot','side-foot','first-shot','volley','half-volley','driven-shot','long-shot','penalty','free-kick'];
+  const shots=['shot','power-shot','finesse-shot','trivela-shot','side-foot','first-shot','volley','half-volley','driven-shot','long-shot','penalty','free-kick'];
   const passes=['short-pass','firm-pass','long-pass','through-pass','cross','first-pass','backheel','goal-kick','keeper-punt'];
   if(shots.includes(names)||passes.includes(names)){
     const power=names==='power-shot'||names==='long-shot'||names==='cross';
-    const strike=t<.28?Math.sin(t/.28*Math.PI/2)*.7:-Math.sin((t-.28)/.72*Math.PI)*(power?1.75:1.35);
+    const impact=c.contactAt??.25,backswing=impact*.52,follow=clamp((t-impact)/(1-impact),0,1);
+    const strike=t<backswing?Math.sin(t/backswing*Math.PI/2)*.65:t<impact?.65-1.27*smooth((t-backswing)/(impact-backswing)):
+      -.62*(1-smooth(follow))-(power?1.05:.72)*Math.sin(follow*Math.PI);
     action[leg]=names==='backheel'?Math.sin(t*Math.PI)*1.5:strike;
-    action[knee]=t<.32?.65:Math.max(0,.22-f*.1);action[plant]=.10;action.pitch=.05+f*.14;
+    action[knee]=t<backswing?.45:.16;action[plant]=.08;action[kickRight?'lk':'rk']=.18;action.y=-.035*f;action.pitch=.05+f*.14;
     action.yaw=-side*f*(names==='cross'?.45:.22);action.laZ=-.55*f;action.raZ=.55*f;action.le=action.re=.35;
     if(names==='side-foot'){action.roll=-side*f*.08;action[leg]*=.6;}
+    if(names==='finesse-shot'){
+      action[leg]*=.72;action[kickRight?'rlZ':'llZ']=-side*f*.48;action.yaw=-side*f*.60;
+      action.roll=-side*f*.13;action.pitch=.08;action[knee]=.22;action.laZ=-.72*f;action.raZ=.72*f;
+    }
+    if(names==='trivela-shot'){
+      action[leg]*=.90;action[kickRight?'rlZ':'llZ']=side*f*.44;action.yaw=side*f*.42;
+      action.roll=side*f*.20;action.pitch=.18*f;action[knee]=.32;action[plant]=.24;
+    }
+    if(names==='power-shot'){action.pitch=c.skied?-.32*f:.22*f;action[leg]*=1.15;action.yaw=-side*f*.4;}
     if(names==='volley'||names==='half-volley'){action[leg]=-f*1.65;action[knee]=.2;action.y=.16*f;action.pitch=-.15*f;}
   }else if(names==='header'||names==='header-pass'){
     action.y=.48*f;action.pitch=Math.sin(t*Math.PI*2)*-.35;action.laZ=-.55;action.raZ=.55;action.lk=action.rk=.4*f;
