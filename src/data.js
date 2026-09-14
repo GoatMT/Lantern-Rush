@@ -19,6 +19,11 @@ export class LeagueData{
     const response=await fetch(new URL('../data/seasons.json',import.meta.url),{cache:'no-cache'});
     if(!response.ok)throw Error('Season list could not be loaded.');
     this.seasons=await response.json();this.teams={};
+    const rivalryResponse=await fetch(new URL('../data/rivalries.json',import.meta.url),{cache:'no-cache'});
+    if(!rivalryResponse.ok)throw Error('Rivalry matchups could not be loaded.');
+    this.rivalries=(await rivalryResponse.json()).rivalries;
+    const tournamentResponse=await fetch(new URL('../data/tournaments.json',import.meta.url),{cache:'no-cache'});
+    this.tournaments=tournamentResponse.ok?await tournamentResponse.json():{};
     for(let i=0;i<this.seasons.length;i++){
       const season=this.seasons[i];
       const res=await fetch(new URL('../'+season.file,import.meta.url),{cache:'no-cache'});
@@ -33,4 +38,15 @@ export class LeagueData{
     }
   }
   get(year){return this.teams[year]||[];}
+  tournament(year){return this.tournaments?.[year]||{season:String(year),event:{},divisions:[],matches:[],playoffs:{rounds:[]}};}
+  tournamentTeams(year){
+    const tournament=this.tournament(year), palette=['#2d78c8','#e0aa4a','#2c9a6a','#9954b8','#d75b4b'];
+    return (tournament.divisions||[]).flatMap((division,di)=>(division.teams||[]).map((t,index)=>{
+      const roster=(t.roster||[]).map((p,i)=>typeof p==='string'?{id:(t.id+'-'+i),name:p,position:'Player'}:{...p,id:p.id||t.id+'-'+i,name:p.name||'Player',position:p.position||p.role||'Player'});
+      while(roster.length<7)roster.push({id:t.id+'-placeholder-'+roster.length,name:'Player'+(roster.length+1),position:'Player'});
+      const lineup=createLineup(roster);
+      const kit=t.logoBg||palette[(di+index)%palette.length];
+      return {...t,season:String(year),division:division.name,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,roster,lineup,bench:roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit,uniform:teamKit('',t.id,kit)};
+    }));
+  }
 }

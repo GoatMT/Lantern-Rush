@@ -3,8 +3,9 @@ import { playerAttributes } from './attributes.js';
 import { preferredFoot } from './shooting.js';
 export const angleDelta=(from,to)=>Math.atan2(Math.sin(to-from),Math.cos(to-from));
 export class Player {
-  constructor(data,team,slot,direction){
-    Object.assign(this,{data:{...data},team,slot,role:FORMATION[slot].role,id:data.id,name:data.name,jersey:data.jersey,
+  constructor(data,team,slot,direction,formation=FORMATION){
+    this.formation=formation?.length===7?formation:FORMATION;
+    Object.assign(this,{data:{...data},team,slot,role:this.formation[slot]?.role||FORMATION[slot].role,id:data.id,name:data.name,jersey:data.jersey,
       x:0,z:0,vx:0,vz:0,faceX:direction,faceZ:0,cooldown:0,skill:0,animation:'idle',animationTime:0,
       sentOff:false,yellow:0,decision:0,holdTime:0,goals:0,assists:0,passes:0,tackles:0,saves:0,involvement:0,
       gait:0,turn:0,acceleration:0,lookX:direction,lookZ:0,locomotion:'idle',boosting:false,action:null,skillPlan:null,lastSkill:null,keeperState:{},lastReceive:-10});
@@ -12,7 +13,7 @@ export class Player {
     this.attributes=playerAttributes(data);this.reset(direction);
   }
   reset(direction){
-    const h=FORMATION[this.slot];this.x=h.x*direction;this.z=h.z;this.vx=this.vz=0;this.faceX=direction;this.faceZ=0;this.lookX=direction;this.lookZ=0;this.cooldown=.35;
+    const h=this.formation[this.slot]||FORMATION[this.slot];this.x=h.x*direction;this.z=h.z;this.vx=this.vz=0;this.faceX=direction;this.faceZ=0;this.lookX=direction;this.lookZ=0;this.cooldown=.35;
     this.action=null;this.skillPlan=null;this.skill=0;this.animationTime=0;this.animation=this.role==='GK'?'ready':'idle';this.locomotion='idle';this.keeperState={};this.gait=0;this.hasBall=false;this.striking=false;this.aiTarget=null;this.cutTime=0;this.receivedFrom=null;
   }
   move(dx,dz,intensity,dt,sprint=false,facing=null){

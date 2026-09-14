@@ -17,7 +17,8 @@ import { INTRO,PRESENTATION,restartPresentation } from '../presentation.js';
 export class Match {
   constructor(teams,settings,{event=()=>{},random=Math.random}={}){
     this.teams=teams;this.settings={...settings};this.event=event;this.random=random;
-    this.players=teams.flatMap((team,index)=>team.lineup.map((data,slot)=>new Player(data,index,slot,index===0?1:-1)));
+    this.formations=teams.map(team=>team.formation?.length===7?team.formation:FORMATION);
+    this.players=teams.flatMap((team,index)=>team.lineup.map((data,slot)=>new Player(data,index,slot,index===0?1:-1,this.formations[index])));
     this.benches=teams.map(t=>t.bench.map(p=>({...p})));this.used=[[],[]];this.archive=[];this.pending=[];
     this.stats=[teamStats(),teamStats()];this.goalEvents=[];this.subEvents=[];
     this.ball=new Ball();this.controlled=this.players[5];this.phase='intro';this.phaseTime=0;this.elapsed=0;this.half=1;
@@ -83,7 +84,7 @@ export class Match {
       return;
     }
     if(this.phase==='intro'){
-      if(this.phaseTime>=INTRO.walk)for(const p of this.players){const h=FORMATION[p.slot],x=h.x*this.direction(p.team);p.move(x-p.x,h.z-p.z,Math.min(.42,Math.hypot(x-p.x,h.z-p.z)*.6),dt);p.watch({x:0,z:0});}
+      if(this.phaseTime>=INTRO.walk)for(const p of this.players){const h=this.formations[p.team]?.[p.slot]||FORMATION[p.slot],x=h.x*this.direction(p.team);p.move(x-p.x,h.z-p.z,Math.min(.42,Math.hypot(x-p.x,h.z-p.z)*.6),dt);p.watch({x:0,z:0});}
       if(this.phaseTime>=INTRO.duration)this.skipIntro();return;
     }
     if(this.phase==='goal'){
@@ -437,7 +438,7 @@ export class Match {
       if(this.pendingStrike?.p===out){out.striking=false;this.pendingStrike=null;this.charge=0;this.curveRequested=false;}
       this.archive.push({...out});this.used[team].push(out.data);
       const saved={x:out.x,z:out.z,slot:out.slot,team:out.team,role:out.role};
-      const next=new Player(incoming,team,out.slot,this.direction(team));Object.assign(out,next,saved);out.hasBall=this.ball.owner===out;
+      const next=new Player(incoming,team,out.slot,this.direction(team),this.formations[team]);Object.assign(out,next,saved);out.hasBall=this.ball.owner===out;
       this.benches[team]=this.benches[team].filter(p=>p.id!==incoming.id);
       this.stats[team].substitutions++;const event={team,out:this.archive.at(-1).name,outJersey:this.archive.at(-1).jersey??null,in:incoming.name,inJersey:incoming.jersey??null,time:this.elapsed};this.subEvents.push(event);
       this.event('substitution',{player:out,...event});

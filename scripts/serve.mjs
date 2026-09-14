@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const port = Number(process.argv[2] || process.env.PORT || 4173);
-const mime = { '.html':'text/html', '.js':'text/javascript', '.mjs':'text/javascript', '.css':'text/css', '.json':'application/json', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.svg':'image/svg+xml', '.ico':'image/x-icon' };
+const mime = { '.html':'text/html', '.js':'text/javascript', '.mjs':'text/javascript', '.css':'text/css', '.json':'application/json', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.webp':'image/webp', '.avif':'image/avif', '.svg':'image/svg+xml', '.ico':'image/x-icon' };
 http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');

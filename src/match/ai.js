@@ -47,7 +47,7 @@ export function updateAI(match,dt){
       if(match.phase!=='playing')return;
       if(p===match.controlled&&(p.role!=='GK'||owner===p||match.manualKeeper))continue;
       if(p.striking){p.move(0,0,0,dt);continue;}
-      const home=FORMATION[p.slot];let tx=home.x*direction,tz=home.z,sprint=false,pace=1;
+      const home=match.formations?.[p.team]?.[p.slot]||FORMATION[p.slot];let tx=home.x*direction,tz=home.z,sprint=false,pace=1;
       if(p.role==='GK'){updateKeeper(match,p,dt);continue;
       }else if(owner===p){
         const goalDistance=FIELD.halfLength-p.x*direction;

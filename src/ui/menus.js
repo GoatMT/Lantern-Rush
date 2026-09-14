@@ -9,7 +9,7 @@ export class Menus {
   constructor(app){this.app=app;this.returnToPause=false;this.bind();}
   bind(){
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
-    on('play-now',()=>a.selectTeams());on('selection-back',()=>a.home());
+    on('play-now',()=>a.selectTeams('quick'));on('selection-back',()=>a.home());
     on('start-match',()=>a.start());on('home-settings',()=>this.settings());on('match-options',()=>this.settings('game'));
     for(const side of ['user','cpu']){
       on(side+'-bench',()=>this.squad(side));
@@ -46,7 +46,7 @@ export class Menus {
     $('result-actions').addEventListener('click',ev=>{
       const action=ev.target.closest('[data-result]')?.dataset.result;
       if(action==='continue'){a.controls.clear();a.match.continueHalf();}
-      if(action==='subs')this.subs();if(action==='rematch')a.start();if(action==='teams')a.selectTeams();if(action==='home')a.home();
+      if(action==='subs')this.subs();if(action==='rematch')a.start();if(action==='teams')a.selectTeams();if(action==='tournament')a.returnToTournament();if(action==='home')a.home();
     });
     for(const id of ['settings-dialog','subs-dialog','squad-dialog'])$(id).addEventListener('cancel',ev=>{ev.preventDefault();this.closeDialog(id);});
     $('pause-dialog').addEventListener('cancel',ev=>{ev.preventDefault();this.resume();});
@@ -67,7 +67,7 @@ export class Menus {
   }
   renderTeams(){
     for(const side of ['user','cpu']){
-      const team=this.app.selected[side];if(!team)continue;
+      const rawTeam=this.app.selected[side],team=side==='user'?(this.app.formation?.teamForMatch(rawTeam)||rawTeam):rawTeam;if(!team)continue;
       $(side+'-name').textContent=team.name;$(side+'-division').textContent=team.division;
       $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team)??'—');
       $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.logoFallback?'Lantern Soccer League':team.name+' badge';
@@ -75,8 +75,10 @@ export class Menus {
       document.querySelector('.'+(side==='user'?'you':'cpu')+'-card').style.setProperty('--team-color',color);
       $(side+'-kit').style.background=kitSwatch(color===team.kit?team.uniform:teamKit('',team.id,color));
       $(side+'-lineup').innerHTML=team.lineup.map(p=>'<li><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(playerLabel(p))+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span></button></li>').join('');
+      $(side+'-formation-label').textContent=this.app.formation?.labelFor(team)||'2 — 2 — 2';
       $(side+'-bench').textContent='VIEW SQUAD · '+team.bench.length+' SUBSTITUTES ↗';
     }
+    this.app.modes.render();this.app.tournament.render();
     $('cpu-kit-label').textContent=this.app.cpuKit()!==this.app.selected.cpu.kit?'CONTRAST KIT':'AWAY';
   }
   squad(side,playerId=null){
@@ -113,12 +115,15 @@ export class Menus {
       $('hud-'+side+'-logo').alt=m.teams[i].logoFallback?'Lantern Soccer League':m.teams[i].name+' badge';
       $('hud-'+side+'-logo').closest('.hud-team').style.setProperty('--team-color',m.teams[i].kit);
     }
+    $('match-hud').dataset.rivalry=String(!!m.rivalry);$('match-hud').dataset.tournament=String(!!m.tournament);
+    document.querySelector('.broadcast-mark b').textContent=m.rivalry?'RIVALRY MATCH':m.tournament?'INTER-MADRASAH':'LANTERN RUSH';
     $('intro-overlay').hidden=false;
   }
   phase(phase){if(phase==='halftime'||phase==='fulltime'){this.results();return;}if(phase==='home')return;if(this.screen!=='match')this.show('match');$('intro-overlay').hidden=phase!=='intro';}
   notice({title,subtitle,seconds}){
     const root=$('notice'),goal=title==='GOAL!',m=this.app.match;
     root.querySelector('strong').textContent=title;root.querySelector('span').textContent=subtitle;
+    root.querySelector('.notice-kicker').textContent=m?.rivalry?'RIVALRY MATCH · '+m.rivalry.title.toUpperCase():m?.tournament?'INTER-MADRASAH · '+m.tournament.season:'LANTERN RUSH · MATCHDAY';
     root.dataset.kind=goal?'goal':title.includes('RED')?'red':title.includes('YELLOW')?'yellow':'match';
     $('notice-score').hidden=!goal;
     if(goal)$('notice-score').innerHTML='<img src="'+e(m.teams[0].logo)+'" alt=""><b>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</b><img src="'+e(m.teams[1].logo)+'" alt="">';
@@ -141,7 +146,7 @@ export class Menus {
     const m=this.app.match,half=m.phase==='halftime';this.closeAll();this.show('stats-screen');
     $('result-title').textContent=half?'HALFTIME':'FULL TIME';
     $('result-kicker').textContent=half?'TIME TO REGROUP':m.stats[0].goals===m.stats[1].goals?'HONOURS EVEN':m.stats[0].goals>m.stats[1].goals?'VICTORY':'CPU WINS';
-    $('result-season').textContent=this.app.settings.value.season+' · '+m.settings.duration+' MIN MATCH';
+    $('result-season').textContent=this.app.settings.value.season+' · '+(m.rivalry?'RIVALRY MATCH · ':m.tournament?'INTER-MADRASAH · ':'')+m.settings.duration+' MIN MATCH';
     $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'<small>YOU · '+(teamOverall(m.teams[0])??'—')+' OVR</small></span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'<small>CPU · '+(teamOverall(m.teams[1])??'—')+' OVR</small></span></div>';
     const potm=playerOfMatch([...m.players,...m.archive]);
     $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Make your changes. CPU takes the second-half kickoff.</span></p>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(playerLabel(potm))+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
@@ -151,6 +156,6 @@ export class Menus {
     }).join('');
     $('goal-list').innerHTML=m.goalEvents.length?m.goalEvents.map(g=>'<div class="moment">⚽ '+e(playerLabel(g))+(g.ownGoal?' (OG)':'')+' <small>'+clockText(g.time)+' · '+e(m.teams[g.team].name)+(g.assist?' · Assist: '+e(playerLabel({name:g.assist,jersey:g.assistJersey})):'')+'</small></div>').join(''):'<p class="muted-copy">No goals yet.</p>';
     $('sub-list').innerHTML=m.subEvents.map(s=>'<div class="moment">↔ '+e(playerLabel({name:s.in,jersey:s.inJersey}))+'<small>Replaced '+e(playerLabel({name:s.out,jersey:s.outJersey}))+' · '+clockText(s.time)+'</small></div>').join('')||'No substitutions';
-    $('result-actions').innerHTML=half?'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
+    $('result-actions').innerHTML=half?'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>':m.tournament?'<button data-result="tournament" class="primary">TOURNAMENT SCHEDULE →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
   }
 }

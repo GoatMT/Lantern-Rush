@@ -1,4 +1,7 @@
 import {Settings} from './settings.js';
+import {ModeMenu} from './ui/modes.js';
+import {findRivalry} from './modes.js';
+import {TournamentMenu} from './ui/tournament.js';
 import {LeagueData} from './data.js';
 import {GameRenderer} from './engine/renderer.js';
 import {GameLoop} from './engine/loop.js';
@@ -10,6 +13,7 @@ import {HUD} from './ui/hud.js';
 import { playerLabel } from './player-label.js';
 import { PRESENTATION } from './presentation.js';
 import { SEASON_KITS,teamKit } from './kits.js';
+import { FormationBuilder } from './ui/formation.js';
 
 async function badgeColor(team){
   if(team.kit)return;
@@ -34,7 +38,7 @@ class App {
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
     Object.values(this.data.teams).flat().forEach(t=>t.uniform||=teamKit(t.season,t.id,t.kit));$('load-progress').value=80;
     this.menus=new Menus(this);this.hud=new HUD(this);this.mobile=new MobileControls(this.controls);
-    this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
+    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
     this.menus.show('home');$('loading').hidden=true;
     this.loop=new GameLoop((dt,first)=>this.update(dt,first),dt=>this.render(dt));this.loop.start();
     document.addEventListener('game-blur',()=>{if(this.menus.screen==='match'&&!this.match.paused&&['playing','intro','restart','goal'].includes(this.match.phase))this.pause();});
@@ -56,7 +60,11 @@ class App {
   makeMatch(){
     const color=this.cpuKit(),cpu={...this.selected.cpu,kit:color};
     if(color!==this.selected.cpu.kit)cpu.uniform=teamKit('',cpu.id,color);
-    return new Match([{...this.selected.user},cpu],this.settings.value,{event:(type,data)=>this.handleEvent(type,data)});
+    const user=this.formation?.teamForMatch(this.selected.user)||{...this.selected.user};
+    const match=new Match([user,cpu],this.settings.value,{event:(type,data)=>this.handleEvent(type,data)});
+    match.rivalry=findRivalry(this.data.rivalries,this.settings.value.season,this.selected.user.id,cpu.id);
+    match.tournament=this.mode==='tournament'?this.tournament.selectedMatch():null;
+    return match;
   }
   handleEvent(type,data){
     if(!this.menus||!this.match)return;
@@ -65,9 +73,10 @@ class App {
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
     if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
   }
+  returnToTournament(){this.menus.closeAll();this.mode='tournament';this.tournament.afterGame(this.match);this.menus.selection();}
   home(){this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');}
-  selectTeams(){this.menus.closeAll();if(this.match)this.match.phase='home';this.menus.selection();}
-  changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.saveSelection();this.menus.renderTeams();}
+  selectTeams(mode=this.mode){this.mode=['rivalry','tournament'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.menus.selection();}
+  changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.saveSelection();this.menus.renderTeams();}
   cycle(side,step){
     const teams=this.data.get(this.settings.value.season),other=side==='user'?'cpu':'user';let i=teams.indexOf(this.selected[side]);
     do{i=(i+step+teams.length)%teams.length;}while(teams[i].id===this.selected[other].id);

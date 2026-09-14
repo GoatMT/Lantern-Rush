@@ -204,3 +204,18 @@ The regular release check also validates the bundled audit. Update the website's
 Game identity, code, stadium and character models: original LANTERN RUSH implementation.
 League names, badges and rosters: supplied Lantern Soccer League project.
 Three.js: the Three.js authors, MIT license in vendor/THREE-LICENSE.txt.
+
+## Rivalry Matches
+
+The home screen's right-side Game Modes panel opens Quick Match or Rivalry Matches. Choose a season and a featured playoff rematch, then use Swap Sides to choose your team. These game features are based on completed LSL playoff results, not an official rivalry designation. Each featured pairing gets a skippable special introduction, historic scorecard, rivalry broadcast branding and result presentation, including when selected through Quick Match. Standard 7v7 rules, difficulty, OVR, controls and halftime still apply; historic results never prefill the live score.
+
+Update featured pairings with `npm run sync-rivalries -- "../LSL Website"` after importing new seasons. Bundled history uses relative local JSON and requires no live website connection.
+
+
+## Tournament Mode
+
+Tournament Mode uses the Inter-Madrasah Soccer Tournament records from the LSL Website. Choose a season from the team-selection screen to view its group standings and playoff road through the semi-finals and final. Completed 2025 and 2026 fixtures are bundled in `data/tournaments.json`; official 2025/2026 institution marks are bundled under `assets/tournament/<year>/`; 2024 is shown as the pre-tournament season. Tournament play is staged: choose a year and institution, review the starting formation, continue to the full schedule, simulate other fixtures, then play the next fixture involving your team. After full time, return to the tournament schedule to continue. Teams with incomplete website rosters receive clearly labelled Player1, Player2 placeholders so every listed 2026 institution remains playable.
+
+## Formation / Lineup Builder
+
+Before any Quick Match, Rivalry Match or Tournament fixture, open `FORMATION / LINEUP` to set the user's starting seven. Presets include 2-2-2, 3-2-1, 2-3-1, 3-1-2 and 1-3-2, with a Custom Formation option. Player cards can be dragged onto the pitch on desktop or touch devices, field players can be repositioned at any time, and Save Formation stores the selected players and positions in browser local storage. Reset Formation and Auto Arrange are available from the same tactical board.

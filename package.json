@@ -10,6 +10,8 @@
     "check": "node scripts/check.mjs",
     "sync-data": "node scripts/sync-data.mjs",
     "sync-ratings": "node scripts/sync-ratings.mjs",
-    "check-ratings": "node scripts/sync-ratings.mjs --check"
+    "check-ratings": "node scripts/sync-ratings.mjs --check",
+    "sync-rivalries": "node scripts/sync-rivalries.mjs",
+    "sync-tournaments": "node scripts/sync-tournaments.mjs"
   }
 }
