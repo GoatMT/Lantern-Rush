@@ -86,7 +86,7 @@ Field dimensions and gameplay tuning are centralized in **src/config.js**. Playe
 - Full-time statistics include goals, shots, shots on target, possession, passing, fouls, cards, corners, saves, scorers, assists and substitutions.
 - Player of the Match considers goals, assists, completed passes, tackles, saves, involvement and discipline.
 
-The game uses simplified arcade rules and physics, with contextual actions, assisted aiming, procedural animations and a short live celebration camera. It does not record video replays. Player models are stylized game characters, not likenesses.
+The game uses simplified arcade rules and physics, with contextual actions, assisted aiming, procedural animations and a short live celebration camera. Goals also use an in-memory state replay that replays the captured player and ball movement without creating a video file. Player models are stylized game characters, not likenesses.
 
 ## Player and gameplay detail
 
@@ -191,7 +191,7 @@ The turf uses original generated textures: 16 mowing bands, grain and blade vari
 
 **Graphics → Match lighting** selects Day, Evening or Night and saves locally. Each mode changes the procedural sky, exposure, light direction, warmth, fill and stadium lamps. ACES tone mapping and physical materials give fabric, skin, grass and metal a consistent response. Low preserves the lighting palette with inexpensive contact shadows.
 
-The original LANTERN RUSH interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. This remains an optimized browser game with generic character appearances, not real-player face scans or recorded replays.
+The original LANTERN RUSH interface adds kit lineup cards, team badge score overlays, matching goalkeeper colors, goal panels and comparison bars at halftime/full time. Broadcast cameras anticipate ball motion, use compact framing on phones, and blend into close celebration/set-piece views. Goal replays use the same lightweight in-memory snapshots, so they remain optimized browser playback rather than recorded video. This remains an optimized browser game with generic character appearances, not real-player face scans.
 
 ### Pitch-side advertising
 

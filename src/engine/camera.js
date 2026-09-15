@@ -45,7 +45,7 @@ export class BroadcastCamera{
       }
       if(match.phase==='goal'){
         const lead=match.celebratingPlayer||b;
-        const orbit=Math.sin(match.phaseTime*.32)*2;this.position.set(lead.x-Math.sign(b.x)*10+orbit,5.4,lead.z+13);this.target.set(lead.x,2.0,lead.z);fov=43;
+        if(match.replayActive&&match.replayFocus){const focus=match.replayFocus,side=Math.sign(match.direction(match.scoringTeam)||1);this.position.set(focus.x-side*12,7.2,focus.z+10);this.target.set(focus.x,1.1,focus.z);fov=48;}else{const orbit=Math.sin(match.phaseTime*.32)*2;this.position.set(lead.x-Math.sign(b.x)*10+orbit,5.4,lead.z+13);this.target.set(lead.x,2.0,lead.z);fov=43;}
       }
       if(['halftime','fulltime'].includes(match.phase)){
         this.position.set(Math.sin(time*.035)*12,43,77);this.target.set(0,0,-3);fov=53;

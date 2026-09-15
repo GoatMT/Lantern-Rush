@@ -22,7 +22,7 @@ export class Match {
     this.benches=teams.map(t=>t.bench.map(p=>({...p})));this.used=[[],[]];this.archive=[];this.pending=[];
     this.stats=[teamStats(),teamStats()];this.goalEvents=[];this.subEvents=[];this.injuryEvents=[];this.lastReaction=null;
     this.ball=new Ball();this.controlled=this.players[5];this.phase='intro';this.phaseTime=0;this.elapsed=0;this.half=1;
-    this.paused=false;this.charge=0;this.aimZ=0;this.switchCooldown=0;this.receiverAssist=false;this.restart=null;this.message='';
+    this.paused=false;this.charge=0;this.aimZ=0;this.switchCooldown=0;this.receiverAssist=false;this.restart=null;this.message='';this.replayBuffer=[];this.replayFrames=[];this.replayActive=false;this.replayClock=0;this.replayFocus=null;
     this.referee=new Player({id:'referee',name:'Referee',jersey:null},-1,3,1);this.referee.x=-u(8);this.referee.z=u(6);
     for(const team of [0,1]){const captain=this.players.filter(p=>p.team===team).find(p=>p.data.leadershipRole==='captain')||this.players.filter(p=>p.team===team&&p.role!=='GK').sort((a,b)=>(Number(b.data.overall)||0)-(Number(a.data.overall)||0))[0];if(captain)captain.data.leadershipRole='captain';}
     this.resetFormation();this.passHeldTime=0;this.holdSwitchTime=0;this.curveRequested=false;
@@ -38,7 +38,14 @@ export class Match {
     this.phase=phase;this.phaseTime=0;this.charge=0;this.curveRequested=false;
     this.event('phase',phase);
   }
-  resetFormation(){this.players.forEach(p=>p.reset(this.direction(p.team)));this.ball.reset();}
+  resetFormation(){this.players.forEach(p=>p.reset(this.direction(p.team)));this.ball.reset();this.replayBuffer=[];this.replayFrames=[];this.replayActive=false;this.replayFocus=null;}
+  captureReplayFrame(){return {time:this.elapsed,ball:{x:this.ball.x,y:this.ball.y,z:this.ball.z,vx:this.ball.vx,vy:this.ball.vy,vz:this.ball.vz,rotationY:this.ball.rotationY,rollX:this.ball.rollX,rollZ:this.ball.rollZ},players:this.players.map(p=>({x:p.x,z:p.z,vx:p.vx,vz:p.vz,faceX:p.faceX,faceZ:p.faceZ}))};}
+  recordReplayFrame(){if(this.phase!=='playing')return;this.replayBuffer.push(this.captureReplayFrame());while(this.replayBuffer.length>2&&this.replayBuffer[0].time<this.elapsed-4.5)this.replayBuffer.shift();}
+  startReplay(finalFrame){let frames=[...this.replayBuffer,finalFrame].filter((frame,index,array)=>index===0||frame.time>=array[index-1].time);if(frames.length<2){const rewind=.9;frames=[{time:finalFrame.time-rewind,ball:{...finalFrame.ball,x:finalFrame.ball.x-finalFrame.ball.vx*rewind,y:Math.max(0,finalFrame.ball.y-finalFrame.ball.vy*rewind),z:finalFrame.ball.z-finalFrame.ball.vz*rewind},players:finalFrame.players.map(p=>({...p,x:p.x-p.vx*rewind,z:p.z-p.vz*rewind}))},finalFrame];}const end=frames.at(-1).time,start=Math.max(frames[0].time,end-4.5);this.replayFrames=frames.filter(frame=>frame.time>=start);this.replayClock=0;this.replayPlayback=Math.max(2.4,Math.min(PRESENTATION.replay,this.replayFrames.at(-1).time-this.replayFrames[0].time||2.4));this.replayActive=true;this.replayFocus={x:finalFrame.ball.x,z:finalFrame.ball.z};}
+  applyReplayFrame(frame,next,blend){const b=frame.ball,n=next?.ball||b;this.ball.owner=null;this.ball.controlMode='feet';for(const p of this.players)p.hasBall=false;this.ball.x=b.x+(n.x-b.x)*blend;this.ball.y=b.y+(n.y-b.y)*blend;this.ball.z=b.z+(n.z-b.z)*blend;this.ball.vx=b.vx+(n.vx-b.vx)*blend;this.ball.vy=b.vy+(n.vy-b.vy)*blend;this.ball.vz=b.vz+(n.vz-b.vz)*blend;this.ball.rotationY=b.rotationY+(n.rotationY-b.rotationY)*blend;this.ball.rollX=b.rollX+(n.rollX-b.rollX)*blend;this.ball.rollZ=b.rollZ+(n.rollZ-b.rollZ)*blend;this.replayFocus={x:this.ball.x,z:this.ball.z};this.players.forEach((p,index)=>{const a=frame.players[index],q=next?.players[index]||a;p.x=a.x+(q.x-a.x)*blend;p.z=a.z+(q.z-a.z)*blend;p.vx=a.vx+(q.vx-a.vx)*blend;p.vz=a.vz+(q.vz-a.vz)*blend;p.faceX=a.faceX+(q.faceX-a.faceX)*blend;p.faceZ=a.faceZ+(q.faceZ-a.faceZ)*blend;p.action=null;p.animation=Math.hypot(p.vx,p.vz)>.2?'run':'idle';p.locomotion=Math.hypot(p.vx,p.vz)>.2?'run':'idle';});}
+  updateReplay(dt){if(!this.replayFrames.length){this.finishReplay();return;}this.replayClock+=dt;const ratio=clamp(this.replayClock/this.replayPlayback,0,1),time=this.replayFrames[0].time+(this.replayFrames.at(-1).time-this.replayFrames[0].time)*ratio;let index=0;while(index<this.replayFrames.length-2&&this.replayFrames[index+1].time<time)index++;const frame=this.replayFrames[index],next=this.replayFrames[index+1]||frame,blend=clamp((time-frame.time)/Math.max(.001,next.time-frame.time),0,1);this.applyReplayFrame(frame,next,blend);if(this.replayClock>=this.replayPlayback)this.finishReplay();}
+  finishReplay(){if(!this.replayActive)return;this.replayActive=false;this.replayFocus=null;this.ball.settleInNet(this.direction(this.scoringTeam));const lead=this.celebratingPlayer;if(lead)lead.animate(this.goalCelebration||'celebrate-arms',PRESENTATION.goal-.5);this.players.filter(p=>p.team!==this.scoringTeam).forEach(p=>p.animate(p.role==='GK'?'concede':'miss',2.4));}
+  skipReplay(){if(this.phase==='goal'&&this.replayActive)this.finishReplay();}
   skipIntro(){if(this.phase==='intro'){this.resetFormation();this.beginRestart({type:'KICK OFF',team:0,x:0,z:0});}}
   pause(value=true){if(['intro','playing','restart','goal'].includes(this.phase)){this.paused=value;this.charge=0;this.curveRequested=false;this.event('pause',value);}}
   continueHalf(){
@@ -89,6 +96,7 @@ export class Match {
       if(this.phaseTime>=INTRO.duration)this.skipIntro();return;
     }
     if(this.phase==='goal'){
+      if(this.replayActive){this.updateReplay(dt);return;}
       this.ball.integrate(dt);
       this.players.forEach(p=>{
         const lead=this.celebratingPlayer;
@@ -148,7 +156,7 @@ export class Match {
     const refX=clamp(this.ball.x-this.direction(this.ball.owner?.team??0)*u(5),-FIELD.halfLength+u(4),FIELD.halfLength-u(4));
     const refZ=clamp(this.ball.z+u(5),-FIELD.halfWidth+u(3),FIELD.halfWidth-u(3));
     this.referee.watch(this.ball);this.referee.move(refX-this.referee.x,refZ-this.referee.z,.9,dt,distance(this.referee,this.ball)>u(18));
-    const previous={x:this.ball.x,y:this.ball.y,z:this.ball.z};this.ball.update(dt);
+    const previous={x:this.ball.x,y:this.ball.y,z:this.ball.z};this.ball.update(dt);this.recordReplayFrame();
     const frame=goalFrameContact(this.ball,previous),boundary=boundaryEvent(this.ball,previous,[this.direction(0),this.direction(1)]);
     const limit=Math.min(frame?.t??1,boundary?.time??1);
     const contact=(!this.ball.owner||!boundary)&&this.collisions(dt,previous,limit);
@@ -351,6 +359,7 @@ export class Match {
   }
   goal(team){
     const last=this.ball.lastTouch,shot=this.ball.shot;
+    const replayFrame=this.captureReplayFrame();
     const scorer=shot?.team===team?shot.player:last,assist=shot?.team===team?shot.assist:this.ball.previousTouch;
     this.stats[team].goals++;this.onTarget();
     if(scorer?.team===team)scorer.goals++;
@@ -361,11 +370,11 @@ export class Match {
     this.celebratingPlayer=scorer?.team===team?scorer:this.active(team).find(p=>p.role==='FWD');
     const celebrations=['celebrate-slide','celebrate-jump','celebrate-arms','celebrate-point','celebrate-fist','celebrate-calm'];
     const lateWinner=this.elapsed>this.settings.duration*48&&this.stats[team].goals===this.stats[1-team].goals+1;
-    const celebration=lateWinner?'celebrate-jump':this.celebratingPlayer?.data.leadershipRole==='captain'?'celebrate-arms':celebrations[Math.floor(this.random()*celebrations.length)];
+    const celebration=lateWinner?'celebrate-jump':this.celebratingPlayer?.data.leadershipRole==='captain'?'celebrate-arms':celebrations[Math.floor(this.random()*celebrations.length)];this.goalCelebration=celebration;
     this.celebratingPlayer?.animate(celebration,PRESENTATION.goal-.5);
     if(celebration==='celebrate-slide'&&this.celebratingPlayer){this.celebratingPlayer.vx=this.direction(team)*3.2;this.celebratingPlayer.vz=0;}
     this.players.filter(p=>p.team!==team).forEach(p=>p.animate(p.role==='GK'?'concede':'miss',2.4));
-    this.setPhase('goal');this.notify('GOAL!',playerLabel(scorer)+' · '+this.teams[team].name,PRESENTATION.goal);this.event('goal',this.goalEvents.at(-1));
+    this.setPhase('goal');this.startReplay(replayFrame);this.notify('GOAL!',playerLabel(scorer)+' · '+this.teams[team].name,PRESENTATION.goal);this.event('goal',this.goalEvents.at(-1));
   }
   beginRestart(data){
     this.applySubstitutions();this.autoSubstitute();

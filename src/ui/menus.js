@@ -142,7 +142,7 @@ export class Menus {
   }
   updateNotice(dt){if(this.noticeTime>0){this.noticeTime-=dt;if(this.noticeTime<=0)$('notice').hidden=true;}if(this.replayTime>0){this.replayTime-=dt;if(this.replayTime<=0)this.skipReplay();}}
   showReplay(){this.replayTime=PRESENTATION.replay;const overlay=$('replay-overlay');if(!overlay)return;overlay.hidden=false;}
-  skipReplay(){this.replayTime=0;const overlay=$('replay-overlay');if(overlay)overlay.hidden=true;}
+  skipReplay(){this.replayTime=0;this.app.match?.skipReplay();const overlay=$('replay-overlay');if(overlay)overlay.hidden=true;}
   subs(){this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();this.out=this.in=null;$('sub-feedback').textContent='';this.renderSubs();$('subs-dialog').showModal();}
   renderSubs(){
     const m=this.app.match;

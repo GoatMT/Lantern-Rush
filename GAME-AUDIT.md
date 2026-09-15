@@ -1,10 +1,10 @@
 # LANTERN RUSH — gameplay and feature audit
 
-Checked September 12, 2026 in the standalone **LSL Game** project.
+Checked September 15, 2026 in the standalone **LSL Game** project.
 
-Historical audit: on September 13, the separate Steal control was replaced by automatic standing steals, and Mobile Cam was added. Current controls are documented in README.md; focused regression checks are in tests/mobile-camera.test.js.
+Historical audit: on September 13, the separate Steal control was replaced by automatic standing steals, and Mobile Cam was added. Goal replays now use a bounded in-memory player/ball state buffer with a dedicated camera and skippable playback. Current controls are documented in README.md; focused regression checks are in tests/mobile-camera.test.js.
 
-**Result:** 123 automated tests passed with no failures; 164 JavaScript/import/static-asset checks passed. The full automated gameplay run completed in approximately 2.2 seconds. Browser checks reported no console errors.
+**Result:** 161 automated tests passed with no failures; 348 JavaScript/import/static-asset checks passed. The full automated gameplay run completed in approximately 2.0 seconds. Browser smoke checks covered every HTML entry point and reported no console errors or warnings.
 
 ## Fixes made in this audit
 
@@ -33,7 +33,7 @@ Historical audit: on September 13, the separate Steal control was replaced by au
 | Animations | Full-cycle finite poses for passing, shooting, skills, defensive/keeper actions, recovery, referee signals and celebrations, both leg sides | Passed |
 | Menus in browser | Settings sections, all graphics/lighting/camera options, difficulties and durations, season changes, team cycling, substitution confirmation, pause/resume, restart/cancel, quit/home, intro skip | Passed |
 | Responsive presentation | Landscape action bounds at 844 × 390; portrait adaptation/rotation prompt at 390 × 844; mirrored controls at 320 × 568; persistent toggle and hold-switch preference after reload | Passed |
-| Stadium and presentation | Geometry/camera bounds, nets settling after impact, ads outside playing space, lighting/shadow configuration, player labels and correct jersey propagation | Passed |
+| Stadium and presentation | Geometry/camera bounds, nets settling after impact, ads outside playing space, lighting/shadow configuration, player labels, correct jersey propagation and goal replay playback | Passed |
 | Data and static deployment | All 3 seasons, 24 teams and 278 roster entries; lineup sizes, IDs, kit profiles, jersey audit, bundled imports/assets and relative paths | Passed with source-data gaps below |
 
 ## Performance and limits
