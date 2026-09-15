@@ -1,12 +1,12 @@
 import * as T from '../../vendor/three.module.js';
 import {FIELD,clamp,distance} from '../config.js';
-import { INTRO,introPlayer } from '../presentation.js';
+import { INTRO,PRESENTATION,introPlayer } from '../presentation.js';
 import { mobileLens } from './viewport.js';
 export const CAMERA_MODES=Object.freeze({
   low:{height:31,back:29},medium:{height:49,back:44},high:{height:73,back:58},broadcast:{height:44,back:54},mobile:{height:32,back:30}
 });
 export class BroadcastCamera{
-  constructor(camera){this.camera=camera;this.look=new T.Vector3();this.target=new T.Vector3();this.position=new T.Vector3(64,43,91);this.compact=false;this.introDestination=new T.Vector3();camera.position.copy(this.position);}
+  constructor(camera){this.camera=camera;this.look=new T.Vector3();this.target=new T.Vector3();this.position=new T.Vector3(64,43,91);this.compact=false;this.introDestination=new T.Vector3();this.replayCelebrationPosition=new T.Vector3();this.replayCelebrationTarget=new T.Vector3();this.replayPosition=new T.Vector3();this.replayTarget=new T.Vector3();camera.position.copy(this.position);}
   update(dt,time,match){
     const aspect=this.camera.aspect;let fov=49;
     if(!match||match.phase==='home'){
@@ -44,8 +44,13 @@ export class BroadcastCamera{
         if(t>INTRO.duration-2.5){const f=clamp((t-(INTRO.duration-2.5))/2.5,0,1);this.introDestination.set(0,mode.height*portrait*wide,mode.back*portrait*wide);this.position.lerp(this.introDestination,f);}
       }
       if(match.phase==='goal'){
-        const lead=match.celebratingPlayer||b;
-        if(match.replayActive&&match.replayFocus){const focus=match.replayFocus,side=Math.sign(match.direction(match.scoringTeam)||1);this.position.set(focus.x-side*12,7.2,focus.z+10);this.target.set(focus.x,1.1,focus.z);fov=48;}else{const orbit=Math.sin(match.phaseTime*.32)*2;this.position.set(lead.x-Math.sign(b.x)*10+orbit,5.4,lead.z+13);this.target.set(lead.x,2.0,lead.z);fov=43;}
+        const lead=match.celebratingPlayer||b,orbit=Math.sin(match.phaseTime*.32)*2;
+        this.replayCelebrationPosition.set(lead.x-Math.sign(b.x)*10+orbit,5.4,lead.z+13);this.replayCelebrationTarget.set(lead.x,2.0,lead.z);
+        if(match.replayActive&&match.replayFocus&&match.replayStage!=='celebrate'){
+          const focus=match.replayFocus,side=Math.sign(match.direction(match.scoringTeam)||1),progress=match.replayStage==='transition'?clamp(match.replayStageTime/Math.max(.001,PRESENTATION.replayTransition),0,1):1,ease=progress*progress*(3-2*progress);
+          this.replayPosition.set(focus.x-side*12,7.2,focus.z+10);this.replayTarget.set(focus.x,1.1,focus.z);
+          this.position.copy(this.replayCelebrationPosition).lerp(this.replayPosition,ease);this.target.copy(this.replayCelebrationTarget).lerp(this.replayTarget,ease);fov=43+(48-43)*ease;
+        }else{this.position.copy(this.replayCelebrationPosition);this.target.copy(this.replayCelebrationTarget);fov=43;}
       }
       if(['halftime','fulltime'].includes(match.phase)){
         this.position.set(Math.sin(time*.035)*12,43,77);this.target.set(0,0,-3);fov=53;

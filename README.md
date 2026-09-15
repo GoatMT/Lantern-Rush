@@ -18,8 +18,9 @@ Each mode also has its own GitHub Pages-compatible HTML entry point:
 - `rivalry-matches.html` — featured LSL Rivalry Matches.
 - `tournament-mode.html` — Inter-Madrasah Tournament flow.
 - `season-mode.html` — LSL season career with standings, trades and awards.
-- `dream-fc.html` — LSL Dream F.C. single-player Ultimate Team hub.
-- `account.html` — local account-ready Trophies and Records page (Firebase can be connected later).
+- `dream-fc.html` — LSL Dream F.C. single-player Ultimate Team hub.\n- `charts.html` — public Firebase leaderboard and record holders.
+- `account.html` — Firebase account profile, records and expandable match history.
+- `admin.html` — locked account administration console for profile maintenance.
 
 The pages share the same Three.js engine, data, settings and match shell; opening a mode URL starts directly on that mode's selection screen. The Back and Home actions return to `index.html`.
 Run `npm run sync-mode-pages` after changing the shared `index.html` shell to regenerate all five dedicated pages.
@@ -32,7 +33,7 @@ Run `npm run sync-mode-pages` after changing the shared `index.html` shell to re
 4. Under **Build and deployment**, choose **Deploy from a branch**, then **main** and **/(root)**. Save.
 5. When deployment finishes, use the URL GitHub displays, usually **https://YOUR-USERNAME.github.io/YOUR-REPOSITORY/**.
 
-The entire game uses relative asset paths and includes its pinned Three.js dependency locally. A project Pages URL with a repository-name prefix works without changing code. There are no API keys, accounts, external fonts, audio, runtime CDNs or permanent servers.
+The gameplay engine uses relative asset paths and includes its pinned Three.js dependency locally. Account, charts, profile-picture sync and the locked admin console use the supplied Firebase project from `src/firebase-config.js`; Firebase Authentication and Firestore are only loaded when those account features initialize. A project Pages URL with a repository-name prefix works without changing asset paths. There is no gameplay backend, audio or permanent game server. Admin profile mutations require the server-issued Firestore `admin` custom claim described in `ACCOUNT-RULES.md`.
 
 To update: replace the changed files, commit/push to the selected branch, and let Pages redeploy. Reload an already-open game to receive the update.
 
@@ -245,3 +246,4 @@ dream-fc.html is the single-player Ultimate Team mode. It builds cards from the 
 All modes share the same player profile presentation: published LSL OVR, derived game ratings (SPD, SHO, PAS, DRI, DEF, STA and GK), season jersey numbers, captain armbands and captain-first set-piece defaults. Low-frequency minor injuries can queue a stoppage substitution. Goals use a random celebration and a short skippable replay overlay; nameplates show the player number when a player receives the ball. Conditions are clear, the rules intentionally have no advantage call and no added time, and Crowd reactions can be disabled in Graphics settings for lower-end devices.
 
 `account.html` stores trophies, fastest goal, most goals in a match, biggest win and longest winning streak in `lsl-account-v1` local storage. The storage shape is deliberately isolated so a future Firebase account service can replace persistence without changing match pages.
+

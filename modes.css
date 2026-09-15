@@ -9,6 +9,33 @@
 @media(max-width:600px) and (orientation:portrait){#home.home{overflow:auto;padding-bottom:25px}.home-title{position:relative;top:auto;left:auto;margin:35px 8px 24px}.home .home-title h1{font-size:68px}.home-modes{position:relative;inset:auto;margin:0 0 0 auto;width:min(330px,100%);padding:17px}.home-play{position:relative;inset:auto;transform:none;width:100%;margin-top:20px}.home-footer{position:relative;inset:auto;margin-top:28px;font-size:8px}.home-footer #home-venue{display:none}.home-title p,.home-title .creator-credit{font-size:10px;letter-spacing:2px}.rivalry-selection{margin-top:12px}#rivalry-controls{align-items:stretch;flex-direction:column;gap:8px}#rivalry-banner{flex-direction:column;gap:4px;font-size:10px}#rivalry-picker{max-width:100%}.rivalry-history p{font-size:12px}.rivalry-crests{gap:14px}.rivalry-crests article{width:40%}.rivalry-crests>b{font-size:25px}.rivalry-intro h1{font-size:33px}}
 @media(prefers-reduced-motion:reduce){.rivalry-intro{animation:none}.mode-card{transition:none}.mode-card:hover{transform:none}}
 
+/* Compact home navigation: the mode rail becomes a contained menu on small screens. */
+.mode-menu-button{display:none}
+@media (max-width:1000px) and (orientation:portrait), (max-width:1000px) and (max-height:650px){
+  .home .topbar{gap:10px}
+  .home .topbar-actions{gap:7px}
+  .home .topbar-actions .icon-button{width:44px;height:44px;padding:0;display:inline-grid;place-items:center;border-radius:8px;font-size:19px;line-height:1}
+  .home .topbar-actions .icon-button>span:not(.charts-mark):not(.account-mark){display:none}
+  .home .topbar-actions .charts-mark{display:inline-flex}
+  .home .topbar-actions .account-mark{display:inline-grid}
+  .home .topbar-actions .charts-mark i{width:3px}
+  .mode-menu-button{display:inline-grid!important;color:var(--gold)!important;border-color:#e9d28d70!important}
+  .mode-menu-button[aria-expanded="true"]{background:#d9c27c27!important;box-shadow:0 0 0 2px #e9d28d35}
+  .home-modes{display:none;position:fixed;z-index:12;top:76px;right:max(14px,env(safe-area-inset-right));left:auto;width:min(360px,calc(100vw - 28px));max-height:calc(100dvh - 104px);overflow:auto;margin:0;padding:20px;border-radius:16px;background:linear-gradient(145deg,#102f35f5,#071d25f7);box-shadow:0 24px 70px #00121dcc;border-color:#d9c77c6b;animation:home-menu-in .24s cubic-bezier(.2,.8,.2,1) both;touch-action:pan-y}
+  .home-modes.is-open{display:block}
+  .home-modes h2{font-size:20px;margin:8px 0 14px}
+  .home-modes .mode-card{min-height:66px;margin-top:9px;padding:14px 12px}
+  .home-modes>p{margin-top:14px}
+  .home .home-play{z-index:3}
+}
+@media (max-width:600px) and (orientation:portrait){
+  .home .topbar-actions{gap:5px}
+  .home .topbar-actions .icon-button{width:40px;height:40px;border-radius:7px}
+  .home-modes{top:70px;right:12px;width:min(350px,calc(100vw - 24px));max-height:calc(100dvh - 88px);padding:17px}
+}
+@keyframes home-menu-in{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.home-modes{animation:none}}
+
 .mode-tournament{border-color:#72d6b088;background:linear-gradient(125deg,#1a685645,#15383b)}
 #tournament-controls{max-width:1100px;margin:14px auto 0}.tournament-head{display:flex;justify-content:space-between;align-items:end;gap:18px;padding:14px 18px;background:linear-gradient(110deg,#0b2932e8,#173c3a);border:1px solid #73d4b04a;border-radius:10px}.tournament-head label{display:block;color:var(--gold);font-size:9px;letter-spacing:1.3px;text-align:left}.tournament-head select{display:block;width:min(430px,60vw);margin-top:6px;padding:10px;background:#102d35;border:1px solid #b4c7bf55;border-radius:5px;color:var(--cream);font-size:12px}.tournament-head .secondary{margin-top:9px;font-size:10px;min-height:36px}.tournament-meta{text-align:right;display:grid;gap:6px}.tournament-meta span{font-size:8px;letter-spacing:2px;color:#79d8ba}.tournament-meta strong{font-size:12px;color:var(--cream)}.tournament-dashboard{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}.tournament-dashboard>section{background:#092a32c9;border:1px solid #9abdb52e;border-radius:9px;padding:14px}.tournament-dashboard h3{font-size:10px;letter-spacing:1.8px;color:var(--gold);margin:0 0 10px}.division-tabs{display:flex;gap:6px;margin-bottom:8px}.division-tabs button{border:1px solid #b4c7bf44;background:#163b40;color:#c8d7cd;padding:7px 9px;border-radius:4px;font-size:9px}.division-tabs button.active{border-color:#7edab8;background:#24604f;color:#fff}.standing-mini{display:grid;gap:5px}.standing-mini>div{display:grid;grid-template-columns:22px minmax(0,1fr) 55px 67px;align-items:center;gap:5px;padding:7px 8px;background:#102f36;border-radius:4px;font-size:10px}.standing-mini b{color:var(--gold)}.standing-mini span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.standing-mini strong{font-size:10px;text-align:right;color:#88dfbe}.standing-mini small{text-align:right;color:#a9c0b8;font-size:8px}.bracket-mini{display:grid;gap:8px}.bracket-mini article{display:grid;gap:5px}.bracket-mini article>strong{font-size:9px;color:#8dd9bf;letter-spacing:1px}.bracket-match{display:grid;grid-template-columns:minmax(0,1fr) 45px minmax(0,1fr);gap:5px;align-items:center;padding:7px 8px;background:#102f36;border:1px solid transparent;border-radius:4px;font-size:9px}.bracket-match span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bracket-match span:last-child{text-align:right}.bracket-match b{text-align:center;color:var(--gold);font-size:10px}.bracket-match.active{border-color:#e3c878;background:#315047}
 #selection[data-mode="tournament"] .selection-heading{margin-top:14px}#selection[data-mode="tournament"] .versus-layout{margin-top:12px}#selection[data-mode="tournament"] .team-picker{justify-content:center}

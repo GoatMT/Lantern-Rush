@@ -24,7 +24,7 @@ export class ModeMenu{
   $('selection').dataset.mode=mode?'rivalry':'quick';$('selection-mode').textContent=mode?'RIVALRY MATCHES':'QUICK MATCH';
   $('selection-title').textContent=mode?'PICK YOUR RIVALRY.':'CHOOSE YOUR SIDE.';
   $('selection-description').textContent=mode?'Playoff history. A new result to write.':'Real LSL squads. One pitch. Make it count.';
-  $('rivalry-controls').hidden=!mode;$('rivalry-banner').hidden=!r;
+  $('rivalry-controls').hidden=!mode;$('rivalry-banner').hidden=!mode||!r;
   $('rivalry-picker').innerHTML=list.map(x=>'<option value="'+e(x.id)+'">'+e(x.title+' · '+rivalryTeams(x,a.data.get(a.settings.value.season)).map(t=>t.shortName||t.name).join(' vs '))+'</option>').join('');
   if(r)$('rivalry-picker').value=r.id;
   $('rivalry-swap').disabled=!r;$('start-match').disabled=mode&&!r;

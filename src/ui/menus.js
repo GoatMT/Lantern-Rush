@@ -14,6 +14,10 @@ export class Menus {
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
     on('play-now',()=>a.selectTeams('quick'));on('selection-back',()=>document.body.dataset.modePage?location.assign('./index.html'):a.home());
     on('start-match',()=>a.start());on('home-settings',()=>this.settings());on('match-options',()=>this.settings('game'));
+    on('settings-account-open',()=>this.account());on('settings-account-signout',()=>a.cloudAccount.logout());
+    $('setting-pfp').addEventListener('change',ev=>{const file=ev.target.files?.[0];if(file)a.cloudAccount.updateAvatar(file).catch(error=>{this.accountFeedback(error.message);});});
+    $('account-form').addEventListener('submit',ev=>{ev.preventDefault();this.submitAccount();});
+    document.querySelectorAll('[data-account-mode]').forEach(button=>button.addEventListener('click',()=>this.accountMode(button.dataset.accountMode)));
     for(const side of ['user','cpu']){
       on(side+'-bench',()=>this.squad(side));
       $(side+'-lineup').addEventListener('click',ev=>{const row=ev.target.closest('[data-profile]');if(row)this.squad(side,row.dataset.profile);});
@@ -54,12 +58,22 @@ export class Menus {
       if(action==='continue'){a.controls.clear();a.match.continueHalf();}
       if(action==='subs')this.subs();if(action==='rematch')a.start();if(action==='teams')a.selectTeams();if(action==='tournament')a.returnToTournament();if(action==='season')a.returnToSeason();if(action==='dream')a.returnToDream();if(action==='home')a.home();
     });
-    for(const id of ['settings-dialog','subs-dialog','squad-dialog'])$(id).addEventListener('cancel',ev=>{ev.preventDefault();this.closeDialog(id);});
+    for(const id of ['settings-dialog','subs-dialog','squad-dialog','account-dialog'])$(id).addEventListener('cancel',ev=>{ev.preventDefault();this.closeDialog(id);});
     $('pause-dialog').addEventListener('cancel',ev=>{ev.preventDefault();this.resume();});
     $('confirm-dialog').addEventListener('cancel',ev=>{ev.preventDefault();$('confirm-dialog').close();$('pause-dialog').showModal();});
   }
   closeAll(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());this.app.controls.rebinding=null;this.returnToPause=false;}
   closeDialog(id){$(id).close();this.app.controls.rebinding=null;this.app.controls.clear();if(this.returnToPause){$('pause-dialog').showModal();this.returnToPause=false;}else if(id==='subs-dialog'&&this.app.match.phase==='halftime')this.results();}
+  accountMode(mode){this.accountModeValue=mode==='login'?'login':'create';document.querySelectorAll('[data-account-mode]').forEach(button=>button.classList.toggle('active',button.dataset.accountMode===this.accountModeValue));$('account-submit').textContent=this.accountModeValue==='login'?'SIGN IN ↗':'CREATE ACCOUNT ↗';this.accountFeedback('');}
+  accountFeedback(message){$('account-feedback').textContent=message||'';}
+  account(){this.app.controls.clear();this.renderAccount();this.accountMode(this.app.cloudAccount?.isSignedIn()?'login':'create');$('account-dialog').showModal();}
+  accountGate(action){this.pendingAccountAction=action||null;this.accountMode('create');this.accountFeedback('Hey! You must create an account to play. Sign in if you already have one.');$('account-dialog').showModal();}
+  async submitAccount(){
+    const username=$('account-username').value,pin=$('account-passcode').value,submit=$('account-submit');submit.disabled=true;this.accountFeedback('Connecting to Firebase…');
+    try{if(this.accountModeValue==='login')await this.app.cloudAccount.login(username,pin);else await this.app.cloudAccount.create(username,pin);this.accountFeedback('Account ready. Welcome to matchday.');$('account-dialog').close();this.renderSettings();if(this.pendingAccountAction){const action=this.pendingAccountAction;this.pendingAccountAction=null;action();}}
+    catch(error){this.accountFeedback(error?.code==='auth/invalid-credential'?'Username or passcode is incorrect.':error?.code==='auth/email-already-in-use'?'That username is already taken. Choose SIGN IN instead.':error.message||'Account could not be saved.');}
+    finally{submit.disabled=false;}
+  }
   show(screen){
     for(const id of ['home','selection','stats-screen'])$(id).hidden=id!==screen;
     $('match-hud').hidden=screen!=='match';$('intro-overlay').hidden=true;$('notice').hidden=true;$('replay-overlay').hidden=true;this.replayTime=0;
@@ -110,7 +124,13 @@ export class Menus {
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
     $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
     $('home-venue').textContent='GRENOBLE FIELD · '+$('setting-lighting').value.toUpperCase()+' MATCH';
-    $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · WEATHER: CLEAR · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();
+    $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · WEATHER: CLEAR · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
+  }
+  renderAccount(){
+    const service=this.app.cloudAccount,profile=service?.profile,signed=Boolean(service?.isSignedIn());
+    const guest=$('settings-account-guest'),user=$('settings-account-user');if(!guest||!user)return;
+    guest.hidden=signed;user.hidden=!signed;$('settings-account-title').textContent=signed?'ACCOUNT CONNECTED':'CREATE YOUR ACCOUNT';$('settings-account-copy').textContent=signed?'Your match history, charts and records sync through Firebase.':'Create a username and six-digit passcode to save your matches, charts, records and profile across devices.';
+    if(signed){$('settings-account-name').textContent=profile.username;$('settings-account-status').textContent=service.available?'SYNCED WITH FIREBASE':'LOCAL CONNECTION';$('settings-pfp-preview').src=profile.avatarDataUrl||'./assets/lsl-logo.png';}
   }
   renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
   keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT'],['skill','SKILL'],['sprint','SPRINT'],['goalie','GOALIE']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
@@ -140,9 +160,9 @@ export class Menus {
     if(goal)this.showReplay();
     root.hidden=false;this.noticeTime=seconds;
   }
-  updateNotice(dt){if(this.noticeTime>0){this.noticeTime-=dt;if(this.noticeTime<=0)$('notice').hidden=true;}if(this.replayTime>0){this.replayTime-=dt;if(this.replayTime<=0)this.skipReplay();}}
-  showReplay(){this.replayTime=PRESENTATION.replay;const overlay=$('replay-overlay');if(!overlay)return;overlay.hidden=false;}
-  skipReplay(){this.replayTime=0;this.app.match?.skipReplay();const overlay=$('replay-overlay');if(overlay)overlay.hidden=true;}
+  updateNotice(dt){if(this.noticeTime>0){this.noticeTime-=dt;if(this.noticeTime<=0)$('notice').hidden=true;}if(this.replayTime>0){this.replayTime-=dt;const overlay=$('replay-overlay'),stage=this.app.match?.replayStage;if(overlay&&stage)overlay.dataset.stage=stage;if(this.replayTime<=0)this.skipReplay();}}
+  showReplay(){this.replayTime=PRESENTATION.replayLead+PRESENTATION.replayTransition+PRESENTATION.replay;const overlay=$('replay-overlay');if(!overlay)return;overlay.dataset.stage='celebrate';overlay.hidden=false;}
+  skipReplay(){this.replayTime=0;this.app.match?.skipReplay();const overlay=$('replay-overlay');if(overlay){overlay.dataset.stage='done';overlay.hidden=true;}}
   subs(){this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();this.out=this.in=null;$('sub-feedback').textContent='';this.renderSubs();$('subs-dialog').showModal();}
   renderSubs(){
     const m=this.app.match;

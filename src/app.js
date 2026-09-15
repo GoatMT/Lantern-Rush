@@ -17,6 +17,7 @@ import { FormationBuilder } from './ui/formation.js';
 import { SeasonMenu } from './ui/season.js';
 import { DreamMenu } from './dream.js';
 import { Account } from './account.js';
+import { CloudAccount } from './cloud-account.js';
 
 async function badgeColor(team){
   if(team.kit)return;
@@ -41,7 +42,7 @@ class App {
       if(!image.closest('.badge-wrap,.team-choice-mark,.tournament-inline-logo,.intro-card,.intro-versus,.rivalry-crests,.hud-team,.notice-score,.result-score,.potm'))return;
       image.dataset.logoFallback='1';image.src='assets/lsl-logo.png';
     },true);
-    this.settings=new Settings();this.account=new Account();this.controls=new Controls(this.settings);this.data=new LeagueData();
+    this.settings=new Settings();this.account=new Account();this.cloudAccount=new CloudAccount({onChange:()=>this.menus?.renderAccount?.()});this.controls=new Controls(this.settings);this.data=new LeagueData();
     $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);this.renderer.stadium.setCrowdReactions(this.settings.value.crowdReactions);
     await Promise.all([this.data.load(progress=>{$('load-progress').value=15+progress*45;}),this.renderer.stadium.advertising.ready]);
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
@@ -49,8 +50,10 @@ class App {
     this.menus=new Menus(this);this.hud=new HUD(this);this.mobile=new MobileControls(this.controls);
     this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.seasonMode=new SeasonMenu(this);this.dream=new DreamMenu(this);await this.dream.load();this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
     this.menus.show('home');$('loading').hidden=true;
+    this.bindHomeModePanel();
     const pageMode=document.body.dataset.modePage;
     if(pageMode)this.selectTeams(pageMode);
+    if(location.hash==='#account')this.menus.account();
     this.loop=new GameLoop((dt,first)=>this.update(dt,first),dt=>this.render(dt));this.loop.start();
     document.addEventListener('game-blur',()=>{if(this.menus.screen==='match'&&!this.match.paused&&['playing','intro','restart','goal'].includes(this.match.phase))this.pause();});
     document.addEventListener('game-context-lost',()=>{this.pause();this.menus.notice({title:'GRAPHICS PAUSED',subtitle:'Restoring the 3D view. Reload if it does not recover.',seconds:50});});
@@ -61,6 +64,15 @@ class App {
     const teams=this.data.get(s.season);
     this.selected={user:teams.find(t=>t.id===s.userTeam)||teams[0],cpu:teams.find(t=>t.id===s.cpuTeam)||teams[1]};
     if(this.selected.user.id===this.selected.cpu.id)this.selected.cpu=teams.find(t=>t.id!==this.selected.user.id);
+  }
+  bindHomeModePanel(){
+    const toggle=$('home-modes-toggle'),panel=$('home-modes');
+    if(!toggle||!panel||toggle.dataset.bound==='1')return;
+    const setOpen=open=>{panel.classList.toggle('is-open',open);panel.setAttribute('aria-hidden',String(!open));toggle.setAttribute('aria-expanded',String(open));};
+    toggle.dataset.bound='1';toggle.addEventListener('click',()=>setOpen(!panel.classList.contains('is-open')));
+    panel.addEventListener('click',event=>{if(event.target.closest('a'))setOpen(false);});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')setOpen(false);});
+    document.addEventListener('pointerdown',event=>{if(panel.classList.contains('is-open')&&!panel.contains(event.target)&&event.target!==toggle)setOpen(false);});
   }
   cpuKit(){
     if(SEASON_KITS[this.selected.user.season]?.[this.selected.user.id]&&SEASON_KITS[this.selected.cpu.season]?.[this.selected.cpu.id])return this.selected.cpu.kit;
@@ -73,7 +85,7 @@ class App {
     if(color!==this.selected.cpu.kit)cpu.uniform=teamKit('',cpu.id,color);
     const user=this.formation?.teamForMatch(this.selected.user)||{...this.selected.user};
     const match=new Match([user,cpu],this.settings.value,{event:(type,data)=>this.handleEvent(type,data)});
-    match.rivalry=findRivalry(this.data.rivalries,this.settings.value.season,this.selected.user.id,cpu.id);
+    match.rivalry=this.mode==='rivalry'?findRivalry(this.data.rivalries,this.settings.value.season,this.selected.user.id,cpu.id):null;
     match.tournament=this.mode==='tournament'?this.tournament.selectedMatch():null;
     match.seasonMatch=this.mode==='season'?this.seasonMode.selectedMatch():null;
     match.dream=this.mode==='dream'?{event:this.dream?.currentEvent||null}:null;
@@ -81,7 +93,7 @@ class App {
   }
   handleEvent(type,data){
     if(!this.menus||!this.match)return;
-    if(type==='phase'){if(data==='fulltime')this.account?.recordMatch(this.match);this.menus.phase(data);}
+    if(type==='phase'){if(data==='fulltime'){this.account?.recordMatch(this.match);this.cloudAccount?.recordMatch(this.match).catch(()=>{});}this.menus.phase(data);}
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
     if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
@@ -89,7 +101,7 @@ class App {
   returnToTournament(){this.menus.closeAll();this.mode='tournament';this.tournament.afterGame(this.match);this.menus.selection();}
   returnToSeason(){this.menus.closeAll();this.mode='season';this.seasonMode.afterGame(this.match);this.menus.selection();}
   returnToDream(){this.menus.closeAll();this.mode='dream';this.dream.afterGame(this.match);this.menus.selection();}
-  home(){if(document.body.dataset.modePage){location.assign('./index.html');return;}this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');}
+  home(){if(document.body.dataset.modePage){location.assign('./index.html');return;}this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');$('home-modes')?.classList.remove('is-open');$('home-modes-toggle')?.setAttribute('aria-expanded','false');}
   selectTeams(mode=this.mode){this.mode=['rivalry','tournament','season','dream'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.dream.prepare();this.menus.selection();}
   changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.dream.prepare();this.saveSelection();this.menus.renderTeams();}
   cycle(side,step){
@@ -99,6 +111,8 @@ class App {
   }
   saveSelection(){this.settings.value.userTeam=this.selected.user.id;this.settings.value.cpuTeam=this.selected.cpu.id;this.settings.save();}
   async start(){
+    await this.cloudAccount?.ready;
+    if(!this.cloudAccount?.isSignedIn()){this.menus.accountGate(()=>this.start());return;}
     if(this.loadingMatch)return;this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);

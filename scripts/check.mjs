@@ -18,7 +18,7 @@ const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 if(new Set(ids).size!==ids.length)throw Error('Duplicate HTML IDs');
 for(const match of html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g))await exists(path.join(root,match[1].split(/[?#]/)[0]));
 for(const [file,mode] of [['quick-match.html','quick'],['rivalry-matches.html','rivalry'],['tournament-mode.html','tournament'],['season-mode.html','season'],['dream-fc.html','dream']]){const page=await fs.readFile(path.join(root,file),'utf8');if(!page.includes('data-mode-page="'+mode+'"'))throw Error('Mode page missing route marker: '+file);for(const match of page.matchAll(/(?:src|href)="(\.\/[^"]+)"/g))await exists(path.join(root,match[1].split(/[?#]/)[0]));}
-await exists(path.join(root,'account.html'));await exists(path.join(root,'account.css'));await exists(path.join(root,'src/account-page.js'));
+await exists(path.join(root,'account.html'));await exists(path.join(root,'account.css'));await exists(path.join(root,'src/account-page.js'));await exists(path.join(root,'charts.html'));await exists(path.join(root,'charts.css'));await exists(path.join(root,'src/charts-page.js'));await exists(path.join(root,'admin.html'));await exists(path.join(root,'admin.css'));await exists(path.join(root,'src/admin-page.js'));await exists(path.join(root,'account-ui.css'));await exists(path.join(root,'src/firebase-config.js'));await exists(path.join(root,'firestore.rules'));
 const manifest=JSON.parse(await fs.readFile(path.join(root,'data/seasons.json'),'utf8'));
 let teams=0,players=0;
 for(const season of manifest){
@@ -33,6 +33,6 @@ await exists(path.join(root,'vendor/three.module.js'));await exists(path.join(ro
 for(const ad of ADVERTISEMENTS){if(!ad.asset.startsWith('assets/')||ad.asset.includes('..'))throw Error('Ads must use bundled relative assets');await exists(path.join(root,ad.asset));}
 const jerseyAudit=JSON.parse(await fs.readFile(path.join(root,'data/jersey-audit.json'),'utf8'));
 await verifyJerseyAudit(root,jerseyAudit);
-console.log(checks+' syntax and static asset checks passed. '+manifest.length+' seasons, '+teams+' teams, '+players+' season roster entries. No runtime CDN or server dependency.');
+console.log(checks+' syntax and static asset checks passed. '+manifest.length+' seasons, '+teams+' teams, '+players+' season roster entries. Gameplay is static; Firebase is loaded only for optional account and chart sync.');
 console.log(jerseyAuditSummary(jerseyAudit));
 

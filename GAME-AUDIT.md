@@ -4,7 +4,11 @@ Checked September 15, 2026 in the standalone **LSL Game** project.
 
 Historical audit: on September 13, the separate Steal control was replaced by automatic standing steals, and Mobile Cam was added. Goal replays now use a bounded in-memory player/ball state buffer with a dedicated camera and skippable playback. Current controls are documented in README.md; focused regression checks are in tests/mobile-camera.test.js.
 
-**Result:** 161 automated tests passed with no failures; 348 JavaScript/import/static-asset checks passed. The full automated gameplay run completed in approximately 2.0 seconds. Browser smoke checks covered every HTML entry point and reported no console errors or warnings.
+The September 15 consistency pass also verified every dedicated mode page (home, Quick Match, Rivalry Matches, Tournament Mode, Season Mode, LSL Dream F.C., and Account) through the shared shell. Replay playback now hands control back to the goal presentation in the same update step, so a finished replay cannot delay the opponent kickoff.
+
+The latest polish pass adds a short celebration hold and eased replay-camera blend, removes intrusive save notices while keeping save reactions for the crowd, normalizes button/card spacing across shared menus and Dream F.C. surfaces, keeps Quick Match from inheriting Rivalry presentation when the selected teams happen to be rivals, and adds Firebase account gating, profile pictures, per-mode player charts, records and expandable match history.
+
+**Result:** 161 automated tests passed with no failures; 389 JavaScript/import/static-asset checks passed. The full automated gameplay run completed in approximately 2.0 seconds. Browser smoke checks covered the home, account, charts and locked admin entry points with no page-load console errors.
 
 ## Fixes made in this audit
 
@@ -15,6 +19,8 @@ Historical audit: on September 13, the separate Steal control was replaced by au
 - Canceled an outgoing restart taker's pending kick when substituted, preserved the incoming player's possession flag, and honored the stoppage presentation delay.
 - Kept substitution notifications visible for the full five-second presentation.
 - Removed joystick/STEAL overlap in the mirrored layout on narrow portrait phones. Verified separate, visible targets at 320 × 568.
+- Added the Account shortcut beside Settings on the home shell and regenerated every dedicated mode page.
+- Added the locked `admin.html` console for profile listing, name repair, merge/delete operations and password-reset requests. Firestore mutations require a server-issued `admin` custom claim; the public password is never trusted by security rules.
 
 ## Coverage
 

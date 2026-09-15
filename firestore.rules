@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /gameProfiles/{uid} {
+      // Leaderboards and public profile pages can read published game totals.
+      allow read: if true;
+
+      // Profile maintenance is restricted to a Firebase Admin SDK-issued
+      // custom claim. A browser-visible password is never trusted by rules.
+      allow create, update, delete: if isAdmin();
+
+      // Firebase Authentication, not a browser-only PIN check, owns identity.
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 2
+        && request.resource.data.username.size() <= 12
+        && request.resource.data.username.matches('^[A-Za-z0-9_]+$')
+        && request.resource.data.usernameKey is string
+        && request.resource.data.stats is map
+        && request.resource.data.modes is map
+        && request.resource.data.records is map
+        && request.resource.data.trophies is list
+        && request.resource.data.history is list;
+
+      // A signed-in account may update only its own profile and game totals.
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.username == resource.data.username
+        && request.resource.data.usernameKey == resource.data.usernameKey
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'avatarDataUrl', 'updatedAtMs', 'stats', 'modes', 'records', 'trophies',
+          'currentStreak', 'history'
+        ]);
+      allow delete: if false;
+    }
+  }
+}

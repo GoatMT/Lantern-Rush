@@ -92,3 +92,31 @@ dialog{border-color:#adc3bf38;background:linear-gradient(145deg,#19343b,#0d252e)
 @media(max-width:560px){[data-settings-panel="game"]>.option-row:not(.compact){grid-template-columns:repeat(2,minmax(0,1fr))}}
 .account-links{display:flex;align-items:center;gap:10px}.account-links a{color:var(--gold);font-size:9px;letter-spacing:1px}.account-links b{margin-left:5px}#replay-overlay{position:fixed;right:28px;top:27%;z-index:9;display:grid;gap:8px;min-width:190px;padding:16px 18px;background:#09272ee8;border:1px solid #e7d59666;border-left:3px solid var(--gold);border-radius:6px;box-shadow:0 14px 40px #00151c88;animation:notice-in .25s both;pointer-events:auto}#replay-overlay[hidden]{display:none}#replay-overlay strong{font-size:20px;letter-spacing:1px;color:var(--gold)}#replay-overlay .secondary{font-size:10px;padding:9px 11px}
 @media(max-width:600px){.account-links{gap:6px;flex-wrap:wrap;justify-content:flex-end}.account-links b{display:none}}
+
+/* Unified spacing pass: give every interactive surface the same calm rhythm. */
+.primary,.secondary,.text-button,.dream-cta,.dream-panel .secondary,.dream-play-card .secondary,.dream-event-card .secondary{min-height:42px;padding:12px 18px}
+.option-row,.selection-footer,.result-actions,.tournament-flow-actions,.tournament-schedule-actions,.season-flow-actions{gap:14px}
+.option-row button{min-height:58px;padding:12px 10px}
+.selection-footer{padding-top:12px}
+.dialog-footer{gap:16px;padding-top:22px;margin-top:28px}
+.pause-actions{gap:12px}
+.home-modes{padding:24px}
+.mode-card{margin-top:12px;padding:17px 14px}
+.dream-grid,.dream-play-grid,.dream-objectives,.dream-inventory-grid,.dream-pack-grid{gap:18px}
+.dream-content{padding-top:22px}
+.dream-nav{gap:8px;padding:20px 0 10px}
+.dream-nav button{min-height:40px;padding:11px 15px}
+.dream-section-head{margin-bottom:28px}
+.dream-panel,.dream-rank-card,.dream-play-card,.dream-event-card,.dream-objectives article,.dream-inventory-grid article{padding:24px}
+.dream-team-editor{gap:22px}
+.dream-card-sidebar{padding:20px}
+.dream-card-list{gap:10px}
+.dream-team-meta{gap:18px;padding:18px 20px;margin-top:18px}
+.dream-event-list{gap:16px}
+.dream-pack{padding:18px;gap:11px}
+.dream-reveal-card{padding:38px}
+#replay-overlay{animation:replay-enter .38s cubic-bezier(.2,.8,.2,1) both;transition:opacity .32s ease,transform .32s ease}
+#replay-overlay[data-stage="celebrate"]{border-left-color:#d4c384}
+#replay-overlay[data-stage="transition"]{border-left-color:#a7ddbd}
+@keyframes replay-enter{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media(max-width:700px){.primary,.secondary,.text-button,.dream-cta,.dream-panel .secondary,.dream-play-card .secondary,.dream-event-card .secondary{min-height:40px;padding:11px 15px}.option-row button{min-height:52px}.home-modes{padding:19px}.mode-card{padding:14px 12px}.dream-panel,.dream-rank-card,.dream-play-card,.dream-event-card,.dream-objectives article,.dream-inventory-grid article{padding:19px}.dream-card-sidebar{padding:16px}.dream-team-meta{padding:15px 16px}}
