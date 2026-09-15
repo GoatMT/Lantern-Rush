@@ -14,6 +14,7 @@ import { playerLabel } from './player-label.js';
 import { PRESENTATION } from './presentation.js';
 import { SEASON_KITS,teamKit } from './kits.js';
 import { FormationBuilder } from './ui/formation.js';
+import { SeasonMenu } from './ui/season.js';
 
 async function badgeColor(team){
   if(team.kit)return;
@@ -28,18 +29,26 @@ async function badgeColor(team){
     }
     const best=[...bins].sort((a,b)=>b[1]-a[1])[0];
     team.kit=best?'#'+best[0].split(',').map(v=>Math.min(255,Number(v)).toString(16).padStart(2,'0')).join(''):'#90a6af';
-  }catch{team.kit='#90a6af';}
+  }catch{team.kit='#90a6af';team.logo='assets/lsl-logo.png';team.logoFallback=true;}
 }
 class App {
   async init(){
+    document.addEventListener('error',event=>{
+      const image=event.target;
+      if(!(image instanceof HTMLImageElement)||image.dataset.logoFallback==='1')return;
+      if(!image.closest('.badge-wrap,.team-choice-mark,.tournament-inline-logo,.intro-card,.intro-versus,.rivalry-crests,.hud-team,.notice-score,.result-score,.potm'))return;
+      image.dataset.logoFallback='1';image.src='assets/lsl-logo.png';
+    },true);
     this.settings=new Settings();this.controls=new Controls(this.settings);this.data=new LeagueData();
     $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);
     await Promise.all([this.data.load(progress=>{$('load-progress').value=15+progress*45;}),this.renderer.stadium.advertising.ready]);
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
     Object.values(this.data.teams).flat().forEach(t=>t.uniform||=teamKit(t.season,t.id,t.kit));$('load-progress').value=80;
     this.menus=new Menus(this);this.hud=new HUD(this);this.mobile=new MobileControls(this.controls);
-    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
+    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.seasonMode=new SeasonMenu(this);this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
     this.menus.show('home');$('loading').hidden=true;
+    const pageMode=document.body.dataset.modePage;
+    if(pageMode)this.selectTeams(pageMode);
     this.loop=new GameLoop((dt,first)=>this.update(dt,first),dt=>this.render(dt));this.loop.start();
     document.addEventListener('game-blur',()=>{if(this.menus.screen==='match'&&!this.match.paused&&['playing','intro','restart','goal'].includes(this.match.phase))this.pause();});
     document.addEventListener('game-context-lost',()=>{this.pause();this.menus.notice({title:'GRAPHICS PAUSED',subtitle:'Restoring the 3D view. Reload if it does not recover.',seconds:50});});
@@ -64,6 +73,7 @@ class App {
     const match=new Match([user,cpu],this.settings.value,{event:(type,data)=>this.handleEvent(type,data)});
     match.rivalry=findRivalry(this.data.rivalries,this.settings.value.season,this.selected.user.id,cpu.id);
     match.tournament=this.mode==='tournament'?this.tournament.selectedMatch():null;
+    match.seasonMatch=this.mode==='season'?this.seasonMode.selectedMatch():null;
     return match;
   }
   handleEvent(type,data){
@@ -74,9 +84,10 @@ class App {
     if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
   }
   returnToTournament(){this.menus.closeAll();this.mode='tournament';this.tournament.afterGame(this.match);this.menus.selection();}
-  home(){this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');}
-  selectTeams(mode=this.mode){this.mode=['rivalry','tournament'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.menus.selection();}
-  changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.saveSelection();this.menus.renderTeams();}
+  returnToSeason(){this.menus.closeAll();this.mode='season';this.seasonMode.afterGame(this.match);this.menus.selection();}
+  home(){if(document.body.dataset.modePage){location.assign('./index.html');return;}this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');}
+  selectTeams(mode=this.mode){this.mode=['rivalry','tournament','season'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.menus.selection();}
+  changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.saveSelection();this.menus.renderTeams();}
   cycle(side,step){
     const teams=this.data.get(this.settings.value.season),other=side==='user'?'cpu':'user';let i=teams.indexOf(this.selected[side]);
     do{i=(i+step+teams.length)%teams.length;}while(teams[i].id===this.selected[other].id);
@@ -88,7 +99,7 @@ class App {
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);
     this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Lighting up Grenoble Field…';
-    this.renderer.setMatch(this.match);this.hud.reset();await new Promise(requestAnimationFrame);
+    this.renderer.setMatch(this.match);this.hud.reset();this.renderer.render(0,this.match);await new Promise(requestAnimationFrame);
     this.menus.enterMatch();$('loading').hidden=true;this.loadingMatch=false;
   }
   pause(){
@@ -125,3 +136,4 @@ app.init().catch(error=>{
   console.error(error);$('loading').hidden=false;$('load-message').textContent='Unable to start: '+error.message+' · Use a current browser with WebGL 2 enabled, then reload.';
   $('load-progress').hidden=true;
 });
+

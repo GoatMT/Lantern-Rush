@@ -12,6 +12,15 @@ Open **http://localhost:4173/**. No package installation or build is required. F
 
 Use a local HTTP server instead of double-clicking index.html: browsers restrict module and JSON loading from file:// URLs. The local server is only a development convenience. GitHub Pages serves the released game without a backend.
 
+Each mode also has its own GitHub Pages-compatible HTML entry point:
+
+- `quick-match.html` — Quick Match team selection.
+- `rivalry-matches.html` — featured LSL Rivalry Matches.
+- `tournament-mode.html` — Inter-Madrasah Tournament flow.
+
+The pages share the same Three.js engine, data, settings and match shell; opening a mode URL starts directly on that mode's selection screen. The Back and Home actions return to `index.html`.
+Run `npm run sync-mode-pages` after changing the shared `index.html` shell to regenerate all three dedicated pages.
+
 ## Publish on GitHub Pages
 
 1. Create a GitHub repository for the game.
@@ -162,7 +171,7 @@ Verify the exported ratings and styles against a complete website checkout:
 
 Automated checks cover all season rosters, 14 starters, the intro, acceleration and braking, intermittent dribble touches, exact ball stopping, first touches, first-time passes/volleys, goalkeeper catches/distribution and direction-matched parries, camera persistence/framing, animation poses, charging shots, goals, restarts, posts/crossbar, fouls/cards, substitutions, halftime, changing ends and complete seeded CPU matches across difficulties.
 
-Responsive browser QA includes the main menu, all three seasons, settings, live 3D rendering, keyboard actions, substitution menus and phone-size layouts. Physical iOS/Android hardware should still be checked before a broad public release; desktop emulation does not measure phone GPU performance.
+Responsive browser QA includes the main menu, all three seasons, Season Mode's picker/dashboard flow, settings, live 3D rendering, keyboard actions, substitution menus and phone-size layouts. Physical iOS/Android hardware should still be checked before a broad public release; desktop emulation does not measure phone GPU performance.
 
 ## Performance
 
@@ -215,6 +224,10 @@ Update featured pairings with `npm run sync-rivalries -- "../LSL Website"` after
 ## Tournament Mode
 
 Tournament Mode uses the Inter-Madrasah Soccer Tournament records from the LSL Website. Choose a season from the team-selection screen to view its group standings and playoff road through the semi-finals and final. Completed 2025 and 2026 fixtures are bundled in `data/tournaments.json`; official 2025/2026 institution marks are bundled under `assets/tournament/<year>/`; 2024 is shown as the pre-tournament season. Tournament play is staged: choose a year and institution, review the starting formation, continue to the full schedule, simulate other fixtures, then play the next fixture involving your team. After full time, return to the tournament schedule to continue. Teams with incomplete website rosters receive clearly labelled Player1, Player2 placeholders so every listed 2026 institution remains playable.
+
+## Season Mode
+
+Season Mode is available at `season-mode.html` and from the home screen. Select 2024, 2025 or 2026 and an LSL club, review its real season roster and OVR, then play the club's complete single round-robin schedule. Before the lineup screen, choose whether Trades, Minor Injuries, Suspensions and Fantasy Draft are enabled; these rules are saved with the career. Fantasy Draft uses a snake order with CPU picks between user turns and requires one goalkeeper plus six outfield players. Other fixtures can be simulated while your next match remains playable in the 3D match engine. Standings update with wins, draws, losses, goal difference and points; the top four advance to semi-finals, a third-place match and a final. The dashboard includes ranked goals, assists and shots charts with player position and club labels, plus goalkeeper games played, saves, save percentage and goals-against average. The Trade Centre opens as a multi-select dialog: one or more players can be exchanged for one or more players from a single opposing club when total published OVR is equal, while preserving a minimum seven-player roster. Minor injuries and suspensions temporarily remove players from selection and clear automatically when their return matchday arrives. Progress is saved locally, and the completed season presents the champion, Golden Boot, Player of the Season and goalkeeper award data.
 
 ## Formation / Lineup Builder
 

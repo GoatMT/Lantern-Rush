@@ -36,20 +36,62 @@
             "shortName": "AKM",
             "logo": "assets/tournament/2025/al-khair-musalla.png",
             "roster": [
-              "Suleman Nazari",
-              "Abdul Baseer Ahmed",
-              "Muhammad Ibrahim",
-              "Abdullahi",
-              "Hamza",
-              "Suleman Shah",
-              "Musawer",
-              "Abdul Hakeem",
-              "Yaseen",
-              "Ahmedu",
-              "Ossama",
-              "Bilal Momo",
-              "Roholla",
-              "Waris"
+              {
+                "id": "player-0",
+                "name": "Suleman Nazari"
+              },
+              {
+                "id": "player-1",
+                "name": "Abdul Baseer Ahmed"
+              },
+              {
+                "id": "player-2",
+                "name": "Muhammad Ibrahim"
+              },
+              {
+                "id": "player-3",
+                "name": "Abdullahi"
+              },
+              {
+                "id": "player-4",
+                "name": "Hamza"
+              },
+              {
+                "id": "player-5",
+                "name": "Suleman Shah"
+              },
+              {
+                "id": "player-6",
+                "name": "Musawer"
+              },
+              {
+                "id": "player-7",
+                "name": "Abdul Hakeem"
+              },
+              {
+                "id": "player-8",
+                "name": "Yaseen"
+              },
+              {
+                "id": "player-9",
+                "name": "Ahmedu"
+              },
+              {
+                "id": "player-10",
+                "name": "Ossama"
+              },
+              {
+                "id": "player-11",
+                "name": "Bilal Momo"
+              },
+              {
+                "id": "player-12",
+                "name": "Roholla"
+              },
+              {
+                "id": "player-13",
+                "name": "Waris"
+              }
             ]
           },
           {
@@ -58,21 +100,66 @@
             "shortName": "HFC",
             "logo": "assets/tournament/2025/hifz-city.webp",
             "roster": [
-              "Yakub Shaikh",
-              "Hashir Abid",
-              "Bilal Ali Sabyr",
-              "Nurhussein Nurhussein",
-              "Berat Ozturk",
-              "Marwan Akram",
-              "Sami Sanger",
-              "Musab Omer",
-              "Muneeb Ezaz",
-              "Basel Hossein",
-              "Khalid Takles",
-              "AbuBakar Lawal",
-              "Rayyan Sayed",
-              "Mazin Ezaz",
-              "Hamza Karagoz"
+              {
+                "id": "player-0",
+                "name": "Yakub Shaikh"
+              },
+              {
+                "id": "player-1",
+                "name": "Hashir Abid"
+              },
+              {
+                "id": "player-2",
+                "name": "Bilal Ali Sabyr"
+              },
+              {
+                "id": "player-3",
+                "name": "Nurhussein Nurhussein"
+              },
+              {
+                "id": "player-4",
+                "name": "Berat Ozturk"
+              },
+              {
+                "id": "player-5",
+                "name": "Marwan Akram"
+              },
+              {
+                "id": "player-6",
+                "name": "Sami Sanger"
+              },
+              {
+                "id": "player-7",
+                "name": "Musab Omer"
+              },
+              {
+                "id": "player-8",
+                "name": "Muneeb Ezaz"
+              },
+              {
+                "id": "player-9",
+                "name": "Basel Hossein"
+              },
+              {
+                "id": "player-10",
+                "name": "Khalid Takles"
+              },
+              {
+                "id": "player-11",
+                "name": "AbuBakar Lawal"
+              },
+              {
+                "id": "player-12",
+                "name": "Rayyan Sayed"
+              },
+              {
+                "id": "player-13",
+                "name": "Mazin Ezaz"
+              },
+              {
+                "id": "player-14",
+                "name": "Hamza Karagoz"
+              }
             ]
           },
           {
@@ -80,22 +167,74 @@
             "name": "Lantern of Knowledge Academy",
             "shortName": "LOK",
             "logo": "assets/tournament/2025/lantern-of-knowledge-academy.png",
+            "logoBg": "#0E4B25",
             "roster": [
-              "Hafizullah",
-              "Abdul Basit Mesbah",
-              "Muzamil Kharooti",
-              "Rehan Adam",
-              "Umar Ajmal",
-              "Shaheer",
-              "Abu Bakr Manjra",
-              "Taha Nakhuda",
-              "Muhummud Teli",
-              "Ziyad Adam",
-              "Mubashir Kharooti",
-              "Uthman Manira",
-              "Basir Dastagiri",
-              "Mudassir Nabizada",
-              "Hassan Faraz"
+              {
+                "id": "player-0",
+                "name": "Hafizullah",
+                "position": "Forward",
+                "role": "Best Forward",
+                "designation": "Best Forward"
+              },
+              {
+                "id": "player-1",
+                "name": "Abdul Basit Mesbah",
+                "position": "Goalkeeper",
+                "role": "Backup Goalie",
+                "designation": "Backup Goalie"
+              },
+              {
+                "id": "player-2",
+                "name": "Muzamil Kharooti"
+              },
+              {
+                "id": "player-3",
+                "name": "Rehan Adam"
+              },
+              {
+                "id": "player-4",
+                "name": "Umar Ajmal"
+              },
+              {
+                "id": "player-5",
+                "name": "Shaheer"
+              },
+              {
+                "id": "player-6",
+                "name": "Abu Bakr Manjra"
+              },
+              {
+                "id": "player-7",
+                "name": "Taha Nakhuda"
+              },
+              {
+                "id": "player-8",
+                "name": "Muhummud Teli"
+              },
+              {
+                "id": "player-9",
+                "name": "Ziyad Adam"
+              },
+              {
+                "id": "player-10",
+                "name": "Mubashir Kharooti"
+              },
+              {
+                "id": "player-11",
+                "name": "Uthman Manira"
+              },
+              {
+                "id": "player-12",
+                "name": "Basir Dastagiri"
+              },
+              {
+                "id": "player-13",
+                "name": "Mudassir Nabizada"
+              },
+              {
+                "id": "player-14",
+                "name": "Hassan Faraz"
+              }
             ]
           },
           {
@@ -104,16 +243,46 @@
             "shortName": "MM",
             "logo": "assets/tournament/2025/madinah-masjid.png",
             "roster": [
-              "Ammar Mamun",
-              "Abu Mamun",
-              "Huzaifa Vadia",
-              "Zakariya Chibu",
-              "Ali Oakdia",
-              "Faizan Bhaiyat",
-              "Maaz Kassuji",
-              "Ali Khan",
-              "Ehsan Somali",
-              "Yassir Somali"
+              {
+                "id": "player-0",
+                "name": "Ammar Mamun"
+              },
+              {
+                "id": "player-1",
+                "name": "Abu Mamun"
+              },
+              {
+                "id": "player-2",
+                "name": "Huzaifa Vadia"
+              },
+              {
+                "id": "player-3",
+                "name": "Zakariya Chibu"
+              },
+              {
+                "id": "player-4",
+                "name": "Ali Oakdia"
+              },
+              {
+                "id": "player-5",
+                "name": "Faizan Bhaiyat"
+              },
+              {
+                "id": "player-6",
+                "name": "Maaz Kassuji"
+              },
+              {
+                "id": "player-7",
+                "name": "Ali Khan"
+              },
+              {
+                "id": "player-8",
+                "name": "Ehsan Somali"
+              },
+              {
+                "id": "player-9",
+                "name": "Yassir Somali"
+              }
             ]
           }
         ]
@@ -128,21 +297,66 @@
             "shortName": "ASI",
             "logo": "assets/tournament/2025/as-salaam-institute.webp",
             "roster": [
-              "Zayaan Howlader",
-              "Aadil Memon",
-              "Aamir Memon",
-              "Mateen Minayar",
-              "Saad Khan",
-              "Talhah Ahmed",
-              "Musa Khalid",
-              "Talhah Ahmed",
-              "Musa Jawad",
-              "Talha Jawed",
-              "Bilal Baig",
-              "Massih Minayar",
-              "Musab Abdul Matin",
-              "Khalfan Abus Suboor",
-              "Hamza Memon"
+              {
+                "id": "player-0",
+                "name": "Zayaan Howlader"
+              },
+              {
+                "id": "player-1",
+                "name": "Aadil Memon"
+              },
+              {
+                "id": "player-2",
+                "name": "Aamir Memon"
+              },
+              {
+                "id": "player-3",
+                "name": "Mateen Minayar"
+              },
+              {
+                "id": "player-4",
+                "name": "Saad Khan"
+              },
+              {
+                "id": "player-5",
+                "name": "Talhah Ahmed"
+              },
+              {
+                "id": "player-6",
+                "name": "Musa Khalid"
+              },
+              {
+                "id": "player-7",
+                "name": "Talhah Ahmed"
+              },
+              {
+                "id": "player-8",
+                "name": "Musa Jawad"
+              },
+              {
+                "id": "player-9",
+                "name": "Talha Jawed"
+              },
+              {
+                "id": "player-10",
+                "name": "Bilal Baig"
+              },
+              {
+                "id": "player-11",
+                "name": "Massih Minayar"
+              },
+              {
+                "id": "player-12",
+                "name": "Musab Abdul Matin"
+              },
+              {
+                "id": "player-13",
+                "name": "Khalfan Abus Suboor"
+              },
+              {
+                "id": "player-14",
+                "name": "Hamza Memon"
+              }
             ]
           },
           {
@@ -151,21 +365,66 @@
             "shortName": "DI",
             "logo": "assets/tournament/2025/darul-imaan.png",
             "roster": [
-              "Affan Mir",
-              "Hassaan Mir",
-              "Affaan Qureshi",
-              "Khalid Mohammed",
-              "Huzaifa Qureshi",
-              "Yusuf Qureshi",
-              "Ali Qazi",
-              "Haseeb Hasan",
-              "Salman Zouhar",
-              "Maaz Khan",
-              "Affan Tariq",
-              "Hassan Khan",
-              "Usman Malik",
-              "Mohsin Khan",
-              "Humayd Khan"
+              {
+                "id": "player-0",
+                "name": "Affan Mir"
+              },
+              {
+                "id": "player-1",
+                "name": "Hassaan Mir"
+              },
+              {
+                "id": "player-2",
+                "name": "Affaan Qureshi"
+              },
+              {
+                "id": "player-3",
+                "name": "Khalid Mohammed"
+              },
+              {
+                "id": "player-4",
+                "name": "Huzaifa Qureshi"
+              },
+              {
+                "id": "player-5",
+                "name": "Yusuf Qureshi"
+              },
+              {
+                "id": "player-6",
+                "name": "Ali Qazi"
+              },
+              {
+                "id": "player-7",
+                "name": "Haseeb Hasan"
+              },
+              {
+                "id": "player-8",
+                "name": "Salman Zouhar"
+              },
+              {
+                "id": "player-9",
+                "name": "Maaz Khan"
+              },
+              {
+                "id": "player-10",
+                "name": "Affan Tariq"
+              },
+              {
+                "id": "player-11",
+                "name": "Hassan Khan"
+              },
+              {
+                "id": "player-12",
+                "name": "Usman Malik"
+              },
+              {
+                "id": "player-13",
+                "name": "Mohsin Khan"
+              },
+              {
+                "id": "player-14",
+                "name": "Humayd Khan"
+              }
             ]
           },
           {
@@ -173,22 +432,68 @@
             "name": "Islamic Foundation (IFT)",
             "shortName": "IFT",
             "logo": "assets/tournament/2025/islamic-foundation.png",
+            "logoBg": "#745C3B",
             "roster": [
-              "Ahmed Patel",
-              "Taim Al-Jaunita",
-              "Abdullah Al-Tasman",
-              "Raihan Matadar",
-              "Haitham Al-Khalil",
-              "Loai Al-Karri",
-              "Abdulaziz Al-Henedi",
-              "Zohair Sharif",
-              "Ibrahim Roowala",
-              "Aakif Shairaz",
-              "Rayan S. Yousuf",
-              "Uwais Patel",
-              "Ishaaq Ali",
-              "Yassin Al-Jaouni",
-              "Yahya Jeebhai"
+              {
+                "id": "player-0",
+                "name": "Ahmed Patel"
+              },
+              {
+                "id": "player-1",
+                "name": "Taim Al-Jaunita"
+              },
+              {
+                "id": "player-2",
+                "name": "Abdullah Al-Tasman"
+              },
+              {
+                "id": "player-3",
+                "name": "Raihan Matadar"
+              },
+              {
+                "id": "player-4",
+                "name": "Haitham Al-Khalil"
+              },
+              {
+                "id": "player-5",
+                "name": "Loai Al-Karri"
+              },
+              {
+                "id": "player-6",
+                "name": "Abdulaziz Al-Henedi"
+              },
+              {
+                "id": "player-7",
+                "name": "Zohair Sharif"
+              },
+              {
+                "id": "player-8",
+                "name": "Ibrahim Roowala"
+              },
+              {
+                "id": "player-9",
+                "name": "Aakif Shairaz"
+              },
+              {
+                "id": "player-10",
+                "name": "Rayan S. Yousuf"
+              },
+              {
+                "id": "player-11",
+                "name": "Uwais Patel"
+              },
+              {
+                "id": "player-12",
+                "name": "Ishaaq Ali"
+              },
+              {
+                "id": "player-13",
+                "name": "Yassin Al-Jaouni"
+              },
+              {
+                "id": "player-14",
+                "name": "Yahya Jeebhai"
+              }
             ]
           },
           {
@@ -197,21 +502,69 @@
             "shortName": "KU",
             "logo": "assets/tournament/2025/khairul-ummah.png",
             "roster": [
-              "Marwan Ahmed",
-              "Ahmad Ingar",
-              "Ibrahim Mohammed",
-              "Yousaf Hosseinzada",
-              "Khalid Bana",
-              "Abdul Raqib",
-              "Musa Shamsuddin",
-              "Noman Hasan",
-              "Subhan Ali Syed",
-              "Abdul Hannan",
-              "Tamzid Ahmad",
-              "Uthmaan Bana",
-              "Muhammad Farooq Q. Shaikh",
-              "Hassan Mohammed",
-              "Affan Mohammed"
+              {
+                "id": "player-0",
+                "name": "Marwan Ahmed"
+              },
+              {
+                "id": "player-1",
+                "name": "Ahmad Ingar"
+              },
+              {
+                "id": "player-2",
+                "name": "Ibrahim Mohammed"
+              },
+              {
+                "id": "player-3",
+                "name": "Yousaf Hosseinzada"
+              },
+              {
+                "id": "player-4",
+                "name": "Khalid Bana",
+                "position": "Goalkeeper",
+                "role": "Goalkeeper",
+                "designation": "Goalkeeper"
+              },
+              {
+                "id": "player-5",
+                "name": "Abdul Raqib"
+              },
+              {
+                "id": "player-6",
+                "name": "Musa Shamsuddin"
+              },
+              {
+                "id": "player-7",
+                "name": "Noman Hasan"
+              },
+              {
+                "id": "player-8",
+                "name": "Subhan Ali Syed"
+              },
+              {
+                "id": "player-9",
+                "name": "Abdul Hannan"
+              },
+              {
+                "id": "player-10",
+                "name": "Tamzid Ahmad"
+              },
+              {
+                "id": "player-11",
+                "name": "Uthmaan Bana"
+              },
+              {
+                "id": "player-12",
+                "name": "Muhammad Farooq Q. Shaikh"
+              },
+              {
+                "id": "player-13",
+                "name": "Hassan Mohammed"
+              },
+              {
+                "id": "player-14",
+                "name": "Affan Mohammed"
+              }
             ]
           }
         ]
@@ -446,7 +799,7 @@
             "shortName": "Lantern",
             "logo": "assets/tournament/2026/lantern-of-knowledge-academy.png",
             "logoText": "LOK",
-            "logoBg": "#001a3a",
+            "logoBg": "#0E4B25",
             "roster": [
               {
                 "id": "muzamil-kharooti",
@@ -574,7 +927,7 @@
             "shortName": "IFT",
             "logo": "assets/tournament/2026/islamic-foundation-of-toronto.png",
             "logoText": "IFT",
-            "logoBg": "#001a3a",
+            "logoBg": "#745C3B",
             "roster": []
           },
           {

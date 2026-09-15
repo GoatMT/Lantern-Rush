@@ -12,6 +12,8 @@
     "sync-ratings": "node scripts/sync-ratings.mjs",
     "check-ratings": "node scripts/sync-ratings.mjs --check",
     "sync-rivalries": "node scripts/sync-rivalries.mjs",
-    "sync-tournaments": "node scripts/sync-tournaments.mjs"
+    "sync-tournaments": "node scripts/sync-tournaments.mjs",
+    "sync-mode-pages": "node scripts/sync-mode-pages.mjs"
   }
 }
+

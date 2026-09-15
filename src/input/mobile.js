@@ -3,6 +3,8 @@ export class MobileControls {
     this.controls=controls;this.touches=new Map();this.pointer=null;
     this.root=document.querySelector('#touch-controls');
     this.pad=document.querySelector('#joystick');this.thumb=document.querySelector('#joystick-thumb');
+    addEventListener('keydown',()=>this.renderKeyboardThumb());
+    addEventListener('keyup',()=>this.renderKeyboardThumb());
     for(const button of this.root.querySelectorAll('[data-touch]')){
       button.addEventListener('pointerdown',e=>{
         e.preventDefault();if(!controls.enabled||button.disabled||this.touches.has(e.pointerId))return;
@@ -35,13 +37,13 @@ export class MobileControls {
     }
     this.pad.addEventListener('pointerdown',e=>{e.preventDefault();if(!controls.enabled||this.pointer!==null)return;this.pointer=e.pointerId;this.pad.setPointerCapture(e.pointerId);this.move(e);});
     this.pad.addEventListener('pointermove',e=>{if(e.pointerId===this.pointer){e.preventDefault();this.move(e);}});
-    const end=e=>{if(e.pointerId!==this.pointer)return;this.pointer=null;controls.joystick={x:0,z:0};this.thumb.style.transform='translate(-50%,-50%)';if(this.pad.hasPointerCapture(e.pointerId))this.pad.releasePointerCapture(e.pointerId);};
+    const end=e=>{if(e.pointerId!==this.pointer)return;this.pointer=null;controls.joystick={x:0,z:0};this.renderKeyboardThumb();if(this.pad.hasPointerCapture(e.pointerId))this.pad.releasePointerCapture(e.pointerId);};
     this.pad.addEventListener('pointerup',end);this.pad.addEventListener('pointercancel',end);this.pad.addEventListener('lostpointercapture',end);
     document.addEventListener('controls-clear',()=>{
       const touches=[...this.touches.entries()],pointer=this.pointer;this.touches.clear();this.pointer=null;
       for(const [id,t] of touches){t.button.classList.remove('held','curve-armed');if(t.button.hasPointerCapture(id))t.button.releasePointerCapture(id);}
       if(pointer!==null&&this.pad.hasPointerCapture(pointer))this.pad.releasePointerCapture(pointer);
-      this.thumb.style.transform='translate(-50%,-50%)';
+      this.renderKeyboardThumb();
     });
     this.applyLayout();
   }
@@ -55,6 +57,13 @@ export class MobileControls {
     let x=(e.clientX-rect.left-rect.width/2)/radius,z=(e.clientY-rect.top-rect.height/2)/radius;
     const len=Math.hypot(x,z),magnitude=Math.pow(Math.min(1,Math.max(0,(len-.08)/.92)),.9);
     if(len>0){x=x/len*magnitude;z=z/len*magnitude;}
-    this.controls.joystick={x,z};this.thumb.style.transform='translate(calc(-50% + '+x*radius+'px),calc(-50% + '+z*radius+'px))';
+    this.controls.joystick={x,z};this.renderThumb(x,z,radius);
+  }
+  renderThumb(x,z,radius){this.thumb.style.transform='translate(calc(-50% + '+x*radius+'px),calc(-50% + '+z*radius+'px))';}
+  renderKeyboardThumb(){
+    if(this.pointer!==null)return;
+    const x=(this.controls.held.has('right')?1:0)-(this.controls.held.has('left')?1:0),z=(this.controls.held.has('back')?1:0)-(this.controls.held.has('forward')?1:0),length=Math.hypot(x,z);
+    if(!length){this.thumb.style.transform='translate(-50%,-50%)';return;}
+    const rect=this.pad.getBoundingClientRect(),radius=rect.width*.36,scale=length>1?1/length:1;this.renderThumb(x*scale,z*scale,radius);
   }
 }

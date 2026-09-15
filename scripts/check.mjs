@@ -17,6 +17,7 @@ const html=await fs.readFile(path.join(root,'index.html'),'utf8');
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
 if(new Set(ids).size!==ids.length)throw Error('Duplicate HTML IDs');
 for(const match of html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g))await exists(path.join(root,match[1]));
+for(const [file,mode] of [['quick-match.html','quick'],['rivalry-matches.html','rivalry'],['tournament-mode.html','tournament'],['season-mode.html','season']]){const page=await fs.readFile(path.join(root,file),'utf8');if(!page.includes('data-mode-page="'+mode+'"'))throw Error('Mode page missing route marker: '+file);for(const match of page.matchAll(/(?:src|href)="(\.\/[^"]+)"/g))await exists(path.join(root,match[1]));}
 const manifest=JSON.parse(await fs.readFile(path.join(root,'data/seasons.json'),'utf8'));
 let teams=0,players=0;
 for(const season of manifest){

@@ -27,6 +27,20 @@ const logoFiles = {
     'scarborough-muslim-association': 'scarborough muslim association.avif'
   }
 };
+const tournamentLogoBackgrounds = Object.freeze({
+  '2025': {'lantern-of-knowledge-academy': '#0E4B25', 'islamic-foundation': '#745C3B'},
+  '2026': {'lantern-of-knowledge-academy': '#0E4B25', 'islamic-foundation-of-toronto': '#745C3B'}
+});
+const rosterOverrides = Object.freeze({
+  'khalid bana': {position: 'Goalkeeper', role: 'Goalkeeper', designation: 'Goalkeeper'},
+  'abdul basit mesbah': {position: 'Goalkeeper', role: 'Backup Goalie', designation: 'Backup Goalie'},
+  'hafizullah': {position: 'Forward', role: 'Best Forward', designation: 'Best Forward'}
+});
+const normalizedRoster = roster => (roster || []).map((player, index) => {
+  const item = typeof player === 'string' ? {id: `player-${index}`, name: player} : {...player};
+  const override = rosterOverrides[String(item.name || '').trim().toLowerCase()];
+  return override ? {...item, ...override} : item;
+});
 
 const pick = match => {
   const keys = ['id', 'divisionId', 'round', 'label', 'time', 'homeTeamId', 'homeTeamName', 'awayTeamId', 'awayTeamName', 'homeScore', 'awayScore', 'penaltyScore', 'status'];
@@ -67,8 +81,8 @@ for (const year of years) {
         shortName: team.shortName,
         logo: copiedLogos.get(team.id) || team.logo,
         logoText: team.logoText,
-        logoBg: team.logoBg,
-        roster: team.roster || []
+        logoBg: tournamentLogoBackgrounds[year]?.[team.id] || team.logoBg,
+        roster: normalizedRoster(team.roster)
       }))
     })),
     matches: (source.matches || []).map(pick),

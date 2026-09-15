@@ -64,15 +64,15 @@ export class Ball {
     const speedMismatch=Math.hypot(this.vx-p.vx,this.vz-p.vz),behind=(this.x-p.x)*p.faceX+(this.z-p.z)*p.faceZ<-.15;
     const cut=this.touchAge>=.065&&!this.badTouch&&gap<reach&&(speedMismatch>2.8-quality||behind||(p.cutTime>0&&this.touchClock>.055)||(speed<.5&&Math.hypot(this.vx,this.vz)>1));
     if((this.touchClock<=0||cut)&&gap<reach){
-      const forward=speed>.7?normalize(p.vx,p.vz):{x:p.faceX,z:p.faceZ};
+      const forward=speed>.7?normalize(p.vx,p.vz):{x:p.faceX,z:p.faceZ},intent=normalize(p.dribbleX??forward.x,p.dribbleZ??forward.z),steer=normalize(forward.x*.58+intent.x*.42,forward.z*.58+intent.z*.42);
       const skillBlend=skill?Math.sin(Math.PI*clamp(skill.time/skill.duration,0,1))*.45:0;
-      const n=skill?normalize(forward.x+skill.x*skillBlend,forward.z+skill.z*skillBlend):forward;
-      const lead=closeControl?.48:p.boosting?.90+(1-quality)*.18:.50+(1-quality)*.16+speed*.009;
+      const n=skill?normalize(steer.x+skill.x*skillBlend,steer.z+skill.z*skillBlend):steer;
+      const lead=closeControl?.36:p.boosting?.74+(1-quality)*.12:.43+(1-quality)*.11+speed*.006;
       p.touchFoot=contactFoot(p,this);const side=p.touchFoot==='right'?1:-1;
       const correctionX=p.x+n.x*lead+p.faceZ*side*.14-this.x,correctionZ=p.z+n.z*lead-p.faceX*side*.14-this.z;
       const interval=(p.boosting?.19:closeControl?.115:.145)+(1-quality)*.045;
       const compensation=(PLAY.groundDrag*speed+PLAY.rollingResistance)*interval*.45;
-      const response=6+quality*3;
+      const response=8+quality*3.5;
       this.vx=p.vx+correctionX*response+n.x*compensation;this.vz=p.vz+correctionZ*response+n.z*compensation;
       if(speed<.15&&gap<.95&&!skill){this.vx=this.vz=0;}
       this.vy=0;this.y=FIELD.ballRadius;this.touchClock=interval;this.touchAge=0;this.touchCount++;this.badTouch=false;

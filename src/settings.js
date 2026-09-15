@@ -16,7 +16,7 @@ export class Settings {
       mobileLayout:saved.mobileLayout==='right'?'right':'left',holdAutoSwitch:typeof saved.holdAutoSwitch==='boolean'?saved.holdAutoSwitch:true,
       difficulty:['easy','normal','hard','insane'].includes(saved.difficulty)?saved.difficulty:'normal',
       duration:[3,4,5,6].includes(saved.duration)?saved.duration:6,season:String(saved.season||'2026'),
-      userTeam:saved.userTeam||'leeward-lions',cpuTeam:saved.cpuTeam||'em-haulers-fc',tournamentTeam:saved.tournamentTeam||'',formations:saved.formations&&typeof saved.formations==='object'?saved.formations:{},controlsVersion:2,keys:{...DEFAULT_KEYS}};
+      userTeam:saved.userTeam||'leeward-lions',cpuTeam:saved.cpuTeam||'em-haulers-fc',tournamentTeam:saved.tournamentTeam||'',seasonTeam:saved.seasonTeam||'',seasonMode:saved.seasonMode&&typeof saved.seasonMode==='object'?saved.seasonMode:null,seasonFeatures:{trades:saved.seasonFeatures?.trades!==false,injuries:saved.seasonFeatures?.injuries!==false,suspensions:saved.seasonFeatures?.suspensions!==false,fantasyDraft:saved.seasonFeatures?.fantasyDraft===true},formations:saved.formations&&typeof saved.formations==='object'?saved.formations:{},controlsVersion:2,keys:{...DEFAULT_KEYS}};
     const assigned = new Set(),restored = new Set();
     for(const action of Object.keys(DEFAULT_KEYS)){
       const candidate=saved.keys?.[action];
@@ -47,3 +47,4 @@ export class Settings {
   }
 }
 export const keyLabel=code=>code.replace('Key','').replace('Digit','').replace('Arrow','').replace('Left','').replace('Right','');
+

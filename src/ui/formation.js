@@ -19,6 +19,7 @@ export class FormationBuilder{
   }
   targetTeam(){
     if(this.app.mode==='tournament'&&this.app.tournament?.teamId)return this.app.tournament.team(this.app.tournament.teamId)||this.app.selected.user;
+    if(this.app.mode==='season'&&this.app.seasonMode?.teamId)return this.app.seasonMode.team(this.app.seasonMode.teamId)||this.app.selected.user;
     return this.app.selected?.user;
   }
   readSaved(team){
@@ -83,7 +84,7 @@ export class FormationBuilder{
     if(drag.type==='card'&&point){const target=this.nearestSlot(point),source=this.state.slots.findIndex(slot=>slot.playerId===drag.playerId);if(source>=0&&source!==target){const playerId=this.state.slots[source].playerId;this.state.slots[source].playerId=this.state.slots[target].playerId;this.state.slots[target].playerId=playerId;}else if(source<0)this.state.slots[target].playerId=drag.playerId;this.state.formationId='custom';this.preset.value='custom';this.render();return;}
     this.render();
   }
-  card(player,active){return '<button type="button" class="formation-player-card '+(active?'active':'')+'" data-player="'+e(player.id)+'"><span class="formation-card-number">'+e(player.jersey?'#'+player.jersey:'—')+'</span><span class="formation-card-copy"><strong>'+e(player.name)+'</strong><small>'+e(player.role||player.position||'PLAYER')+'</small></span><em>'+(active?'STARTER':'BENCH')+'</em></button>';}
+  card(player,active){return '<button type="button" class="formation-player-card '+(active?'active':'')+'" data-player="'+e(player.id)+'"><span class="formation-card-number">'+e(player.jersey?'#'+player.jersey:'—')+'</span><span class="formation-card-copy"><strong>'+e(player.name)+'</strong><small>'+e(player.designation||player.role||player.position||'PLAYER')+'</small></span><em>'+(active?'STARTER':'BENCH')+'</em></button>';}
   render(){
     if(!this.dialog||!this.team)return;
     this.dialog.querySelector('#formation-team-name').textContent=this.team.name;

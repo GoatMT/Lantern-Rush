@@ -9,7 +9,7 @@ export class GameRenderer{
   constructor(canvas,settings){
     this.canvas=canvas;this.scene=new T.Scene();this.adaptiveScale=1;
     this.renderer=new T.WebGLRenderer({canvas,antialias:settings.graphics!=='low',alpha:false,powerPreference:'high-performance'});
-    this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.toneMapping=T.ACESFilmicToneMapping;
+    this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.setClearColor(0x102f3a,1);this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.toneMapping=T.ACESFilmicToneMapping;
     this.camera=new T.PerspectiveCamera(49,innerWidth/innerHeight,.2,u(260));this.broadcast=new BroadcastCamera(this.camera);
     this.lighting=new MatchLighting(this.scene);this.sun=this.lighting.sun;
     this.stadium=new Stadium(this.scene);this.models=[];this.ballMesh=createBallMesh();this.scene.add(this.ballMesh);

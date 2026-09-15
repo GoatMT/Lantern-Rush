@@ -8,7 +8,7 @@ export class Player {
     Object.assign(this,{data:{...data},team,slot,role:this.formation[slot]?.role||FORMATION[slot].role,id:data.id,name:data.name,jersey:data.jersey,
       x:0,z:0,vx:0,vz:0,faceX:direction,faceZ:0,cooldown:0,skill:0,animation:'idle',animationTime:0,
       sentOff:false,yellow:0,decision:0,holdTime:0,goals:0,assists:0,passes:0,tackles:0,saves:0,involvement:0,
-      gait:0,turn:0,acceleration:0,lookX:direction,lookZ:0,locomotion:'idle',boosting:false,action:null,skillPlan:null,lastSkill:null,keeperState:{},lastReceive:-10});
+      gait:0,turn:0,acceleration:0,lookX:direction,lookZ:0,locomotion:'idle',boosting:false,action:null,skillPlan:null,lastSkill:null,keeperState:{},lastReceive:-10,dribbleX:direction,dribbleZ:0});
     const preference=preferredFoot(data);this.dominantFoot=preference.foot;this.footSource=preference.source;this.touchFoot=preference.foot==='left'?'left':'right';
     this.attributes=playerAttributes(data);this.reset(direction);
   }
@@ -19,6 +19,7 @@ export class Player {
   move(dx,dz,intensity,dt,sprint=false,facing=null){
     if(this.striking){dx=dz=intensity=0;sprint=false;}
     const n=normalize(dx,dz),moving=Math.hypot(dx,dz)>.03&&intensity>.01,previousSpeed=Math.hypot(this.vx,this.vz);
+    if(moving){this.dribbleX=n.x;this.dribbleZ=n.z;}
     const recovering=this.action&&['fall','roll-fall','slide-tackle','get-up','keeper-get-up','keeper-dive'].includes(this.action.name);
     const boosting=sprint&&moving&&!recovering;
     const settling=this.hasBall&&this.lastReceive<.24?.74:1;
@@ -31,7 +32,7 @@ export class Player {
     if(recovering){tx=this.vx*(this.action.name==='slide-tackle'?.92:.25);tz=this.vz*(this.action.name==='slide-tackle'?.92:.25);}
     const alignment=previousSpeed>.1?(this.vx*n.x+this.vz*n.z)/previousSpeed:1;
     this.cutTime=moving&&alignment<.65?.23:Math.max(0,(this.cutTime||0)-dt);
-    const control=this.hasBall?.72+this.attributes.dribble*.65:1;
+    const control=this.hasBall?.86+this.attributes.dribble*.72:1;
     const rate=(!moving?PLAY.braking:this.cutTime>0?PLAY.turnAcceleration:boosting?PLAY.sprintAcceleration:PLAY.acceleration)*control;
     const dv=Math.hypot(tx-this.vx,tz-this.vz),step=Math.min(1,rate*dt/(dv||1));
     this.vx+=(tx-this.vx)*step;this.vz+=(tz-this.vz)*step;

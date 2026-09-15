@@ -1,7 +1,17 @@
 import { FORMATION } from './config.js';
 import { SEASON_KITS,teamKit } from './kits.js';
+const PLAYER_POSITION_OVERRIDES=Object.freeze({
+  'khalid bana':{position:'Goalkeeper',role:'Goalkeeper',designation:'Goalkeeper'},
+  'abdul basit mesbah':{position:'Goalkeeper',role:'Backup Goalie',designation:'Backup Goalie'},
+  'hafizullah':{position:'Forward',role:'Best Forward',designation:'Best Forward'}
+});
+function normalizePlayer(player){
+  const normalized={...player};const override=PLAYER_POSITION_OVERRIDES[String(normalized.name||'').trim().toLowerCase()];
+  if(override)Object.assign(normalized,override);
+  return normalized;
+}
 export function createLineup(roster){
-  const remaining=roster.map(p=>({...p}));
+  const remaining=roster.map(normalizePlayer);
   const selectedSlots=FORMATION.map((slot,index)=>{
     const pattern=index===0?/goal|keeper/i:index<3?/defend/i:index<5?/midfield/i:/strik|forward|wing/i;
     const selected=remaining.findIndex(p=>pattern.test(p.position));
@@ -42,7 +52,7 @@ export class LeagueData{
   tournamentTeams(year){
     const tournament=this.tournament(year), palette=['#2d78c8','#e0aa4a','#2c9a6a','#9954b8','#d75b4b'];
     return (tournament.divisions||[]).flatMap((division,di)=>(division.teams||[]).map((t,index)=>{
-      const roster=(t.roster||[]).map((p,i)=>typeof p==='string'?{id:(t.id+'-'+i),name:p,position:'Player'}:{...p,id:p.id||t.id+'-'+i,name:p.name||'Player',position:p.position||p.role||'Player'});
+      const roster=(t.roster||[]).map((p,i)=>normalizePlayer(typeof p==='string'?{id:(t.id+'-'+i),name:p,position:'Player'}:{...p,id:p.id||t.id+'-'+i,name:p.name||'Player',position:p.position||p.role||'Player'}));
       while(roster.length<7)roster.push({id:t.id+'-placeholder-'+roster.length,name:'Player'+(roster.length+1),position:'Player'});
       const lineup=createLineup(roster);
       const kit=t.logoBg||palette[(di+index)%palette.length];
