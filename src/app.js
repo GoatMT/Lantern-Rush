@@ -111,8 +111,6 @@ class App {
   }
   saveSelection(){this.settings.value.userTeam=this.selected.user.id;this.settings.value.cpuTeam=this.selected.cpu.id;this.settings.save();}
   async start(){
-    await this.cloudAccount?.ready;
-    if(!this.cloudAccount?.isSignedIn()){this.menus.accountGate(()=>this.start());return;}
     if(this.loadingMatch)return;this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);
