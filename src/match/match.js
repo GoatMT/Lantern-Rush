@@ -20,17 +20,18 @@ export class Match {
     this.formations=teams.map(team=>team.formation?.length===7?team.formation:FORMATION);
     this.players=teams.flatMap((team,index)=>team.lineup.map((data,slot)=>new Player(data,index,slot,index===0?1:-1,this.formations[index])));
     this.benches=teams.map(t=>t.bench.map(p=>({...p})));this.used=[[],[]];this.archive=[];this.pending=[];
-    this.stats=[teamStats(),teamStats()];this.goalEvents=[];this.subEvents=[];
+    this.stats=[teamStats(),teamStats()];this.goalEvents=[];this.subEvents=[];this.injuryEvents=[];this.lastReaction=null;
     this.ball=new Ball();this.controlled=this.players[5];this.phase='intro';this.phaseTime=0;this.elapsed=0;this.half=1;
     this.paused=false;this.charge=0;this.aimZ=0;this.switchCooldown=0;this.receiverAssist=false;this.restart=null;this.message='';
     this.referee=new Player({id:'referee',name:'Referee',jersey:null},-1,3,1);this.referee.x=-u(8);this.referee.z=u(6);
+    for(const team of [0,1]){const captain=this.players.filter(p=>p.team===team).find(p=>p.data.leadershipRole==='captain')||this.players.filter(p=>p.team===team&&p.role!=='GK').sort((a,b)=>(Number(b.data.overall)||0)-(Number(a.data.overall)||0))[0];if(captain)captain.data.leadershipRole='captain';}
     this.resetFormation();this.passHeldTime=0;this.holdSwitchTime=0;this.curveRequested=false;
     for(const p of this.players){p.x-=this.direction(p.team)*5;p.z+=2;}
   }
   direction(team){return (team===0?1:-1)*(this.half===1?1:-1);}
   aiConfig(team){return DIFFICULTY[team===1?this.settings.difficulty:'normal']||DIFFICULTY.normal;}
   active(team){return this.players.filter(p=>p.team===team&&!p.sentOff);}
-  notify(title,subtitle='',seconds=2.5){this.message=title;this.event('notice',{title,subtitle,seconds});}
+  notify(title,subtitle='',seconds=2.5){this.message=title;const reaction=/GOAL|SAVE|MISS|FOUL|CARD|CORNER|PENALTY/.test(title)?title:null;if(reaction)this.lastReaction={kind:reaction,time:this.elapsed};this.event('notice',{title,subtitle,seconds});}
   setPhase(phase){
     if(this.pendingStrike&&phase!=='playing'){this.pendingStrike.p.striking=false;this.pendingStrike=null;}
     if(phase!=='playing'){this.manualKeeper=false;this.keeperReturn=false;this.defensiveRoles=null;this.kickoffAttack=null;}
@@ -152,7 +153,7 @@ export class Match {
     const limit=Math.min(frame?.t??1,boundary?.time??1);
     const contact=(!this.ball.owner||!boundary)&&this.collisions(dt,previous,limit);
     if(!contact&&frame&&frame.t<=(boundary?.time??1))resolveFrameContact(this.ball,frame);
-    else if(!contact&&boundary){if(boundary.type==='GOAL')this.goal(boundary.team);else{if(this.ball.shot){this.ball.shot.player.animate('miss',1.6);this.moment={type:'miss',player:this.ball.shot.player,time:1.5};}this.beginRestart(boundary);}return;}
+    else if(!contact&&boundary){if(boundary.type==='GOAL')this.goal(boundary.team);else{if(this.ball.shot){this.ball.shot.player.animate('miss',1.6);this.moment={type:'miss',player:this.ball.shot.player,time:1.5};this.notify('MISS',playerLabel(this.ball.shot.player),1.6);}this.beginRestart(boundary);}return;}
     if(this.half===1&&this.elapsed>=this.settings.duration*30){
       this.elapsed=this.settings.duration*30;this.ball.release();this.applySubstitutions();this.autoSubstitute();this.setPhase('halftime');
     }else if(this.half===2&&this.elapsed>=this.settings.duration*60){
@@ -318,7 +319,13 @@ export class Match {
     if(protectedBall&&this.random()<.65)return;
     if(sliding){this.ball.release(p.faceX*7,p.faceZ*7,.4);this.ball.touch(p);victim.animate('stumble',.55,{side:1});}
     else{this.claim(p);p.animate(distance(p,victim)<1.1?'shoulder':'standing-tackle',.5);victim.animate('stumble',.4,{side:-1});}
-    p.tackles++;p.cooldown=.5;victim.cooldown=.7;
+    p.tackles++;p.cooldown=.5;victim.cooldown=.7;if(this.settings.minorInjuries!==false&&this.random()<.045)this.minorInjury(victim,p);
+  }
+  minorInjury(player,opponent=null){
+    if(!player||player.injured||player.sentOff||this.settings.minorInjuries===false)return;
+    player.injured=true;player.injuryTime=3.5;this.stats[player.team].injuries=(this.stats[player.team].injuries||0)+1;
+    const event={team:player.team,player:player.name,jersey:player.jersey??null,playerId:player.id,time:this.elapsed};this.injuryEvents.push(event);player.animate('stumble',.8);this.notify('MINOR INJURY',playerLabel(player)+' needs attention',PRESENTATION.injury);this.event('injury',{player,opponent,event});
+    const bench=this.benches[player.team]||[];if(bench.length&&!this.pending.some(s=>s.out===player)){const role=p=>/goal|keeper/i.test(p.position)?'GK':/def/i.test(p.position)?'DEF':/mid/i.test(p.position)?'MID':'FWD';const incoming=bench.find(p=>role(p)===player.role)||bench[0];if(incoming)this.pending.push({out:player,incoming,team:player.team});}
   }
   foul(offender,victim,severity='none'){
     const foulNames=playerLabel(offender)+' · Foul on '+playerLabel(victim);
@@ -368,7 +375,8 @@ export class Match {
     let eligible=this.active(data.team);
     if(data.type==='GOAL KICK')eligible=eligible.filter(p=>p.role==='GK');
     else eligible=eligible.filter(p=>p.role!=='GK');
-    const taker=[...eligible].sort((a,b)=>distance(a,data)-distance(b,data))[0]||this.active(data.team)[0];
+    const captain=this.active(data.team).find(p=>p.data.leadershipRole==='captain'&&eligible.includes(p));
+    const taker=(['PENALTY','FREE KICK','CORNER'].includes(data.type)&&captain)||[...eligible].sort((a,b)=>distance(a,data)-distance(b,data))[0]||this.active(data.team)[0];
     if(!taker){this.setPhase('fulltime');return;}
     this.restart={...data,taker,readyAt:Math.max(restartPresentation(data.type),this.moment?.time||0)};this.aimZ=0;
     if(data.type==='KICK OFF')this.resetFormation();
@@ -437,8 +445,8 @@ export class Match {
       const {out,incoming,team}=sub;if(out.sentOff)continue;
       if(this.pendingStrike?.p===out){out.striking=false;this.pendingStrike=null;this.charge=0;this.curveRequested=false;}
       this.archive.push({...out});this.used[team].push(out.data);
-      const saved={x:out.x,z:out.z,slot:out.slot,team:out.team,role:out.role};
-      const next=new Player(incoming,team,out.slot,this.direction(team),this.formations[team]);Object.assign(out,next,saved);out.hasBall=this.ball.owner===out;
+      const saved={x:out.x,z:out.z,slot:out.slot,team:out.team,role:out.role},incomingData={...incoming};if(out.data.leadershipRole==='captain')incomingData.leadershipRole='captain';
+      const next=new Player(incomingData,team,out.slot,this.direction(team),this.formations[team]);Object.assign(out,next,saved);out.hasBall=this.ball.owner===out;
       this.benches[team]=this.benches[team].filter(p=>p.id!==incoming.id);
       this.stats[team].substitutions++;const event={team,out:this.archive.at(-1).name,outJersey:this.archive.at(-1).jersey??null,in:incoming.name,inJersey:incoming.jersey??null,time:this.elapsed};this.subEvents.push(event);
       this.event('substitution',{player:out,...event});

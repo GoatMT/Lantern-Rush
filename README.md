@@ -17,9 +17,12 @@ Each mode also has its own GitHub Pages-compatible HTML entry point:
 - `quick-match.html` — Quick Match team selection.
 - `rivalry-matches.html` — featured LSL Rivalry Matches.
 - `tournament-mode.html` — Inter-Madrasah Tournament flow.
+- `season-mode.html` — LSL season career with standings, trades and awards.
+- `dream-fc.html` — LSL Dream F.C. single-player Ultimate Team hub.
+- `account.html` — local account-ready Trophies and Records page (Firebase can be connected later).
 
 The pages share the same Three.js engine, data, settings and match shell; opening a mode URL starts directly on that mode's selection screen. The Back and Home actions return to `index.html`.
-Run `npm run sync-mode-pages` after changing the shared `index.html` shell to regenerate all three dedicated pages.
+Run `npm run sync-mode-pages` after changing the shared `index.html` shell to regenerate all five dedicated pages.
 
 ## Publish on GitHub Pages
 
@@ -232,3 +235,13 @@ Season Mode is available at `season-mode.html` and from the home screen. Select 
 ## Formation / Lineup Builder
 
 Before any Quick Match, Rivalry Match or Tournament fixture, open `FORMATION / LINEUP` to set the user's starting seven. Presets include 2-2-2, 3-2-1, 2-3-1, 3-1-2 and 1-3-2, with a Custom Formation option. Player cards can be dragged onto the pitch on desktop or touch devices, field players can be repositioned at any time, and Save Formation stores the selected players and positions in browser local storage. Reset Formation and Auto Arrange are available from the same tactical board.
+
+## LSL Dream F.C.
+
+dream-fc.html is the single-player Ultimate Team mode. It builds cards from the real 2024, 2025 and 2026 LSL season rosters and published OVR values, then stores the custom club, squad, packs, objectives and Ranked CPU progress in local browser storage. There is no multiplayer or backend dependency. Open the page through the same static server/GitHub Pages deployment as the other modes.
+
+## Match presentation and account records
+
+All modes share the same player profile presentation: published LSL OVR, derived game ratings (SPD, SHO, PAS, DRI, DEF, STA and GK), season jersey numbers, captain armbands and captain-first set-piece defaults. Low-frequency minor injuries can queue a stoppage substitution. Goals use a random celebration and a short skippable replay overlay; nameplates show the player number when a player receives the ball. Conditions are clear, the rules intentionally have no advantage call and no added time, and Crowd reactions can be disabled in Graphics settings for lower-end devices.
+
+`account.html` stores trophies, fastest goal, most goals in a match, biggest win and longest winning streak in `lsl-account-v1` local storage. The storage shape is deliberately isolated so a future Firebase account service can replace persistence without changing match pages.

@@ -1,5 +1,5 @@
 import { FORMATION,FIELD,PLAY,clamp,normalize } from '../config.js';
-import { playerAttributes } from './attributes.js';
+import { playerAttributes,playerRatings } from './attributes.js';
 import { preferredFoot } from './shooting.js';
 export const angleDelta=(from,to)=>Math.atan2(Math.sin(to-from),Math.cos(to-from));
 export class Player {
@@ -10,7 +10,7 @@ export class Player {
       sentOff:false,yellow:0,decision:0,holdTime:0,goals:0,assists:0,passes:0,tackles:0,saves:0,involvement:0,
       gait:0,turn:0,acceleration:0,lookX:direction,lookZ:0,locomotion:'idle',boosting:false,action:null,skillPlan:null,lastSkill:null,keeperState:{},lastReceive:-10,dribbleX:direction,dribbleZ:0});
     const preference=preferredFoot(data);this.dominantFoot=preference.foot;this.footSource=preference.source;this.touchFoot=preference.foot==='left'?'left':'right';
-    this.attributes=playerAttributes(data);this.reset(direction);
+    this.attributes=playerAttributes(data);this.ratings=playerRatings(data);this.reset(direction);
   }
   reset(direction){
     const h=this.formation[this.slot]||FORMATION[this.slot];this.x=h.x*direction;this.z=h.z;this.vx=this.vz=0;this.faceX=direction;this.faceZ=0;this.lookX=direction;this.lookZ=0;this.cooldown=.35;
@@ -23,7 +23,8 @@ export class Player {
     const recovering=this.action&&['fall','roll-fall','slide-tackle','get-up','keeper-get-up','keeper-dive'].includes(this.action.name);
     const boosting=sprint&&moving&&!recovering;
     const settling=this.hasBall&&this.lastReceive<.24?.74:1;
-    const speed=(boosting?PLAY.sprintSpeed:PLAY.runSpeed)*this.attributes.speed*clamp(intensity,0,1)*settling;
+    const injuryPenalty=this.injured?.72:1;
+    const speed=(boosting?PLAY.sprintSpeed:PLAY.runSpeed)*this.attributes.speed*clamp(intensity,0,1)*settling*injuryPenalty;
     let tx=moving?n.x*speed:0,tz=moving?n.z*speed:0;
     if(this.skillPlan){
       const envelope=Math.sin(Math.PI*clamp(this.skillPlan.time/this.skillPlan.duration,0,1));

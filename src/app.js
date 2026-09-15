@@ -15,6 +15,8 @@ import { PRESENTATION } from './presentation.js';
 import { SEASON_KITS,teamKit } from './kits.js';
 import { FormationBuilder } from './ui/formation.js';
 import { SeasonMenu } from './ui/season.js';
+import { DreamMenu } from './dream.js';
+import { Account } from './account.js';
 
 async function badgeColor(team){
   if(team.kit)return;
@@ -39,13 +41,13 @@ class App {
       if(!image.closest('.badge-wrap,.team-choice-mark,.tournament-inline-logo,.intro-card,.intro-versus,.rivalry-crests,.hud-team,.notice-score,.result-score,.potm'))return;
       image.dataset.logoFallback='1';image.src='assets/lsl-logo.png';
     },true);
-    this.settings=new Settings();this.controls=new Controls(this.settings);this.data=new LeagueData();
-    $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);
+    this.settings=new Settings();this.account=new Account();this.controls=new Controls(this.settings);this.data=new LeagueData();
+    $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);this.renderer.stadium.setCrowdReactions(this.settings.value.crowdReactions);
     await Promise.all([this.data.load(progress=>{$('load-progress').value=15+progress*45;}),this.renderer.stadium.advertising.ready]);
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
     Object.values(this.data.teams).flat().forEach(t=>t.uniform||=teamKit(t.season,t.id,t.kit));$('load-progress').value=80;
     this.menus=new Menus(this);this.hud=new HUD(this);this.mobile=new MobileControls(this.controls);
-    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.seasonMode=new SeasonMenu(this);this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
+    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.seasonMode=new SeasonMenu(this);this.dream=new DreamMenu(this);await this.dream.load();this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
     this.menus.show('home');$('loading').hidden=true;
     const pageMode=document.body.dataset.modePage;
     if(pageMode)this.selectTeams(pageMode);
@@ -74,20 +76,22 @@ class App {
     match.rivalry=findRivalry(this.data.rivalries,this.settings.value.season,this.selected.user.id,cpu.id);
     match.tournament=this.mode==='tournament'?this.tournament.selectedMatch():null;
     match.seasonMatch=this.mode==='season'?this.seasonMode.selectedMatch():null;
+    match.dream=this.mode==='dream'?{event:this.dream?.currentEvent||null}:null;
     return match;
   }
   handleEvent(type,data){
     if(!this.menus||!this.match)return;
-    if(type==='phase')this.menus.phase(data);
+    if(type==='phase'){if(data==='fulltime')this.account?.recordMatch(this.match);this.menus.phase(data);}
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
     if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
   }
   returnToTournament(){this.menus.closeAll();this.mode='tournament';this.tournament.afterGame(this.match);this.menus.selection();}
   returnToSeason(){this.menus.closeAll();this.mode='season';this.seasonMode.afterGame(this.match);this.menus.selection();}
+  returnToDream(){this.menus.closeAll();this.mode='dream';this.dream.afterGame(this.match);this.menus.selection();}
   home(){if(document.body.dataset.modePage){location.assign('./index.html');return;}this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');}
-  selectTeams(mode=this.mode){this.mode=['rivalry','tournament','season'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.menus.selection();}
-  changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.saveSelection();this.menus.renderTeams();}
+  selectTeams(mode=this.mode){this.mode=['rivalry','tournament','season','dream'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.dream.prepare();this.menus.selection();}
+  changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.dream.prepare();this.saveSelection();this.menus.renderTeams();}
   cycle(side,step){
     const teams=this.data.get(this.settings.value.season),other=side==='user'?'cpu':'user';let i=teams.indexOf(this.selected[side]);
     do{i=(i+step+teams.length)%teams.length;}while(teams[i].id===this.selected[other].id);

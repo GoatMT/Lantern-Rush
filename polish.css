@@ -90,3 +90,5 @@ dialog{border-color:#adc3bf38;background:linear-gradient(145deg,#19343b,#0d252e)
 /* Four difficulty choices remain thumb-friendly on narrow phones. */
 [data-settings-panel="game"]>.option-row:not(.compact){display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:560px){[data-settings-panel="game"]>.option-row:not(.compact){grid-template-columns:repeat(2,minmax(0,1fr))}}
+.account-links{display:flex;align-items:center;gap:10px}.account-links a{color:var(--gold);font-size:9px;letter-spacing:1px}.account-links b{margin-left:5px}#replay-overlay{position:fixed;right:28px;top:27%;z-index:9;display:grid;gap:8px;min-width:190px;padding:16px 18px;background:#09272ee8;border:1px solid #e7d59666;border-left:3px solid var(--gold);border-radius:6px;box-shadow:0 14px 40px #00151c88;animation:notice-in .25s both;pointer-events:auto}#replay-overlay[hidden]{display:none}#replay-overlay strong{font-size:20px;letter-spacing:1px;color:var(--gold)}#replay-overlay .secondary{font-size:10px;padding:9px 11px}
+@media(max-width:600px){.account-links{gap:6px;flex-wrap:wrap;justify-content:flex-end}.account-links b{display:none}}

@@ -36,7 +36,7 @@ export class HUD{
       if(!label){label=document.createElement('div');label.className='pitch-label';$('player-labels').append(label);this.labels.set(player,label);}
       const show=!player.sentOff&&(intro?m.phaseTime>=INTRO.walk||player===introPlayer(m):m.phase==='goal'?player===m.celebratingPlayer:player===m.controlled||player===m.ball.owner);label.hidden=!show;if(!show)continue;
       label.classList.toggle('you',player.team===0);
-      const labelText=(intro?player.role+' · ':m.phase==='goal'?'SCORER · ':player===m.controlled?'YOU · ':'')+playerLabel(player);
+      const labelText=(intro?player.role+' · ':m.phase==='goal'?'SCORER · ':player===m.controlled?'YOU · ':player===m.ball.owner?'BALL · ':'')+playerLabel(player);
       if(label.textContent!==labelText)label.textContent=labelText;
       const pos=this.app.renderer.project(player.x,this.app.renderer.playerLabelHeight(),player.z);
       if(!intro&&m.phase!=='goal'&&player!==p&&Math.abs(pos.x-controlledPos.x)<160&&Math.abs(pos.y-controlledPos.y)<26)pos.y=controlledPos.y-27;

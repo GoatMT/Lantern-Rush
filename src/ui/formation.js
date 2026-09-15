@@ -18,6 +18,7 @@ export class FormationBuilder{
     document.addEventListener('pointercancel',event=>this.endDrag(event));
   }
   targetTeam(){
+    if(this.app.mode==='dream'&&this.app.dream?.state){const dream=this.app.dream.read();return this.app.dream.teamFromCards(dream.customTeam.name,[...(dream.squad||[]),...(dream.subs||[])],dream.customTeam.homeKit,dream.customTeam.badge);}
     if(this.app.mode==='tournament'&&this.app.tournament?.teamId)return this.app.tournament.team(this.app.tournament.teamId)||this.app.selected.user;
     if(this.app.mode==='season'&&this.app.seasonMode?.teamId)return this.app.seasonMode.team(this.app.seasonMode.teamId)||this.app.selected.user;
     return this.app.selected?.user;

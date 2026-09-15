@@ -25,7 +25,7 @@ class VenueBatch{
 export class Stadium{
   constructor(scene){
     this.root=new T.Group();this.detail=new T.Group();this.crowdGroup=new T.Group();this.root.add(this.detail,this.crowdGroup);scene.add(this.root);
-    this.nets=[];this.flags=[];this.banners=[];this.lamps=[];this.previousPhase='home';
+    this.nets=[];this.flags=[];this.banners=[];this.lamps=[];this.previousPhase='home';this.crowdReactions=true;this.reactionUntil=0;this.reactionKind='';this.lastReaction=null;
     this.structure=new VenueBatch(this.root);this.extras=new VenueBatch(this.detail);this.seatBatch=new VenueBatch(this.root);
     const L=FIELD.halfLength,W=FIELD.halfWidth;
     this.structure.box(235,.8,180,0,-.7,0,'#263332');this.structure.box(L*2+18,.10,W*2+16,0,-.07,0,'#345b34');
@@ -133,6 +133,7 @@ export class Stadium{
     this.level=level;this.detail.visible=level!=='low';this.crowd.count=Math.round(this.crowdCount*(level==='low'?.28:level==='medium'?.63:1));this.heads.count=this.crowd.count;this.heads.visible=level!=='low';
     this.turf.quality(level,anisotropy);this.advertising.quality(level,anisotropy);this.nets.forEach(net=>net.material.opacity=level==='low'?.38:.55);
   }
+  setCrowdReactions(value){this.crowdReactions=value!==false;if(!this.crowdReactions){this.crowdGroup.position.y=0;this.crowdGroup.rotation.z=0;}}
   setLighting(name){this.lamps.forEach(l=>l.material.color.set(name==='day'?'#a4b7bd':name==='evening'?'#e5e6d0':'#f1f7ff'));}
   setTeams(teams){
     const old=this.teamTextures||[];this.teamNames=teams.map(t=>t.name.toUpperCase());this.teamTextures=teams.map(t=>textTexture(t.name.toUpperCase(),{background:t.kit,color:'#ffffff',font:33}));
@@ -145,6 +146,8 @@ export class Stadium{
   }
   update(t,match){
     const ball=match?.ball,phase=match?.phase;
+    if(this.crowdGroup&&this.crowdReactions&&match?.lastReaction&&match.lastReaction!==this.lastReaction){this.lastReaction=match.lastReaction;this.reactionKind=match.lastReaction.kind;this.reactionUntil=t+1.8;}
+    if(this.crowdGroup&&this.crowdReactions&&t<this.reactionUntil){const age=1.8-(this.reactionUntil-t),pulse=Math.sin(age*15)*Math.exp(-age*2.2);this.crowdGroup.position.y=pulse*(this.reactionKind==='GOAL'?.22:.1);this.crowdGroup.rotation.z=pulse*.006;}else if(this.crowdGroup&&(this.crowdGroup.position.y||this.crowdGroup.rotation.z)){this.crowdGroup.position.y=0;this.crowdGroup.rotation.z=0;}
     if(phase==='goal'&&this.previousPhase!=='goal'&&ball){const net=this.nets.find(n=>n.userData.side===Math.sign(ball.x));if(net)net.userData.impact={time:t,z:ball.z,y:Math.min(FIELD.goalHeight,Math.max(.6,ball.y))};}
     if(ball&&Math.abs(ball.x)>FIELD.halfLength+.08&&Math.abs(ball.z)<FIELD.goalHalf+.3&&ball.y<FIELD.goalHeight){const net=this.nets.find(n=>n.userData.side===Math.sign(ball.x));if(net&&(!net.userData.impact||t-net.userData.impact.time>2)&&Math.hypot(ball.vx,ball.vz)>4)net.userData.impact={time:t,z:ball.z,y:ball.y};}
     this.previousPhase=phase;

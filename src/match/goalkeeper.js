@@ -1,5 +1,6 @@
 import { FIELD,clamp,distance } from '../config.js';
 import { predictBall } from './physics.js';
+import { playerLabel } from '../player-label.js';
 
 export function saveContext(keeper,ball){
   const lateral=(ball.x-keeper.x)*keeper.faceZ-(ball.z-keeper.z)*keeper.faceX;
@@ -67,7 +68,7 @@ export function keeperContact(match,p){
     :clamp(ability-speed*.0015*(1.2-config.keeper)-reaction-(gap>1.8?.1*(1.2-config.keeper):0),.18,.995);
   const success=gap<.75||easy||match.random()<probability;
   if(!success){p.cooldown=.16;if(!p.action)p.animate('keeper-dive',.65,{...context,high:b.y>1.7});return false;}
-  if(b.shot){match.onTarget();match.stats[p.team].saves++;p.saves++;}
+  if(b.shot){match.onTarget();match.stats[p.team].saves++;p.saves++;match.notify('SAVE',playerLabel(p),1.6);}
   const pressure=match.active(1-p.team).some(o=>distance(o,b)<3);
   const catchable=(close||speed<29||(direct&&speed<32+config.keeper*6))&&b.y<2.8&&(!cross||!pressure)&&gap<1.9;
   if(catchable){

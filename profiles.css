@@ -26,6 +26,7 @@ button.team-bench:hover{text-decoration:underline}
 .profile-card p{font-size:12px;line-height:1.6;color:#c8d5c4;margin:13px 0}
 .profile-traits{display:flex;gap:5px;flex-wrap:wrap}
 .profile-traits span{padding:4px 6px;border:1px solid #b4b79730;border-radius:4px;font-size:9px;color:#ddd2af}
+.rating-grid{display:grid;grid-template-columns:repeat(7,minmax(38px,1fr));gap:5px;margin-top:14px}.rating-grid span{display:grid;gap:3px;text-align:center;background:#0a292e99;border:1px solid #c5d8c526;border-radius:4px;padding:6px 3px}.rating-grid b{font-size:12px;color:var(--gold)}.rating-grid small{font-size:7px!important;color:var(--muted)!important;margin:0!important;letter-spacing:.4px}
 @media(max-height:600px) and (orientation:landscape){
  .intro-top{top:76px}.intro-top .eyebrow{font-size:8px}.intro-top h2{font-size:16px;margin-top:6px}
  .home-title .creator-credit{margin-top:7px}
