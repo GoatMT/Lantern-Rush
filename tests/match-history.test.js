@@ -35,3 +35,10 @@ test('actual match engine captures starting formation before substitutions and t
  const teams=[0,1].map(t=>({name:'Team '+t,lineup:Array.from({length:7},(_,i)=>({id:t+'-'+i,name:'Player '+i,jersey:i+1,overall:80})),bench:[]}));
  const m=new Match(teams,{duration:3,season:2026,difficulty:'normal'});assert.equal(m.startingLineups[0].length,7);const shooter=m.players[5];m.ball.lastTouch=shooter;m.ball.shot={team:0,player:shooter,counted:false,setPiece:'PENALTY'};m.goal(0);assert.equal(m.stats[0].penaltiesScored,1);assert.equal(shooter.onTarget,1);assert.equal(m.goalEvents[0].setPiece,'PENALTY');assert.equal(captureMatch(m).startingLineups[0][5].jersey,6);
 });
+
+test('difficulty filters combine with mode, alias Medium to Normal, and exclude unknown/local difficulty',()=>{
+ const rows=[report('1',[2,0],{mode:'season',opponent:{type:'cpu',difficulty:'easy'}}),report('2',[1,0],{mode:'season',opponent:{type:'cpu',difficulty:'normal'}}),report('3',[3,0],{mode:'season',opponent:{type:'cpu',difficulty:'medium'}}),report('4',[4,0],{mode:'quick',opponent:{type:'cpu',difficulty:'hard'}}),report('5',[0,1],{mode:'season',opponent:{type:'cpu',difficulty:'insane'}}),report('6',[9,0],{schemaVersion:1}),report('7',[8,0],{opponent:{type:'local',difficulty:'hard'}})];
+ assert.equal(filterMatches(rows,{difficulty:'all'}).length,7);
+ const medium=filterMatches(rows,{mode:'season',difficulty:'normal'});assert.deepEqual(medium.map(r=>r.id),['3','2']);assert.equal(summarize(medium).wins,2);assert.equal(recordsFor(medium).goalsGame.value,3);
+ assert.deepEqual(filterMatches(rows,{difficulty:'medium'}).map(r=>r.id),['3','2']);assert.deepEqual(filterMatches(rows,{difficulty:'hard'}).map(r=>r.id),['4']);assert.equal(filterMatches(rows,{mode:'season',difficulty:'hard'}).length,0);assert.equal(filterMatches(rows,{difficulty:'insane'}).length,1);
+});

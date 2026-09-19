@@ -1,6 +1,9 @@
 import {playerOfMatch} from './match/stats.js';
 
 export const MODE_LABELS={all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.'};
+export const DIFFICULTY_LABELS=Object.freeze({all:'All difficulties',easy:'Easy',normal:'Medium (Normal)',hard:'Hard',insane:'Insane'});
+export const normalizeDifficulty=value=>String(value||'').trim().toLowerCase()==='medium'?'normal':String(value||'').trim().toLowerCase();
+export const matchesDifficulty=(record,difficulty)=>!difficulty||difficulty==='all'||(record.opponent?.type!=='local'&&normalizeDifficulty(record.opponent?.difficulty)===normalizeDifficulty(difficulty));
 export const modeFor=m=>m.dream?'dream':m.rivalry?'rivalry':m.tournament?'tournament':m.seasonMatch?'season':'quick';
 const n=v=>Number.isFinite(Number(v))?Number(v):0;
 const copy=v=>JSON.parse(JSON.stringify(v));
@@ -68,6 +71,6 @@ export function recordsFor(matches){
 export function filterMatches(records,f={}){
   const q=String(f.search||'').toLowerCase();const result=records.filter(r=>{
     const m=matchMetrics(r),outcome=m.wins?'wins':m.ties?'draws':'losses';
-    return (!q||[...r.teams||[],r.accountName,r.modeLabel,r.competition?.name,...(r.goals||[]).map(g=>g.name)].join(' ').toLowerCase().includes(q))&&(!f.mode||f.mode==='all'||r.mode===f.mode)&&(!f.result||f.result==='all'||outcome===f.result)&&(!f.team||r.teams?.[0]===f.team)&&(!f.opponent||r.teams?.[1]===f.opponent)&&(!f.season||r.season===f.season)&&(!f.difficulty||r.opponent?.difficulty===f.difficulty)&&(!f.from||r.date>=new Date(f.from+'T00:00:00').getTime())&&(!f.to||r.date<=new Date(f.to+'T23:59:59.999').getTime());});
+    return (!q||[...r.teams||[],r.accountName,r.modeLabel,r.competition?.name,...(r.goals||[]).map(g=>g.name)].join(' ').toLowerCase().includes(q))&&(!f.mode||f.mode==='all'||r.mode===f.mode)&&(!f.result||f.result==='all'||outcome===f.result)&&(!f.team||r.teams?.[0]===f.team)&&(!f.opponent||r.teams?.[1]===f.opponent)&&(!f.season||r.season===f.season)&&matchesDifficulty(r,f.difficulty)&&(!f.from||r.date>=new Date(f.from+'T00:00:00').getTime())&&(!f.to||r.date<=new Date(f.to+'T23:59:59.999').getTime());});
   return result.sort((a,b)=>f.sort==='oldest'?a.date-b.date:f.sort==='goals'?(b.score[0]+b.score[1])-(a.score[0]+a.score[1])||b.date-a.date:f.sort==='margin'?(b.score[0]-b.score[1])-(a.score[0]-a.score[1])||b.date-a.date:b.date-a.date);
 }
