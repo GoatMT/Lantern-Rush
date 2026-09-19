@@ -1,39 +1,31 @@
+import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,ADMIN_PASSWORD,validateCredentials} from './account-store.js';
+export {ADMIN_PASSWORD,validateCredentials} from './account-store.js';
 import {FIREBASE_CONFIG,FIREBASE_SDK_VERSION} from './firebase-config.js';
 
 const PROFILE_COLLECTION='gameProfiles';
-const ACCOUNT_EMAIL_DOMAIN='accounts.lsl-rivals.app';
-export const ADMIN_EMAIL='admin@accounts.lsl-rivals.app';
-export const ADMIN_PASSWORD='BlueM123';
+
 const MODE_KEYS=Object.freeze(['all','quick','rivalry','tournament','season','dream']);
 export const MODE_LABELS=Object.freeze({all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.'});
 const STAT_KEYS=Object.freeze(['matches','goals','shots','saves','wins','losses','ties','shotsOnTarget','passes','completedPasses','fouls','corners','cleanSheets']);
-const SESSION_KEY='lsl-rush-cloud-session-v1';
 
 export const emptyStats=()=>Object.fromEntries(STAT_KEYS.map(key=>[key,0]));
 export const emptyModeStats=()=>Object.fromEntries(MODE_KEYS.map(key=>[key,emptyStats()]));
 export const normalizeUsername=value=>String(value??'').trim().toLowerCase();
-export function validateCredentials(username,pin){
-  const name=String(username??'').trim(),code=String(pin??'').trim();
-  if(!/^[A-Za-z0-9_]{2,12}$/.test(name))throw new Error('Username must be 2–12 letters, numbers or underscores.');
-  if(!/^\d{6}$/.test(code))throw new Error('Passcode must be exactly 6 digits.');
-  return {username:name,pin:code,usernameKey:normalizeUsername(name)};
-}
 const clone=value=>JSON.parse(JSON.stringify(value));
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
 const uid=()=>globalThis.crypto?.randomUUID?.()||`match-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
 const modeFor=match=>match?.dream?'dream':match?.rivalry?'rivalry':match?.tournament?'tournament':match?.seasonMatch?'season':'quick';
 const modeName=mode=>MODE_LABELS[mode]||MODE_LABELS.quick;
-function fakeEmail(usernameKey){return `${usernameKey}@${ACCOUNT_EMAIL_DOMAIN}`;}
 function profileTemplate(username,authUid){
   const usernameKey=normalizeUsername(username);
-  return {uid:authUid,username,usernameKey,loginEmail:fakeEmail(usernameKey),avatarDataUrl:'',createdAtMs:Date.now(),updatedAtMs:Date.now(),stats:emptyStats(),modes:emptyModeStats(),records:{fastestOpeningGoal:null,fastestHattrick:null,fastestFiveGoalComeback:null,mostGoalsGame:null,biggestWin:null,longestWinningStreak:0},trophies:[],currentStreak:0,history:[]};
+  return {uid:authUid,username,usernameKey,avatarDataUrl:'',createdAtMs:Date.now(),updatedAtMs:Date.now(),stats:emptyStats(),modes:emptyModeStats(),records:{fastestOpeningGoal:null,fastestHattrick:null,fastestFiveGoalComeback:null,mostGoalsGame:null,biggestWin:null,longestWinningStreak:0},trophies:[],currentStreak:0,history:[]};
 }
 function sanitizeProfile(value,docId=''){
   const raw=value||{},modes=emptyModeStats();
   for(const mode of MODE_KEYS)Object.assign(modes[mode],raw.modes?.[mode]||{});
   const stats={...emptyStats(),...(raw.stats||{})};
   const username=raw.username||'LSL Player',usernameKey=raw.usernameKey||normalizeUsername(username);
-  return {uid:raw.uid||docId,username,usernameKey,loginEmail:raw.loginEmail||fakeEmail(usernameKey),avatarDataUrl:raw.avatarDataUrl||'',createdAtMs:finite(raw.createdAtMs),updatedAtMs:finite(raw.updatedAtMs),stats,modes,records:{fastestOpeningGoal:null,fastestHattrick:null,fastestFiveGoalComeback:null,mostGoalsGame:null,biggestWin:null,longestWinningStreak:0,...(raw.records||{})},trophies:Array.isArray(raw.trophies)?raw.trophies.slice(0,20):[],currentStreak:finite(raw.currentStreak),history:Array.isArray(raw.history)?raw.history.slice(0,50):[]};
+  return {uid:raw.uid||docId,username,usernameKey,avatarDataUrl:raw.avatarDataUrl||'',createdAtMs:finite(raw.createdAtMs),updatedAtMs:finite(raw.updatedAtMs),stats,modes,records:{fastestOpeningGoal:null,fastestHattrick:null,fastestFiveGoalComeback:null,mostGoalsGame:null,biggestWin:null,longestWinningStreak:0,...(raw.records||{})},trophies:Array.isArray(raw.trophies)?raw.trophies.slice(0,20):[],currentStreak:finite(raw.currentStreak),history:Array.isArray(raw.history)?raw.history.slice(0,50):[]};
 }
 function addStats(target,source){for(const key of STAT_KEYS)target[key]=(target[key]||0)+(finite(source?.[key]));}
 function matchRecord(match){
@@ -66,31 +58,63 @@ async function avatarDataUrl(file){
   return canvas.toDataURL('image/webp',.84);
 }
 
-export class CloudAccount{
-  constructor({onChange=()=>{}}={}){this.onChange=onChange;this.user=null;this.profile=null;this.adminClaim=false;this.available=false;this.error=null;this.ready=this.init();}
-  async init(){
-    try{
-      const [app,auth,firestore]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`)]);
-      const existing=app.getApps().find(item=>item.name==='lantern-rush')||app.initializeApp(FIREBASE_CONFIG,'lantern-rush');
-      this.modules={app,auth,firestore};this.auth=auth.getAuth(existing);this.db=firestore.getFirestore(existing);this.available=true;
-      await new Promise(resolve=>{let first=true;this.unsubscribe=auth.onAuthStateChanged(this.auth,async user=>{this.user=user||null;this.adminClaim=false;if(user?.email===ADMIN_EMAIL){try{const token=await user.getIdTokenResult(true);this.adminClaim=token.claims.admin===true;}catch{this.adminClaim=false;}}this.profile=user?await this.loadProfile(user.uid):null;if(first){first=false;resolve();}this.onChange(this);});});
-    }catch(error){this.error=error;this.available=false;this.onChange(this);}
-    return this;
+export class CloudAccount {
+  constructor({onChange=()=>{}}={}) {
+    this.onChange=onChange;this.user=null;this.profile=null;this.adminUnlocked=false;this.available=false;this.error=null;
+    this.ready=this.init();
   }
+  async init() {
+    try {
+      const [app,firestore]=await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`)
+      ]);
+      const instance=app.getApps().find(item=>item.name==='lantern-rush')||app.initializeApp(FIREBASE_CONFIG,'lantern-rush');
+      this.modules={app,firestore};this.db=firestore.getFirestore(instance);
+      this.store=new FirestoreAccountStore(firestore,this.db);this.available=true;
+      try { const restored=await this.store.restore(); if(restored)this.adopt(restored); }
+      catch(error){this.error=error;}
+      globalThis.addEventListener?.('storage',event=>{
+        if(event.key!==ACCOUNT_SESSION_KEY)return;
+        this.store.restore().then(profile=>{if(profile)this.adopt(profile);else{this.user=null;this.profile=null;this.onChange(this);}}).catch(error=>{this.error=error;});
+      });
+    } catch(error){this.error=error;this.available=false;}
+    this.onChange(this);return this;
+  }
+  async requireStore(){await this.ready;if(!this.available)throw new Error('Cannot connect to Firebase. Check your connection and try again.');return this.store;}
+  adopt(raw){this.profile=sanitizeProfile(raw,raw.uid);this.user={uid:this.profile.uid,username:this.profile.username};this.onChange(this);return this.profile;}
   isSignedIn(){return Boolean(this.user&&this.profile);}
-  async loadProfile(userUid){const snap=await this.modules.firestore.getDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,userUid));return snap.exists()?sanitizeProfile(snap.data(),snap.id):null;}
-  async create(username,pin){const credentials=validateCredentials(username,pin);if(!this.available)throw new Error('Firebase is not available. Open the published HTTPS game or check the Firebase configuration.');const {auth,firestore}=this.modules;const credential=await auth.createUserWithEmailAndPassword(this.auth,fakeEmail(credentials.usernameKey),credentials.pin);const profile=profileTemplate(credentials.username,credential.user.uid);await firestore.setDoc(firestore.doc(this.db,PROFILE_COLLECTION,credential.user.uid),profile);this.user=credential.user;this.profile=sanitizeProfile(profile,credential.user.uid);this.onChange(this);return this.profile;}
-  async login(username,pin){const credentials=validateCredentials(username,pin);if(!this.available)throw new Error('Firebase is not available. Open the published HTTPS game or check the Firebase configuration.');let credential;try{credential=await this.modules.auth.signInWithEmailAndPassword(this.auth,fakeEmail(credentials.usernameKey),credentials.pin);}catch(error){const profiles=await this.getProfiles(),renamed=profiles.find(item=>item.usernameKey===credentials.usernameKey&&item.loginEmail);if(!renamed)throw error;credential=await this.modules.auth.signInWithEmailAndPassword(this.auth,renamed.loginEmail,credentials.pin);}this.user=credential.user;this.profile=await this.loadProfile(credential.user.uid);if(!this.profile){const profile=profileTemplate(credentials.username,credential.user.uid);await this.modules.firestore.setDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,credential.user.uid),profile);this.profile=sanitizeProfile(profile,credential.user.uid);}this.onChange(this);return this.profile;}
-  async logout(){if(this.available)await this.modules.auth.signOut(this.auth);this.user=null;this.profile=null;this.onChange(this);}
-  async updateAvatar(file){if(!this.isSignedIn())throw new Error('Create an account before adding a profile picture.');const data=typeof file==='string'?file:await avatarDataUrl(file);if(!data)throw new Error('Choose an image first.');await this.modules.firestore.setDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,this.user.uid),{avatarDataUrl:data,updatedAtMs:Date.now()},{merge:true});this.profile=await this.loadProfile(this.user.uid);this.onChange(this);return data;}
-  async recordMatch(match){await this.ready;if(!this.isSignedIn()||!match||match.cloudAccountRecorded)return null;match.cloudAccountRecorded=true;const record=matchRecord(match),ref=this.modules.firestore.doc(this.db,PROFILE_COLLECTION,this.user.uid),profile=clone(this.profile);applyRecord(profile,record);await this.modules.firestore.setDoc(ref,profile);this.profile=sanitizeProfile(profile,this.user.uid);this.onChange(this);return record;}
-  async getProfiles(){await this.ready;if(!this.available)return [];const snapshot=await this.modules.firestore.getDocs(this.modules.firestore.collection(this.db,PROFILE_COLLECTION));return snapshot.docs.map(item=>sanitizeProfile(item.data(),item.id));}
-  async getProfile(profileUid){await this.ready;if(!this.available||!profileUid)return null;const snapshot=await this.modules.firestore.getDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,profileUid));return snapshot.exists()?sanitizeProfile(snapshot.data(),snapshot.id):null;}
-  async adminLogin(password){await this.ready;if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');if(!this.available)throw new Error('Firebase is not available.');const {auth}=this.modules;let credential;try{credential=await auth.signInWithEmailAndPassword(this.auth,ADMIN_EMAIL,password);}catch(error){if(!['auth/user-not-found','auth/invalid-credential','auth/invalid-login-credentials'].includes(error.code))throw error;credential=await auth.createUserWithEmailAndPassword(this.auth,ADMIN_EMAIL,password);}this.user=credential.user;this.profile=null;const token=await credential.user.getIdTokenResult(true);this.adminClaim=token.claims.admin===true;this.onChange(this);return credential.user;}
-  isAdmin(){return this.user?.email===ADMIN_EMAIL&&this.adminClaim===true;}
-  async adminUpdateProfile(profileUid,patch){await this.ready;if(!this.isAdmin())throw new Error('Admin sign-in required.');const next={...patch,updatedAtMs:Date.now()};if(next.username){const credentials=validateCredentials(next.username,'000000');next.username=credentials.username;next.usernameKey=credentials.usernameKey;}await this.modules.firestore.setDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,profileUid),next,{merge:true});return this.getProfile(profileUid);}
-  async adminDeleteProfile(profileUid){await this.ready;if(!this.isAdmin())throw new Error('Admin sign-in required.');await this.modules.firestore.deleteDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,profileUid));}
-  async adminRequestPasswordReset(profileUid){await this.ready;if(!this.isAdmin())throw new Error('Admin sign-in required.');const profile=await this.getProfile(profileUid);if(!profile)throw new Error('Account not found.');await this.modules.firestore.setDoc(this.modules.firestore.doc(this.db,PROFILE_COLLECTION,profileUid),{passwordResetRequestedAtMs:Date.now(),updatedAtMs:Date.now()},{merge:true});return profile;}
+  async loadProfile(id){const raw=await this.store.profile(id);return raw?sanitizeProfile(raw,id):null;}
+  async create(username,pin){const store=await this.requireStore();return this.adopt(await store.create(username,pin,profileTemplate));}
+  async login(username,pin){const store=await this.requireStore();return this.adopt(await store.login(username,pin));}
+  async logout(){this.store?.clearSession();this.user=null;this.profile=null;this.adminUnlocked=false;this.onChange(this);}
+  async requireSession(){const store=await this.requireStore(),raw=await store.restore();if(!raw){await this.logout();throw new Error('Please sign in again. Your account may have been reset or removed.');}return this.adopt(raw);}
+  async updateAvatar(file){const profile=await this.requireSession(),data=typeof file==='string'?file:await avatarDataUrl(file);if(!data)throw new Error('Choose an image first.');if(data.length>400000)throw new Error('That image is too detailed. Please choose a simpler image.');await this.modules.firestore.updateDoc(this.store.profileRef(profile.uid),{avatarDataUrl:data,updatedAtMs:Date.now()});return this.adopt(await this.store.profile(profile.uid)).avatarDataUrl;}
+  async recordMatch(match){
+    await this.ready;if(!this.isSignedIn()||!match||match.cloudAccountRecorded||match.cloudAccountRecording)return null;
+    match.cloudAccountRecording=true;
+    try {
+      const account=await this.requireSession(),record=match.cloudAccountRecord||=matchRecord(match);
+      await this.modules.firestore.runTransaction(this.db,async tx=>{
+        const ref=this.store.profileRef(account.uid),snapshot=await tx.get(ref);
+        if(!snapshot.exists())throw new Error('Account not found.');
+        const profile=sanitizeProfile(snapshot.data(),account.uid);
+        if(profile.history.some(item=>item.id===record.id))return;
+        applyRecord(profile,record);tx.update(ref,profile);
+      });
+      match.cloudAccountRecorded=true;this.adopt(await this.store.profile(account.uid));return record;
+    } finally {match.cloudAccountRecording=false;}
+  }
+  async getProfiles(){await this.requireStore();const snapshot=await this.modules.firestore.getDocs(this.modules.firestore.collection(this.db,PROFILE_COLLECTION));return snapshot.docs.map(item=>sanitizeProfile(item.data(),item.id));}
+  async getProfile(id){await this.requireStore();if(!id)return null;return this.loadProfile(id);}
+  async adminLogin(password){if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');await this.requireStore();this.adminUnlocked=true;return true;}
+  isAdmin(){return this.adminUnlocked;}
+  adminLogout(){this.adminUnlocked=false;}
+  async requireAdmin(){await this.requireStore();if(!this.isAdmin())throw new Error('Unlock the admin page first.');}
+  async adminUpdateProfile(id,patch){await this.requireAdmin();if(patch.username)await this.store.rename(id,patch.username);else await this.modules.firestore.updateDoc(this.store.profileRef(id),{...patch,updatedAtMs:Date.now()});return this.getProfile(id);}
+  async adminResetPasscode(id,pin){await this.requireAdmin();return this.store.resetPasscode(id,pin);}
+  async adminDeleteProfile(id){await this.requireAdmin();return this.store.remove(id);}
+  async adminMergeProfiles(source,target,combine){await this.requireAdmin();return this.store.merge(source,target,combine);}
 }
 
 export {MODE_KEYS,modeFor};

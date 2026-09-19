@@ -70,8 +70,8 @@ export class Menus {
   accountGate(action){this.pendingAccountAction=action||null;this.accountMode('create');this.accountFeedback('Hey! You must create an account to play. Sign in if you already have one.');$('account-dialog').showModal();}
   async submitAccount(){
     const username=$('account-username').value,pin=$('account-passcode').value,submit=$('account-submit');submit.disabled=true;this.accountFeedback('Connecting to Firebase…');
-    try{if(this.accountModeValue==='login')await this.app.cloudAccount.login(username,pin);else await this.app.cloudAccount.create(username,pin);this.accountFeedback('Account ready. Welcome to matchday.');$('account-dialog').close();this.renderSettings();if(this.pendingAccountAction){const action=this.pendingAccountAction;this.pendingAccountAction=null;action();}}
-    catch(error){this.accountFeedback(error?.code==='auth/invalid-credential'?'Username or passcode is incorrect.':error?.code==='auth/email-already-in-use'?'That username is already taken. Choose SIGN IN instead.':error.message||'Account could not be saved.');}
+    try{if(this.accountModeValue==='login')await this.app.cloudAccount.login(username,pin);else await this.app.cloudAccount.create(username,pin);$('account-passcode').value='';this.accountFeedback('Account ready. Welcome to matchday.');$('account-dialog').close();this.renderSettings();if(this.pendingAccountAction){const action=this.pendingAccountAction;this.pendingAccountAction=null;action();}}
+    catch(error){this.accountFeedback(error?.code==='permission-denied'?'Account setup needs the updated Firestore rules. See ACCOUNT-RULES.md.':error.message||'Account could not be saved.');}
     finally{submit.disabled=false;}
   }
   show(screen){

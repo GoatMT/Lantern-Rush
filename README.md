@@ -33,7 +33,7 @@ Run `npm run sync-mode-pages` after changing the shared `index.html` shell to re
 4. Under **Build and deployment**, choose **Deploy from a branch**, then **main** and **/(root)**. Save.
 5. When deployment finishes, use the URL GitHub displays, usually **https://YOUR-USERNAME.github.io/YOUR-REPOSITORY/**.
 
-The gameplay engine uses relative asset paths and includes its pinned Three.js dependency locally. Account, charts, profile-picture sync and the locked admin console use the supplied Firebase project from `src/firebase-config.js`; Firebase Authentication and Firestore are only loaded when those account features initialize. A project Pages URL with a repository-name prefix works without changing asset paths. There is no gameplay backend, audio or permanent game server. Admin profile mutations require the server-issued Firestore `admin` custom claim described in `ACCOUNT-RULES.md`.
+The gameplay engine uses relative asset paths and includes its pinned Three.js dependency locally. Account, charts, profile-picture sync and the locked admin console use the supplied Firebase project from `src/firebase-config.js`; Only Firebase App and Firestore load for accounts; no email or Firebase Authentication provider is required. A project Pages URL with a repository-name prefix works without changing asset paths. There is no gameplay backend, audio or permanent game server. The temporary username/passcode system and browser admin lock match the other LSL sites. Deploy the narrowly scoped Firestore rules in `ACCOUNT-RULES.md`. This client-side model is intended to be replaced with verified authentication later.
 
 To update: replace the changed files, commit/push to the selected branch, and let Pages redeploy. Reload an already-open game to receive the update.
 

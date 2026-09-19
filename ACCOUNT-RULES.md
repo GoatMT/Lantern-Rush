@@ -1,34 +1,60 @@
-# Lantern Rush account rules
+# Lantern Rush accounts — temporary username/passcode system
 
-Lantern Rush uses the lsl-rivals Firebase project supplied for this game.
+This version uses Firestore directly, like LSL Pulse and Melation Sound. No email,
+email verification, Firebase Authentication provider or admin custom claim is needed.
 
-## Player-facing rules
+## Player rules
 
-- A username is **2–12 characters**.
-- Usernames may contain letters, numbers and underscores.
-- Usernames are case-insensitive for sign-in, so PlayerOne and playerone refer to the same login.
-- A passcode is **exactly six digits**.
-- Firebase Authentication stores the passcode; the game never writes the passcode into Firestore.
-- A profile picture may be any image size. The browser center-crops it to a 512 × 512 WebP before saving the profile copy.
-- Match history stores the selected season, mode, teams, score, goals and full match statistics.
-- Public charts expose the username, optimized profile picture, aggregate game totals and record holders. They never expose the passcode.
-- Signing out removes the local Firebase session. It does not delete the account or its history.
+- Username: 2–12 letters, numbers or underscores; sign-in is case-insensitive.
+- Passcode: exactly six digits. The raw passcode is never saved in Firestore or local storage.
+- Passcodes use a per-account random salt and PBKDF2-SHA-256 (120,000 iterations).
+- Usernames are reserved atomically to prevent two normal registrations taking the same name.
+- Sign-in persists on the device. Signing out clears the session, not match history.
+- Renaming keeps the stable account ID, stats, photo and passcode.
+- An admin passcode reset invalidates existing browser sessions on their next account check.
+- Existing profiles from the former Auth system keep their data. Use Admin → Reset Passcode
+  once to give an old account a six-digit code for this system. Old Auth credentials are not read or deleted.
+- Profile photos are resized to 512 × 512; photos exceeding the stored size limit are rejected clearly.
 
-## Firebase deployment
+## Publish the Firestore rules
 
-The rules are in firestore.rules. Deploy them from the LSL Game folder after selecting the lsl-rivals project:
+The new rules must be published once for the new collections. This is a Firestore
+setup step, not an Email/Password Authentication setup.
 
-    firebase use lsl-rivals
-    firebase deploy --only firestore:rules
+In Firebase Console → **lsl-rivals → Firestore Database → Rules**, replace the rules
+with the contents of `firestore.rules`, then click **Publish**. If the database does
+not exist yet, create the default Firestore database first.
 
-The Firebase Console must also have **Authentication → Sign-in method → Email/Password** enabled. Firebase Auth uses an internal address derived from the normalized username; players only see and enter their username and six-digit passcode.
+Alternatively, with Firebase CLI installed and signed in:
 
-Add the published GitHub Pages origin under **Authentication → Settings → Authorized domains**. Keep localhost enabled for local development.
+```sh
+firebase deploy --project lsl-rivals --only firestore:rules
+```
 
-The Firestore rules allow public reads of gameProfiles for charts and public profiles. Only the matching authenticated UID can create or update its own profile. Username, username key and UID cannot be changed after creation. Profile deletion and cross-account edits are reserved for a Firebase Authentication custom claim named `admin`; the public admin page never uses its visible password as Firestore authorization.
+Push changed game files to GitHub Pages and refresh the browser.
 
-## Admin console
+## Admin
 
-Open `admin.html` to use the locked account console. The browser lock uses **BlueM123** as the requested operator password, while Firestore still requires the safer server-issued `admin` custom claim. A Firebase Admin SDK or Cloud Function must set that claim on `admin@accounts.lsl-rivals.app` before rename, merge, delete or reset-request actions can write. This keeps a static GitHub Pages build from shipping a credential that can directly rewrite every profile.
+Open `admin.html` and use the existing admin password. Admin can rename accounts,
+set new six-digit passcodes, delete accounts, and atomically merge one profile into
+another. A merge keeps the destination sign-in and removes the source login.
+The admin page locks again when reloaded. Player and admin sign-ins are independent.
 
-The console can list profiles, reset account names, merge saved profile history and totals, delete profile data, and flag a passcode reset request. Directly replacing another user's Firebase Authentication password requires the trusted Admin SDK; the static client records the request rather than pretending it can perform that privileged operation.
+## Scope and future replacement
+
+On 2026-09-19 the owner explicitly selected the simple client-side account model of
+the reference sites, accepting that PIN checks and the admin gate can be bypassed.
+The rules validate shapes, not who is editing. Public profiles, stats and individual
+hashed-PIN documents can be accessed through Firestore; direct API clients can
+modify the three account collections. This is not verified authentication, private
+storage, or a cheat-proof leaderboard.
+
+`src/account-store.js` owns identity, hashing, username reservations, sessions and
+admin operations. `src/cloud-account.js` is the stable facade used by menus, the
+match engine and charts. A future verified provider can replace the adapter while
+retaining stable IDs and `gameProfiles` data. Public profile objects do not contain
+PIN hashes or raw passcodes.
+
+Collections: `gameProfiles` (public profile/statistics), `gameUsernames` (unique-name
+index), `gameLogins` (salted hash and session revision). Other paths remain denied.
+No data or accounts are shared with the separate LSL Website/Melation Firebase projects.

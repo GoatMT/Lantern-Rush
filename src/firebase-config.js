@@ -1,5 +1,5 @@
 export const FIREBASE_CONFIG = Object.freeze({
-  apiKey: 'AIzaSyCGf2f2w4udv2jBw82Yt6J-z1JOlr7nJBjM',
+  apiKey: 'AIzaSyCG2f2w4udv2jBw82Yt6J-z1JOlr7nJBjM',
   authDomain: 'lsl-rivals.firebaseapp.com',
   projectId: 'lsl-rivals',
   storageBucket: 'lsl-rivals.firebasestorage.app',

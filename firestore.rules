@@ -1,45 +1,56 @@
 rules_version = '2';
-
+// Temporary client-side username/PIN model explicitly selected by the owner.
+// These rules validate data shapes, NOT identity. Direct API clients can bypass
+// browser PIN checks and the admin lock. Only these three collections are opened.
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+    function validProfile(uid) {
+      let p = request.resource.data;
+      return p.keys().hasAll(['uid','username','usernameKey','avatarDataUrl',
+          'createdAtMs','updatedAtMs','stats','modes','records','trophies','currentStreak','history'])
+        && p.keys().hasOnly(['uid','username','usernameKey','avatarDataUrl',
+          'createdAtMs','updatedAtMs','stats','modes','records','trophies','currentStreak','history',
+          'loginEmail','passwordResetRequestedAtMs'])
+        && p.uid == uid
+        && p.username is string && p.username.matches('^[A-Za-z0-9_]{2,12}$')
+        && p.usernameKey == p.username.lower()
+        && p.avatarDataUrl is string && p.avatarDataUrl.size() <= 400000
+        && p.createdAtMs is number && p.updatedAtMs is number
+        && p.stats is map && p.modes is map && p.records is map
+        && p.trophies is list && p.trophies.size() <= 20
+        && p.history is list && p.history.size() <= 50
+        && p.currentStreak is number && p.currentStreak >= 0;
     }
-
     match /gameProfiles/{uid} {
-      // Leaderboards and public profile pages can read published game totals.
       allow read: if true;
-
-      // Profile maintenance is restricted to a Firebase Admin SDK-issued
-      // custom claim. A browser-visible password is never trusted by rules.
-      allow create, update, delete: if isAdmin();
-
-      // Firebase Authentication, not a browser-only PIN check, owns identity.
-      allow create: if request.auth != null
-        && request.auth.uid == uid
-        && request.resource.data.uid == uid
-        && request.resource.data.username is string
-        && request.resource.data.username.size() >= 2
-        && request.resource.data.username.size() <= 12
-        && request.resource.data.username.matches('^[A-Za-z0-9_]+$')
-        && request.resource.data.usernameKey is string
-        && request.resource.data.stats is map
-        && request.resource.data.modes is map
-        && request.resource.data.records is map
-        && request.resource.data.trophies is list
-        && request.resource.data.history is list;
-
-      // A signed-in account may update only its own profile and game totals.
-      allow update: if request.auth != null
-        && request.auth.uid == uid
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.username == resource.data.username
-        && request.resource.data.usernameKey == resource.data.usernameKey
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'avatarDataUrl', 'updatedAtMs', 'stats', 'modes', 'records', 'trophies',
-          'currentStreak', 'history'
-        ]);
-      allow delete: if false;
+      allow create: if validProfile(uid);
+      allow update: if validProfile(uid)
+        && request.resource.data.createdAtMs == resource.data.createdAtMs;
+      allow delete: if true;
+    }
+    match /gameUsernames/{name} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if name.matches('^[a-z0-9_]{2,12}$')
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid is string
+        && getAfter(/databases/$(database)/documents/gameProfiles/$(request.resource.data.uid)).data.usernameKey == name;
+      allow delete: if true;
+    }
+    match /gameLogins/{uid} {
+      // Credential documents are excluded from public profile and chart queries.
+      // Individual lookups remain public for the agreed browser PIN comparison.
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if request.resource.data.keys().hasAll(['pinHash','salt','revision','algorithm'])
+        && request.resource.data.keys().hasOnly(['pinHash','salt','revision','algorithm'])
+        && request.resource.data.pinHash is string
+        && request.resource.data.pinHash.matches('^[0-9a-f]{64}$')
+        && request.resource.data.salt is string && request.resource.data.salt.size() == 36
+        && request.resource.data.revision is string && request.resource.data.revision.size() == 36
+        && request.resource.data.algorithm == 'pbkdf2-sha256-v1'
+        && getAfter(/databases/$(database)/documents/gameProfiles/$(uid)).data.uid == uid;
+      allow delete: if true;
     }
   }
 }
