@@ -133,7 +133,7 @@ export class FirestoreAccountStore {
       const source=await tx.get(this.profileRef(sourceId)), target=await tx.get(this.profileRef(targetId));
       if (!source.exists() || !target.exists()) throw new Error('One of the accounts no longer exists.');
       const merged=combine(source.data(),target.data());
-      tx.set(this.profileRef(targetId),{...merged,uid:targetId,username:target.data().username,usernameKey:target.data().usernameKey,updatedAtMs:Date.now()});
+      tx.set(this.profileRef(targetId),{...merged,historySources:[...new Set([...(target.data().historySources||[]),...(source.data().historySources||[]),sourceId])],uid:targetId,username:target.data().username,usernameKey:target.data().usernameKey,updatedAtMs:Date.now()});
       tx.delete(this.nameRef(source.data().usernameKey)); tx.delete(this.loginRef(sourceId)); tx.delete(this.profileRef(sourceId));
     });
   }

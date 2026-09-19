@@ -58,3 +58,7 @@ PIN hashes or raw passcodes.
 Collections: `gameProfiles` (public profile/statistics), `gameUsernames` (unique-name
 index), `gameLogins` (salted hash and session revision). Other paths remain denied.
 No data or accounts are shared with the separate LSL Website/Melation Firebase projects.
+
+## Full match archive
+Publish the updated firestore.rules to enable gameProfiles/{uid}/matches/{matchId}. Completed matches are immutable individual documents with no 50-match history cap. Reports are queued in IndexedDB before uploading and retried at sign-in, when reconnecting, or with History > Retry Sync. Do not clear site data while reports are pending. Charts, Account and History calculate statistics from these reports and retained legacy entries. Older matches already discarded by the old 50-match limit cannot be reconstructed. Legacy details are shown as unrecorded. Account merges retain archive source IDs; new identities do not inherit deleted accounts' archives.
+

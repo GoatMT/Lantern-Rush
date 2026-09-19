@@ -77,10 +77,10 @@ test('match uploads retry after failure and count the same result only once',asy
   const f=fixture(),a=await f.store.create('Player','123456',profile);
   const service=Object.create(CloudAccount.prototype);
   Object.assign(service,{store:f.store,available:true,ready:Promise.resolve(),modules:{firestore:f.fs},db:{},onChange:()=>{}});service.adopt(a);
-  const match={stats:[{goals:2,shots:5},{goals:1}],teams:[{name:'Home'},{name:'CPU'}],settings:{season:2026},goalEvents:[]};
+  const match={phase:'fulltime',stats:[{goals:2,shots:5},{goals:1}],teams:[{name:'Home'},{name:'CPU'}],settings:{season:2026},goalEvents:[]};
   f.fail();await assert.rejects(service.recordMatch(match),/offline/);assert.equal(match.cloudAccountRecorded,undefined);
   await service.recordMatch(match);await service.recordMatch(match);
-  const saved=await f.store.profile(a.uid);assert.equal(saved.stats.matches,1);assert.equal(saved.stats.goals,2);assert.equal(saved.history.length,1);
+  const saved=await f.store.profile(a.uid);assert.equal(saved.stats.matches,1);assert.equal(saved.stats.goals,2);assert.equal(saved.history.length,0);assert.ok(f.docs.has('gameProfiles/'+a.uid+'/matches/'+match.cloudAccountRecord.id));
 });
 
 test('merge keeps the better records, unique history and target identity without joining winning streaks',()=>{

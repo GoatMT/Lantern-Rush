@@ -7,7 +7,7 @@ export class Player {
     this.formation=formation?.length===7?formation:FORMATION;
     Object.assign(this,{data:{...data},team,slot,role:this.formation[slot]?.role||FORMATION[slot].role,id:data.id,name:data.name,jersey:data.jersey,
       x:0,z:0,vx:0,vz:0,faceX:direction,faceZ:0,cooldown:0,skill:0,animation:'idle',animationTime:0,
-      sentOff:false,yellow:0,decision:0,holdTime:0,goals:0,assists:0,passes:0,tackles:0,saves:0,involvement:0,
+      sentOff:false,yellow:0,decision:0,holdTime:0,goals:0,assists:0,shots:0,onTarget:0,passes:0,tackles:0,saves:0,involvement:0,
       gait:0,turn:0,acceleration:0,lookX:direction,lookZ:0,locomotion:'idle',boosting:false,action:null,skillPlan:null,lastSkill:null,keeperState:{},lastReceive:-10,dribbleX:direction,dribbleZ:0});
     const preference=preferredFoot(data);this.dominantFoot=preference.foot;this.footSource=preference.source;this.touchFoot=preference.foot==='left'?'left':'right';
     this.attributes=playerAttributes(data);this.ratings=playerRatings(data);this.reset(direction);

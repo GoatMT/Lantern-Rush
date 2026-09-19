@@ -1,7 +1,7 @@
 rules_version = '2';
 // Temporary client-side username/PIN model explicitly selected by the owner.
 // These rules validate data shapes, NOT identity. Direct API clients can bypass
-// browser PIN checks and the admin lock. Only these three collections are opened.
+// browser PIN checks and the admin lock. Only the account collections and match archive are opened.
 service cloud.firestore {
   match /databases/{database}/documents {
     function validProfile(uid) {
@@ -10,7 +10,7 @@ service cloud.firestore {
           'createdAtMs','updatedAtMs','stats','modes','records','trophies','currentStreak','history'])
         && p.keys().hasOnly(['uid','username','usernameKey','avatarDataUrl',
           'createdAtMs','updatedAtMs','stats','modes','records','trophies','currentStreak','history',
-          'loginEmail','passwordResetRequestedAtMs'])
+          'loginEmail','passwordResetRequestedAtMs','historySources'])
         && p.uid == uid
         && p.username is string && p.username.matches('^[A-Za-z0-9_]{2,12}$')
         && p.usernameKey == p.username.lower()
@@ -27,6 +27,19 @@ service cloud.firestore {
       allow update: if validProfile(uid)
         && request.resource.data.createdAtMs == resource.data.createdAtMs;
       allow delete: if true;
+    }
+    match /gameProfiles/{uid}/matches/{matchId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['id','ownerId','schemaVersion','date','score','stats','teams','players','goals'])
+        && request.resource.data.id == matchId && request.resource.data.ownerId == uid
+        && request.resource.data.schemaVersion in [1,2] && request.resource.data.date is number
+        && request.resource.data.score is list && request.resource.data.score.size() == 2
+        && request.resource.data.teams is list && request.resource.data.teams.size() == 2
+        && request.resource.data.stats is map && request.resource.data.players is list
+        && request.resource.data.players.size() <= 100 && request.resource.data.goals is list
+        && exists(/databases/$(database)/documents/gameProfiles/$(uid));
+      // Immutable reports prevent accidental overwrite and duplicate result counting.
+      allow update, delete: if false;
     }
     match /gameUsernames/{name} {
       allow get: if true;

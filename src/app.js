@@ -16,7 +16,6 @@ import { SEASON_KITS,teamKit } from './kits.js';
 import { FormationBuilder } from './ui/formation.js';
 import { SeasonMenu } from './ui/season.js';
 import { DreamMenu } from './dream.js';
-import { Account } from './account.js';
 import { CloudAccount } from './cloud-account.js';
 
 async function badgeColor(team){
@@ -42,7 +41,7 @@ class App {
       if(!image.closest('.badge-wrap,.team-choice-mark,.tournament-inline-logo,.intro-card,.intro-versus,.rivalry-crests,.hud-team,.notice-score,.result-score,.potm'))return;
       image.dataset.logoFallback='1';image.src='assets/lsl-logo.png';
     },true);
-    this.settings=new Settings();this.account=new Account();this.cloudAccount=new CloudAccount({onChange:()=>this.menus?.renderAccount?.()});this.controls=new Controls(this.settings);this.data=new LeagueData();
+    this.settings=new Settings();this.cloudAccount=new CloudAccount({onChange:()=>this.menus?.renderAccount?.()});this.controls=new Controls(this.settings);this.data=new LeagueData();
     $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);this.renderer.stadium.setCrowdReactions(this.settings.value.crowdReactions);
     await Promise.all([this.data.load(progress=>{$('load-progress').value=15+progress*45;}),this.renderer.stadium.advertising.ready]);
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
@@ -93,7 +92,7 @@ class App {
   }
   handleEvent(type,data){
     if(!this.menus||!this.match)return;
-    if(type==='phase'){if(data==='fulltime'){this.account?.recordMatch(this.match);this.cloudAccount?.recordMatch(this.match).catch(()=>{});}this.menus.phase(data);}
+    if(type==='phase'){if(data==='fulltime'){this.cloudAccount?.recordMatch(this.match).catch(()=>{this.menus.notice({title:'HISTORY SYNC PENDING',subtitle:this.match.historySavedLocally?'Saved on this device. Open History to retry cloud sync.':'Could not save the report. Keep this page open and check device storage.',seconds:6});});}this.menus.phase(data);}
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
     if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
@@ -111,8 +110,6 @@ class App {
   }
   saveSelection(){this.settings.value.userTeam=this.selected.user.id;this.settings.value.cpuTeam=this.selected.cpu.id;this.settings.save();}
   async start(){
-    await this.cloudAccount?.ready;
-    if(!this.cloudAccount?.isSignedIn()){this.menus.accountGate(()=>this.start());return;}
     if(this.loadingMatch)return;this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);

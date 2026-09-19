@@ -1,3 +1,4 @@
+import {DEFAULT_LINEUPS} from './default-lineups.js';
 import { FORMATION } from './config.js';
 import { SEASON_KITS,teamKit } from './kits.js';
 const PLAYER_POSITION_OVERRIDES=Object.freeze({
@@ -10,9 +11,11 @@ function normalizePlayer(player){
   if(override)Object.assign(normalized,override);
   return normalized;
 }
-export function createLineup(roster){
+export function createLineup(roster,preferredIds=[]){
   const remaining=roster.map(normalizePlayer);
+  const preferred=FORMATION.map((slot,index)=>{const found=remaining.findIndex(p=>p.id===preferredIds[index]);return found>=0?remaining.splice(found,1)[0]:null;});
   const selectedSlots=FORMATION.map((slot,index)=>{
+    if(preferred[index])return preferred[index];
     const pattern=index===0?/goal|keeper/i:index<3?/defend/i:index<5?/midfield/i:/strik|forward|wing/i;
     const selected=remaining.findIndex(p=>pattern.test(p.position));
     return selected>=0?remaining.splice(selected,1)[0]:null;
@@ -40,7 +43,7 @@ export class LeagueData{
       if(!res.ok)throw Error('Roster unavailable: '+season.year);
       const payload=await res.json();
       this.teams[season.year]=payload.teams.filter(t=>t.roster?.length>=7).map(t=>{
-        const lineup=createLineup(t.roster);
+        const lineup=createLineup(t.roster,DEFAULT_LINEUPS[String(season.year)]?.[t.id]);
         const official=SEASON_KITS[season.year]?.[t.id];
         return {...t,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,season:season.year,lineup,bench:t.roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit:official?.primary||t.colors?.primary||null,uniform:official?teamKit(season.year,t.id):null};
       });
