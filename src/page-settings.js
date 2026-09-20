@@ -1,3 +1,4 @@
+import {durationButtons} from './match-options.js';
 import {Settings,DEFAULT_KEYS,CONTROL_NAMES,keyLabel} from './settings.js';
 let dialog,settings,rebinding;
 export async function openSettings(){
@@ -7,6 +8,7 @@ export async function openSettings(){
     if(!response.ok)throw new Error('Settings template unavailable');
     dialog=new DOMParser().parseFromString(await response.text(),'text/html').getElementById('settings-dialog');
     if(!dialog)throw new Error('Settings template missing');
+    dialog.querySelector('[data-match-durations]').innerHTML=durationButtons();
     dialog.classList.add('standalone-settings');document.body.append(dialog);
     dialog.querySelector('[data-settings-panel="account"]').innerHTML='<h3>Your account</h3><p>Manage your profile, photo and match history on the Account page.</p><a class="primary" href="./account.html">OPEN ACCOUNT ↗</a>';
     dialog.addEventListener('close',()=>{rebinding=null;});

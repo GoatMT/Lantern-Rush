@@ -67,7 +67,7 @@ Move and tap Skill for a contextual feint, step-over, ball roll, quick cut, drag
 
 For penalties and free kicks, movement changes the gold aiming guide. Shoot or Pass takes the restart. Throw-ins and goal kicks use the same buttons. Restarts are taken automatically after a short timeout if there is no input.
 
-Settings supports rebindable keys, Easy/Normal/Hard/Insane difficulty, 3/4/5/6-minute games and Low/Medium/High graphics. The Camera section has Low (closer), Medium (balanced), High (tactical), Broadcast (desktop default) and **Mobile Cam** (the starting view on touch devices when no camera preference is saved). Mobile Cam has closer, higher-angle framing, space above the touch controls, responsive tracking and controlled zoom for passes and airborne balls. Portrait mode adjusts the field of view while keeping movement axes consistent. Phone cameras cap the lens angle and compensate with distance to reduce stretched-looking players at the screen edges. Canvas proportions update on element/visual-viewport changes and before rendering, including after rotation or browser toolbar changes. Rotation cancels active touches without releasing a shot; the joystick has a small center dead zone. Performance scaling reacts sooner when phone frame rate drops. Existing saved camera choices are preserved. Camera changes apply immediately. Preferences and the last selected season/teams are saved locally when storage is available.
+Settings supports rebindable keys, Easy/Normal/Hard/Insane difficulty, 1/2/3/4/5/6-minute games and Low/Medium/High graphics. The Camera section has Low (closer), Medium (balanced), High (tactical), Broadcast (desktop default) and **Mobile Cam** (the starting view on touch devices when no camera preference is saved). Mobile Cam has closer, higher-angle framing, space above the touch controls, responsive tracking and controlled zoom for passes and airborne balls. Portrait mode adjusts the field of view while keeping movement axes consistent. Phone cameras cap the lens angle and compensate with distance to reduce stretched-looking players at the screen edges. Canvas proportions update on element/visual-viewport changes and before rendering, including after rotation or browser toolbar changes. Rotation cancels active touches without releasing a shot; the joystick has a small center dead zone. Performance scaling reacts sooner when phone frame rate drops. Existing saved camera choices are preserved. Camera changes apply immediately. Preferences and the last selected season/teams are saved locally when storage is available.
 
 ## Match rules and flow
 
@@ -241,11 +241,20 @@ Before any Quick Match, Rivalry Match or Tournament fixture, open `FORMATION / L
 
 ## LSL Dream F.C.
 
-dream-fc.html is the single-player Ultimate Team mode. It builds cards from the real 2024, 2025 and 2026 LSL season rosters and published OVR values, then stores the custom club, squad, packs, objectives and Ranked CPU progress in local browser storage. There is no multiplayer or backend dependency. Open the page through the same static server/GitHub Pages deployment as the other modes.
+dream-fc.html is the single-player Ultimate Team mode. It builds cards from the real 2024, 2025 and 2026 LSL season rosters and published OVR values, then stores the custom club, squad, packs, objectives and Ranked CPU progress in local browser storage. Dream F.C. matches remain single-player. Live H2H is a separate mode with its own backend deployment. Open the page through the same static server/GitHub Pages deployment as the other modes.
 
 ## Match presentation and account records
 
 All modes share the same player profile presentation: published LSL OVR, derived game ratings (SPD, SHO, PAS, DRI, DEF, STA and GK), season jersey numbers, captain armbands and captain-first set-piece defaults. Low-frequency minor injuries can queue a stoppage substitution. Goals use a random celebration and a short skippable replay overlay; nameplates show the player number when a player receives the ball. Conditions are clear, the rules intentionally have no advantage call and no added time, and Crowd reactions can be disabled in Graphics settings for lower-end devices.
 
 `account.html` stores trophies, fastest goal, most goals in a match, biggest win and longest winning streak in `lsl-account-v1` local storage. The storage shape is deliberately isolated so a future Firebase account service can replace persistence without changing match pages.
+
+
+## Live Head to Head
+
+`live-h2h.html` adds private, account-approved two-player rooms with invitations, independent team/formation selection, readiness, live room statuses, WebRTC match synchronization and a 25-second reconnection window. Completed results are replay-verified by Firebase Functions and saved to both accounts' History with the real opponent's name.
+
+**This online mode requires backend deployment and activation.** Follow [LIVE-H2H-SETUP.md](./LIVE-H2H-SETUP.md) for Firebase custom-token accounts, rules, TURN credentials, admin IDs and deployment. The frontend remains compatible with static GitHub Pages hosting. Existing CPU game modes remain available before H2H activation. The account form still uses a username and six-digit passcode, without email.
+
+All modes now share 1–6 minute match lengths with equal halves. Run `node --test tests/live-h2h.test.js tests/match.test.js tests/account-store.test.js tests/match-history.test.js` for focused checks. After changing physics or rosters, regenerate/deploy the verification engine with `node scripts/build-h2h-server.mjs` and release matching frontend files.
 

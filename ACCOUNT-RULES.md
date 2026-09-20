@@ -1,67 +1,21 @@
-# Lantern Rush accounts — temporary username/passcode system
+# Accounts and Firebase rules
 
-This version uses Firestore directly, like LSL Pulse and Melation Sound. No email,
-email verification, Firebase Authentication provider or admin custom claim is needed.
+Players use a case-insensitive 2–12 character username (letters, numbers, underscores) and exactly six digits. Profile IDs, photos and histories remain stable when accounts are renamed. PINs are not stored in public profiles or browser session records.
 
-## Player rules
+## Live H2H account upgrade
 
-- Username: 2–12 letters, numbers or underscores; sign-in is case-insensitive.
-- Passcode: exactly six digits. As requested by the owner, the passcode is stored as plain text in the separate gameLogins document, never in profiles or browser sessions.
-- Older hashed credentials convert after a successful sign-in or admin passcode reset. Publish the new rules before using this version. Existing hashes cannot be decrypted.
-- Usernames are reserved atomically to prevent two normal registrations taking the same name.
-- Sign-in persists on the device. Signing out clears the session, not match history.
-- Renaming keeps the stable account ID, stats, photo and passcode.
-- An admin passcode reset invalidates existing browser sessions on their next account check.
-- Existing profiles from the former Auth system keep their data. Use Admin → Reset Passcode
-  once to give an old account a six-digit code for this system. Old Auth credentials are not read or deleted.
-- Profile photos are resized to 512 × 512; photos exceeding the stored size limit are rejected clearly.
+Read [LIVE-H2H-SETUP.md](./LIVE-H2H-SETUP.md) before deploying this version's rules. It contains the coordinated functions/rules deployment and final activation step.
 
-## Publish the Firestore rules
+Until `runtime/live.enabled` is true, the site retains its existing browser-only account adapter. That legacy system does not provide verified identity and cannot authorize Live H2H. Live H2H is disabled in that state.
 
-The new rules must be published once for the new collections. This is a Firestore
-setup step, not an Email/Password Authentication setup.
+After activation, server functions verify the same username/passcode and mint Firebase custom-auth tokens. No email sign-in is added. The new rules deny all client access to `gameLogins`; PINs remain plain text server-side as the owner requested. Older hashed PINs convert after a successful sign-in. A passcode reset changes the credential revision and invalidates earlier tokens for protected reads/writes.
 
-In Firebase Console → **lsl-rivals → Firestore Database → Rules**, replace the rules
-with the contents of `firestore.rules`, then click **Publish**. If the database does
-not exist yet, create the default Firestore database first.
+Public profiles and completed match reports are readable. Only the owning verified user may upload their CPU match reports. H2H histories are written by the server after both participants confirm the input timeline and it passes deterministic engine verification. CPU match uploads retain client-generated statistics; they are not advertised as verified H2H results.
 
-Alternatively, with Firebase CLI installed and signed in:
+## Administration
 
-```sh
-firebase deploy --project lsl-rivals --only firestore:rules
-```
+Sign into a game account whose stable ID is configured in the function's `ADMIN_UIDS`, then unlock `admin.html` with the existing admin-page password. Only the server allowlist grants authority. Rename, passcode reset, removal and merging run through the callable backend after activation.
 
-Push changed game files to GitHub Pages and refresh the browser.
+Merging retains the destination's credentials and preserves attributed histories, including source account names in older reports. Resetting a PIN does not erase match history. Profile photos are resized to 512 × 512 and checked against the storage limit.
 
-## Admin
-
-Open `admin.html` and use the existing admin password. Admin can rename accounts,
-set new six-digit passcodes, delete accounts, and atomically merge one profile into
-another. A merge keeps the destination sign-in and removes the source login.
-The admin page locks again when reloaded. Player and admin sign-ins are independent.
-
-## Scope and future replacement
-
-On 2026-09-19 the owner explicitly selected the simple client-side account model of
-the reference sites, accepting that PIN checks and the admin gate can be bypassed.
-The rules validate shapes, not who is editing. Public profiles, stats and individual
-plain-text passcode documents can be accessed through Firestore; direct API clients can
-modify the three account collections. This is not verified authentication, private
-storage, or a cheat-proof leaderboard.
-
-`src/account-store.js` owns identity, credential migration, username reservations, sessions and
-admin operations. `src/cloud-account.js` is the stable facade used by menus, the
-match engine and charts. A future verified provider can replace the adapter while
-retaining stable IDs and `gameProfiles` data. Public profile objects do not contain
-PIN hashes or raw passcodes.
-
-Collections: `gameProfiles` (public profile/statistics), `gameUsernames` (unique-name
-index), `gameLogins` (plain-text passcode and session revision). Other paths remain denied.
-No data or accounts are shared with the separate LSL Website/Melation Firebase projects.
-
-## Full match archive
-Publish the updated firestore.rules to enable gameProfiles/{uid}/matches/{matchId}. Completed matches are immutable individual documents with no 50-match history cap. Reports are queued in IndexedDB before uploading and retried at sign-in, when reconnecting, or with History > Retry Sync. Do not clear site data while reports are pending. Charts, Account and History calculate statistics from these reports and retained legacy entries. Older matches already discarded by the old 50-match limit cannot be reconstructed. Legacy details are shown as unrecorded. Account merges retain archive source IDs; new identities do not inherit deleted accounts' archives.
-
-
-## Merge permission repair
-Publish the complete current rules, including the matches subcollection and historySources profile field. Merge archives retained legacy reports first, then atomically merges profiles and removes the source login. If archive permissions fail, both accounts remain intact and the error identifies the blocked stage. Original playing account names remain on historical reports. Updating local rules alone does not update Firebase.
+Do not deploy the new rules without the corresponding functions and activation steps. Do not restore public credential writes to fix a permission error. All setup instructions and troubleshooting are in the linked guide.

@@ -3,3 +3,9 @@ node_modules/
 Thumbs.db
 *.log
 
+
+functions/.env*
+!functions/.env.example
+functions/.runtimeconfig.json
+.npm-cache/
+

@@ -6,7 +6,7 @@ export function navigation(active){return `<site-nav active="${active==='index'?
 export const difficulties=(selected='all')=>Object.entries(DIFFICULTY_LABELS).map(([key,label])=>`<option value="${key}" ${key===selected?'selected':''}>${label}</option>`).join('');
 export const modes=(selected='all')=>Object.entries(MODE_LABELS).map(([k,v])=>`<option value="${k}" ${k===selected?'selected':''}>${v}</option>`).join('');
 export function summaryCards(s){return `<div class="hub-summary">${[['Matches','matches'],['Wins','wins'],['Draws','ties'],['Losses','losses'],['Goals for','goals'],['Goals against','goalsAgainst'],['Win %','winPercent']].map(([label,key])=>`<article><small>${label}</small><strong>${key==='winPercent'?(s[key]||0).toFixed(1)+'%':s[key]||0}</strong></article>`).join('')}</div>`;}
-export const opponentLabel=r=>r.opponent?.type==='local'?`Local player — ${r.opponent.accountName||r.opponent.name||'Name not recorded'}`:`CPU — ${r.opponent?.difficulty?(DIFFICULTY_LABELS[normalizeDifficulty(r.opponent.difficulty)]||r.opponent.difficulty):'difficulty not recorded'}`;
+export const opponentLabel=r=>['local','account'].includes(r.opponent?.type)?`${r.opponent.type==='account'?'Player':'Local player'} — ${r.opponent.accountName||r.opponent.name||'Name not recorded'}`:`CPU — ${r.opponent?.difficulty?(DIFFICULTY_LABELS[normalizeDifficulty(r.opponent.difficulty)]||r.opponent.difficulty):'difficulty not recorded'}`;
 function playerName(p){return `${esc(p.name)}${p.jersey!=null?' #'+esc(p.jersey):''}`;}
 function formation(f){if(!f?.length)return 'Not recorded';const counts={};for(const p of f)if(p.role!=='GK')counts[p.role]=(counts[p.role]||0)+1;return ['DEF','MID','FWD'].map(role=>counts[role]||0).join('–');}
 export function matchReport(r){

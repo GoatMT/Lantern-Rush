@@ -54,3 +54,6 @@
 @media(max-height:500px) and (orientation:landscape){#settings-dialog{max-height:96dvh;padding:14px 22px}#settings-dialog .dialog-head{margin-bottom:8px}#settings-dialog .dialog-head h2{font-size:24px;margin-top:4px}#settings-dialog .settings-tabs{margin-bottom:12px;padding-bottom:8px}#settings-dialog .dialog-footer{margin-top:12px;padding-top:10px}}
 @keyframes settings-panel-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){#settings-dialog *,#settings-dialog *::before{animation:none!important;transition:none!important}}
+
+#settings-dialog [data-settings-panel="game"] [data-match-durations]{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:600px){#settings-dialog [data-settings-panel="game"] [data-match-durations]{grid-template-columns:repeat(2,minmax(0,1fr))}}

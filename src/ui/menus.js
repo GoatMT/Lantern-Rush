@@ -1,3 +1,4 @@
+import {durationButtons} from '../match-options.js';
 import { escapeHTML as e,clockText } from '../config.js';
 import { DEFAULT_KEYS,CONTROL_NAMES,keyLabel } from '../settings.js';
 import { statRows,playerOfMatch } from '../match/stats.js';
@@ -11,6 +12,7 @@ export const $=id=>document.getElementById(id);
 export class Menus {
   constructor(app){this.app=app;this.returnToPause=false;this.bind();}
   bind(){
+    document.querySelectorAll('[data-match-durations]').forEach(el=>el.innerHTML=durationButtons());
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
     on('play-now',()=>a.selectTeams('quick'));on('selection-back',()=>document.body.dataset.modePage?location.assign('./index.html'):a.home());
     on('start-match',()=>a.start());document.addEventListener('lantern-settings-request',event=>{event.preventDefault();this.settings();});on('match-options',()=>this.settings('game'));

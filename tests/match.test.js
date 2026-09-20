@@ -87,7 +87,7 @@ test('settings persist and conflicting keys swap instead of breaking controls',(
   assert.equal(s.value.duration,6);s.set('duration',4);s.bind('shoot','KeyM');assert.equal(s.value.keys.pass,'KeyK');assert.equal(new Settings(storage).value.duration,4);
 });
 test('every match length has equal halves and keeps total elapsed time',()=>{
-  for(const duration of [3,4,5,6]){
+  for(const duration of [1,2,3,4,5,6]){
     const m=new Match(teams,{duration,difficulty:'normal'},{random:()=>.51});
     m.phase='playing';m.elapsed=duration*30-.001;m.update(1/120,idle);
     assert.equal(m.phase,'halftime');assert.equal(m.elapsed,duration*30);

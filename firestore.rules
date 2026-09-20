@@ -1,68 +1,32 @@
 rules_version = '2';
-// Temporary client-side username/PIN model explicitly selected by the owner.
-// These rules validate data shapes, NOT identity. Direct API clients can bypass
-// browser PIN checks and the admin lock. Only the account collections and match archive are opened.
 service cloud.firestore {
-  match /databases/{database}/documents {
-    function validProfile(uid) {
-      let p = request.resource.data;
-      return p.keys().hasAll(['uid','username','usernameKey','avatarDataUrl',
-          'createdAtMs','updatedAtMs','stats','modes','records','trophies','currentStreak','history'])
-        && p.keys().hasOnly(['uid','username','usernameKey','avatarDataUrl',
-          'createdAtMs','updatedAtMs','stats','modes','records','trophies','currentStreak','history',
-          'loginEmail','passwordResetRequestedAtMs','historySources'])
-        && p.uid == uid
-        && p.username is string && p.username.matches('^[A-Za-z0-9_]{2,12}$')
-        && p.usernameKey == p.username.lower()
-        && p.avatarDataUrl is string && p.avatarDataUrl.size() <= 400000
-        && p.createdAtMs is number && p.updatedAtMs is number
-        && p.stats is map && p.modes is map && p.records is map
-        && p.trophies is list && p.trophies.size() <= 20
-        && p.history is list && p.history.size() <= 50
-        && p.currentStreak is number && p.currentStreak >= 0;
-    }
-    match /gameProfiles/{uid} {
-      allow read: if true;
-      allow create: if validProfile(uid);
-      allow update: if validProfile(uid)
-        && request.resource.data.createdAtMs == resource.data.createdAtMs;
-      allow delete: if true;
-    }
-    match /gameProfiles/{uid}/matches/{matchId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['id','ownerId','schemaVersion','date','score','stats','teams','players','goals'])
-        && request.resource.data.id == matchId && request.resource.data.ownerId == uid
-        && request.resource.data.schemaVersion in [1,2] && request.resource.data.date is number
-        && request.resource.data.score is list && request.resource.data.score.size() == 2
-        && request.resource.data.teams is list && request.resource.data.teams.size() == 2
-        && request.resource.data.stats is map && request.resource.data.players is list
-        && request.resource.data.players.size() <= 100 && request.resource.data.goals is list
-        && exists(/databases/$(database)/documents/gameProfiles/$(uid));
-      // Immutable reports prevent accidental overwrite and duplicate result counting.
-      allow update, delete: if false;
-    }
-    match /gameUsernames/{name} {
-      allow get: if true;
-      allow list: if false;
-      allow create, update: if name.matches('^[a-z0-9_]{2,12}$')
-        && request.resource.data.keys().hasOnly(['uid'])
-        && request.resource.data.uid is string
-        && getAfter(/databases/$(database)/documents/gameProfiles/$(request.resource.data.uid)).data.usernameKey == name;
-      allow delete: if true;
-    }
-    match /gameLogins/{uid} {
-      // Credential documents are excluded from public profile and chart queries.
-      // Individual lookups remain public for the agreed browser PIN comparison.
-      allow get: if true;
-      allow list: if false;
-      allow create, update: if request.resource.data.keys().hasAll(['passcode','revision','algorithm'])
-        && request.resource.data.keys().hasOnly(['passcode','revision','algorithm'])
-        && request.resource.data.passcode is string
-        && request.resource.data.passcode.matches('^[0-9]{6}$')
-        && request.resource.data.revision is string && request.resource.data.revision.size() == 36
-        && request.resource.data.algorithm == 'plain-v1'
-        && getAfter(/databases/$(database)/documents/gameProfiles/$(uid)).data.uid == uid;
-      allow delete: if true;
-    }
+ match /databases/{database}/documents {
+  function signed(){return request.auth!=null && exists(/databases/$(database)/documents/gameLogins/$(request.auth.uid)) && get(/databases/$(database)/documents/gameLogins/$(request.auth.uid)).data.revision==request.auth.token.revision;}
+  function own(uid){return signed() && request.auth.uid==uid;}
+  function room(code){return get(/databases/$(database)/documents/h2hRooms/$(code)).data;}
+  function participant(code){return signed() && request.auth.uid in room(code).members && room(code).expiresAt>request.time.toMillis();}
+  match /gameProfiles/{uid} {
+   allow read: if true;
+   // Identity, credentials, administration and H2H results go through verified callable functions.
+   allow update: if own(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats','modes','records','trophies','currentStreak','updatedAtMs','history','historySources']) && request.resource.data.history==resource.data.history && request.resource.data.get('historySources',[])==resource.data.get('historySources',[]);
+   match /matches/{id} {
+    allow read: if true;
+    allow create: if own(uid) && !id.matches('^h2h-.*') && request.resource.data.ownerId==uid && request.resource.data.id==id && request.resource.data.mode in ['quick','rivalry','season','tournament','dream'] && request.resource.data.schemaVersion==2 && request.resource.data.opponent.type=='cpu' && request.resource.data.score is list && request.resource.data.score.size()==2 && request.resource.data.stats is map;
+   }
   }
+  match /runtime/live{allow read:if true;}
+  match /gameUsernames/{name}{allow get:if true;}
+  match /gameLogins/{uid}{allow read,write:if false;}
+  match /h2hRooms/{code}{
+   allow get:if signed();
+   allow list:if signed() && request.auth.uid in resource.data.members;
+   match /signals/{id}{
+    allow read:if participant(code);
+    allow create:if participant(code) && room(code).status in ['STARTING','LIVE','CLOSE TO END'] && request.resource.data.keys().hasOnly(['from','epoch','kind','payload','createdAt']) && request.resource.data.from==request.auth.uid && request.resource.data.epoch==room(code).epoch && request.resource.data.kind in ['offer','answer','candidate'] && request.resource.data.payload is string && request.resource.data.payload.size()<16000 && request.resource.data.createdAt==request.time && (request.resource.data.kind!='offer'||room(code).host==request.auth.uid) && (request.resource.data.kind!='answer'||room(code).guest==request.auth.uid);
+   }
+  }
+  match /h2hInvites/{uid}/items/{id}{allow read:if own(uid);}
+  match /h2hRecent/{uid}/players/{id}{allow read:if own(uid);}
+  match /h2hPresence/{uid}{allow read:if signed();}
+ }
 }

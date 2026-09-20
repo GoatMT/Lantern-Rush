@@ -1,3 +1,4 @@
+import {VerifiedAccountStore} from './verified-account-store.js';
 import {attributedHistory} from './account-store.js';
 import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,ADMIN_PASSWORD,validateCredentials} from './account-store.js';
 export {ADMIN_PASSWORD,validateCredentials} from './account-store.js';
@@ -7,8 +8,8 @@ import {FIREBASE_CONFIG,FIREBASE_SDK_VERSION} from './firebase-config.js';
 
 const PROFILE_COLLECTION='gameProfiles';
 
-const MODE_KEYS=Object.freeze(['all','quick','rivalry','tournament','season','dream']);
-export const MODE_LABELS=Object.freeze({all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.'});
+const MODE_KEYS=Object.freeze(['all','quick','rivalry','tournament','season','dream','h2h']);
+export const MODE_LABELS=Object.freeze({all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.',h2h:'Live Head to Head'});
 const STAT_KEYS=Object.freeze(['matches','goals','shots','saves','wins','losses','ties','shotsOnTarget','passes','completedPasses','fouls','corners','cleanSheets']);
 
 export const emptyStats=()=>Object.fromEntries(STAT_KEYS.map(key=>[key,0]));
@@ -68,7 +69,8 @@ export class CloudAccount {
       ]);
       const instance=app.getApps().find(item=>item.name==='lantern-rush')||app.initializeApp(FIREBASE_CONFIG,'lantern-rush');
       this.modules={app,firestore};this.db=firestore.getFirestore(instance);
-      this.store=new FirestoreAccountStore(firestore,this.db);this.available=true;
+      let online=false;try{online=(await firestore.getDoc(firestore.doc(this.db,'runtime','live'))).data()?.enabled===true;}catch{}
+      this.store=online?new VerifiedAccountStore(firestore,this.db,instance):new FirestoreAccountStore(firestore,this.db);this.available=true;
       try { const restored=await this.store.restore(); if(restored)this.adopt(restored); }
       catch(error){this.error=error;}
       globalThis.addEventListener?.('storage',event=>{
@@ -84,9 +86,9 @@ export class CloudAccount {
   async loadProfile(id){const raw=await this.store.profile(id);return raw?sanitizeProfile(raw,id):null;}
   async create(username,pin){const store=await this.requireStore();return this.adopt(await store.create(username,pin,profileTemplate));}
   async login(username,pin){const store=await this.requireStore();const profile=this.adopt(await store.login(username,pin));this.flushHistory().catch(error=>{this.historyError=error;});return profile;}
-  async logout(){this.store?.clearSession();this.user=null;this.profile=null;this.adminUnlocked=false;this.onChange(this);}
+  async logout(){await this.store?.clearSession();this.user=null;this.profile=null;this.adminUnlocked=false;this.onChange(this);}
   async requireSession(){const store=await this.requireStore(),raw=await store.restore();if(!raw){await this.logout();throw new Error('Please sign in again. Your account may have been reset or removed.');}return this.adopt(raw);}
-  async updateAvatar(file){const profile=await this.requireSession(),data=typeof file==='string'?file:await avatarDataUrl(file);if(!data)throw new Error('Choose an image first.');if(data.length>400000)throw new Error('That image is too detailed. Please choose a simpler image.');await this.modules.firestore.updateDoc(this.store.profileRef(profile.uid),{avatarDataUrl:data,updatedAtMs:Date.now()});return this.adopt(await this.store.profile(profile.uid)).avatarDataUrl;}
+  async updateAvatar(file){const profile=await this.requireSession(),data=typeof file==='string'?file:await avatarDataUrl(file);if(!data)throw new Error('Choose an image first.');if(data.length>400000)throw new Error('That image is too detailed. Please choose a simpler image.');if(this.store.call)await this.store.call('accountProfile',{action:'avatar',value:data});else await this.modules.firestore.updateDoc(this.store.profileRef(profile.uid),{avatarDataUrl:data,updatedAtMs:Date.now()});return this.adopt(await this.store.profile(profile.uid)).avatarDataUrl;}
   async recordMatch(match){
     await this.ready;if(!this.isSignedIn()||!match||match.phase!=='fulltime'||match.cloudAccountRecorded||match.cloudAccountRecording)return null;
     match.cloudAccountRecording=true;
@@ -129,7 +131,7 @@ export class CloudAccount {
   }
   async getProfiles(){await this.requireStore();const snapshot=await this.modules.firestore.getDocs(this.modules.firestore.collection(this.db,PROFILE_COLLECTION));return snapshot.docs.map(item=>sanitizeProfile(item.data(),item.id));}
   async getProfile(id){await this.requireStore();if(!id)return null;return this.loadProfile(id);}
-  async adminLogin(password){if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');await this.requireStore();this.adminUnlocked=true;return true;}
+  async adminLogin(password){if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');await this.requireStore();await this.store.authorizeAdmin?.();this.adminUnlocked=true;return true;}
   isAdmin(){return this.adminUnlocked;}
   adminLogout(){this.adminUnlocked=false;}
   async requireAdmin(){await this.requireStore();if(!this.isAdmin())throw new Error('Unlock the admin page first.');}
@@ -137,7 +139,7 @@ export class CloudAccount {
   async adminResetPasscode(id,pin){await this.requireAdmin();return this.store.resetPasscode(id,pin);}
   async adminDeleteProfile(id){await this.requireAdmin();return this.store.remove(id);}
   async adminMergeProfiles(source,target,combine){
-    await this.requireAdmin();if(source===target)throw new Error('Choose two different accounts.');
+    await this.requireAdmin();if(this.store.call)return this.store.merge(source,target);if(source===target)throw new Error('Choose two different accounts.');
     const fs=this.modules.firestore;
     let stage='preserve match history';
     try{

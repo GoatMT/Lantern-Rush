@@ -71,8 +71,8 @@ export class GameRenderer{
       const b=match.ball,height=b.owner&&b.controlMode==='hands'?b.y*this.actorScale/1.13:b.y;this.ballMesh.position.set(b.x,height,b.z);this.ballMesh.rotation.set(b.rollX,b.rotationY,b.rollZ);
       this.ballShadow.position.set(b.x,.027,b.z);this.ballShadow.scale.setScalar(1+Math.min(height,6)*.1);this.ballShadow.material.opacity=Math.max(.2,1-height*.07);
       this.stadium.update(this.time,match);
-      this.aimLine.visible=(match.phase==='restart'&&match.restart?.team===0)||match.charge>0;
-      if(this.aimLine.visible){const a=this.aimLine.geometry.attributes.position;a.array.set([b.x,.18,b.z,match.direction(0)*FIELD.halfLength,.18,match.aimZ]);a.needsUpdate=true;this.aimLine.computeLineDistances();this.aimLine.geometry.computeBoundingSphere();}
+      this.aimLine.visible=(match.phase==='restart'&&match.restart?.team===(match.localTeam||0))||match.charge>0;
+      if(this.aimLine.visible){const a=this.aimLine.geometry.attributes.position;a.array.set([b.x,.18,b.z,match.direction(match.localTeam||0)*FIELD.halfLength,.18,match.aimZ]);a.needsUpdate=true;this.aimLine.computeLineDistances();this.aimLine.geometry.computeBoundingSphere();}
     }
     this.renderer.render(this.scene,this.camera);
   }
