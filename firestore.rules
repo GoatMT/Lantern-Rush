@@ -55,13 +55,12 @@ service cloud.firestore {
       // Individual lookups remain public for the agreed browser PIN comparison.
       allow get: if true;
       allow list: if false;
-      allow create, update: if request.resource.data.keys().hasAll(['pinHash','salt','revision','algorithm'])
-        && request.resource.data.keys().hasOnly(['pinHash','salt','revision','algorithm'])
-        && request.resource.data.pinHash is string
-        && request.resource.data.pinHash.matches('^[0-9a-f]{64}$')
-        && request.resource.data.salt is string && request.resource.data.salt.size() == 36
+      allow create, update: if request.resource.data.keys().hasAll(['passcode','revision','algorithm'])
+        && request.resource.data.keys().hasOnly(['passcode','revision','algorithm'])
+        && request.resource.data.passcode is string
+        && request.resource.data.passcode.matches('^[0-9]{6}$')
         && request.resource.data.revision is string && request.resource.data.revision.size() == 36
-        && request.resource.data.algorithm == 'pbkdf2-sha256-v1'
+        && request.resource.data.algorithm == 'plain-v1'
         && getAfter(/databases/$(database)/documents/gameProfiles/$(uid)).data.uid == uid;
       allow delete: if true;
     }

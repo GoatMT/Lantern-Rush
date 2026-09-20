@@ -13,7 +13,7 @@ export class Menus {
   bind(){
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
     on('play-now',()=>a.selectTeams('quick'));on('selection-back',()=>document.body.dataset.modePage?location.assign('./index.html'):a.home());
-    on('start-match',()=>a.start());on('home-settings',()=>this.settings());on('match-options',()=>this.settings('game'));
+    on('start-match',()=>a.start());document.addEventListener('lantern-settings-request',event=>{event.preventDefault();this.settings();});on('match-options',()=>this.settings('game'));
     on('settings-account-open',()=>this.account());on('settings-account-signout',()=>a.cloudAccount.logout());
     $('setting-pfp').addEventListener('change',ev=>{const file=ev.target.files?.[0];if(file)a.cloudAccount.updateAvatar(file).catch(error=>{this.accountFeedback(error.message);});});
     $('account-form').addEventListener('submit',ev=>{ev.preventDefault();this.submitAccount();});
@@ -75,6 +75,7 @@ export class Menus {
     finally{submit.disabled=false;}
   }
   show(screen){
+    document.body.dataset.screen=screen;
     for(const id of ['home','selection','stats-screen'])$(id).hidden=id!==screen;
     $('match-hud').hidden=screen!=='match';$('intro-overlay').hidden=true;$('notice').hidden=true;$('replay-overlay').hidden=true;this.replayTime=0;
     this.screen=screen;this.app.controls.enabled=screen==='match';this.app.controls.clear();

@@ -12,6 +12,7 @@ const copy=v=>JSON.parse(JSON.stringify(v));
 const sides=values=>Object.fromEntries([0,1].map(team=>[team,copy(values?.[team]||[])]));
 export const playerSnapshot=p=>({id:p.id??p.data?.id??'',name:p.name??p.data?.name??'',jersey:p.jersey??p.data?.jersey??null,position:p.role??p.position??'',team:p.team??0,slot:p.slot??null});
 export function captureMatch(match,account={}){
+  account=match.playingAccount||account;
   const players=[...(match.archive||[]),...(match.players||[])],goals=copy(match.goalEvents||[]),mode=modeFor(match);
   const score=(match.stats||[{},{}]).map(s=>n(s.goals)),potm=players.length?playerOfMatch(players):null;
   return copy({schemaVersion:2,id:crypto.randomUUID(),ownerId:account.uid||'',accountName:account.username||'',date:Date.now(),

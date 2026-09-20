@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,validateCredentials,mergeAccountProfiles} from '../src/account-store.js';
+import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,validateCredentials,mergeAccountProfiles,hashPasscode} from '../src/account-store.js';
 import {CloudAccount,emptyStats,emptyModeStats} from '../src/cloud-account.js';
 
 const copy=value=>structuredClone(value);
@@ -23,10 +23,10 @@ function fixture() {
 }
 const profile=(username,uid)=>({uid,username,usernameKey:username.toLowerCase(),avatarDataUrl:'',createdAtMs:1,updatedAtMs:1,stats:emptyStats(),modes:emptyModeStats(),records:{},trophies:[],history:[],currentStreak:0});
 
-test('registration and returning login use only username/PIN, keep hashes out of profiles and PINs out of sessions',async()=>{
+test('registration and returning login use only username/PIN, keep credentials out of profiles and PINs out of sessions',async()=>{
   const f=fixture(),created=await f.store.create('Player','123456',profile);
   assert.equal(created.pinHash,undefined);assert.equal(created.loginEmail,undefined);
-  const login=f.docs.get('gameLogins/'+created.uid);assert.equal(login.pinHash.length,64);assert.notEqual(login.pinHash,'123456');
+  const login=f.docs.get('gameLogins/'+created.uid);assert.equal(login.passcode,'123456');assert.equal(login.pinHash,undefined);assert.equal(created.passcode,undefined);
   assert.equal(f.saved.get(ACCOUNT_SESSION_KEY).includes('123456'),false);
   f.store.clearSession();assert.equal(await f.store.restore(),null);
   assert.equal((await f.store.login('pLaYeR','123456')).uid,created.uid);
@@ -105,4 +105,25 @@ test('admin locks are independent of the current player and reject the wrong pas
   const {ADMIN_PASSWORD}=await import('../src/account-store.js');await service.adminLogin(ADMIN_PASSWORD);
   assert.equal(service.isAdmin(),true);service.adminLogout();assert.equal(service.isAdmin(),false);
   assert.equal(service.isSignedIn(),true);assert.equal((await f.store.restore()).uid,a.uid);
+});
+
+test('legacy hashed login migrates only after the correct passcode is entered',async()=>{
+ const f=fixture(),p=await f.store.create('Legacy','123456',profile),revision=crypto.randomUUID(),salt=crypto.randomUUID();
+ f.docs.set('gameLogins/'+p.uid,{pinHash:await hashPasscode('123456',salt),salt,revision,algorithm:'pbkdf2-sha256-v1'});
+ await assert.rejects(f.store.login('Legacy','999999'),/incorrect/);
+ assert.equal(f.docs.get('gameLogins/'+p.uid).algorithm,'pbkdf2-sha256-v1');
+ await f.store.login('Legacy','123456');assert.deepEqual(f.docs.get('gameLogins/'+p.uid),{passcode:'123456',revision,algorithm:'plain-v1'});
+});
+test('merged history keeps original playing account names',()=>{
+ const a=profile('Alpha','a'),b=profile('Beta','b');a.history=[{id:'a',date:1}];b.history=[{id:'b',date:2,accountName:'OlderName'}];
+ const result=mergeAccountProfiles(a,b);assert.equal(result.history[0].accountName,'OlderName');assert.equal(result.history[1].accountName,'Alpha');
+});
+
+test('permission-denied legacy archive prevents account deletion and explains the rules repair',async()=>{
+ const f=fixture(),a=await f.store.create('Alpha','123456',profile),b=await f.store.create('Beta','654321',profile);
+ f.docs.get('gameProfiles/'+a.uid).history=[{id:'old',date:1,score:[1,0],teams:['A','B']}];
+ const fs={...f.fs,runTransaction:async()=>{throw Object.assign(new Error('denied'),{code:'permission-denied'});}};
+ const service=Object.create(CloudAccount.prototype);Object.assign(service,{store:f.store,available:true,ready:Promise.resolve(),modules:{firestore:fs},db:{},adminUnlocked:true});
+ await assert.rejects(service.adminMergeProfiles(a.uid,b.uid,mergeAccountProfiles),/preserve match history.*Neither account was deleted.*firestore.rules/);
+ assert.ok(await f.store.profile(a.uid));assert.ok(await f.store.profile(b.uid));
 });

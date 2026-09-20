@@ -42,3 +42,8 @@ test('difficulty filters combine with mode, alias Medium to Normal, and exclude 
  const medium=filterMatches(rows,{mode:'season',difficulty:'normal'});assert.deepEqual(medium.map(r=>r.id),['3','2']);assert.equal(summarize(medium).wins,2);assert.equal(recordsFor(medium).goalsGame.value,3);
  assert.deepEqual(filterMatches(rows,{difficulty:'medium'}).map(r=>r.id),['3','2']);assert.deepEqual(filterMatches(rows,{difficulty:'hard'}).map(r=>r.id),['4']);assert.equal(filterMatches(rows,{mode:'season',difficulty:'hard'}).length,0);assert.equal(filterMatches(rows,{difficulty:'insane'}).length,1);
 });
+
+test('reports keep the playing account captured at kickoff after the current account changes',()=>{
+ const r=captureMatch({playingAccount:{uid:'original',username:'Original'},stats:[{goals:1},{goals:0}],teams:[{name:'A'},{name:'B'}],settings:{}},{uid:'different',username:'Different'});
+ assert.equal(r.ownerId,'original');assert.equal(r.accountName,'Original');assert.match(matchReport(r),/Played by <strong>Original/);assert.match(matchCard(r),/Played by Original/);
+});

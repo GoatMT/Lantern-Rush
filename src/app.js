@@ -88,6 +88,7 @@ class App {
     match.tournament=this.mode==='tournament'?this.tournament.selectedMatch():null;
     match.seasonMatch=this.mode==='season'?this.seasonMode.selectedMatch():null;
     match.dream=this.mode==='dream'?{event:this.dream?.currentEvent||null}:null;
+    match.playingAccount=this.cloudAccount?.profile?{uid:this.cloudAccount.profile.uid,username:this.cloudAccount.profile.username}:null;
     return match;
   }
   handleEvent(type,data){

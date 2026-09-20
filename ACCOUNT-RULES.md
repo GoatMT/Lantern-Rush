@@ -6,8 +6,8 @@ email verification, Firebase Authentication provider or admin custom claim is ne
 ## Player rules
 
 - Username: 2–12 letters, numbers or underscores; sign-in is case-insensitive.
-- Passcode: exactly six digits. The raw passcode is never saved in Firestore or local storage.
-- Passcodes use a per-account random salt and PBKDF2-SHA-256 (120,000 iterations).
+- Passcode: exactly six digits. As requested by the owner, the passcode is stored as plain text in the separate gameLogins document, never in profiles or browser sessions.
+- Older hashed credentials convert after a successful sign-in or admin passcode reset. Publish the new rules before using this version. Existing hashes cannot be decrypted.
 - Usernames are reserved atomically to prevent two normal registrations taking the same name.
 - Sign-in persists on the device. Signing out clears the session, not match history.
 - Renaming keeps the stable account ID, stats, photo and passcode.
@@ -45,20 +45,23 @@ The admin page locks again when reloaded. Player and admin sign-ins are independ
 On 2026-09-19 the owner explicitly selected the simple client-side account model of
 the reference sites, accepting that PIN checks and the admin gate can be bypassed.
 The rules validate shapes, not who is editing. Public profiles, stats and individual
-hashed-PIN documents can be accessed through Firestore; direct API clients can
+plain-text passcode documents can be accessed through Firestore; direct API clients can
 modify the three account collections. This is not verified authentication, private
 storage, or a cheat-proof leaderboard.
 
-`src/account-store.js` owns identity, hashing, username reservations, sessions and
+`src/account-store.js` owns identity, credential migration, username reservations, sessions and
 admin operations. `src/cloud-account.js` is the stable facade used by menus, the
 match engine and charts. A future verified provider can replace the adapter while
 retaining stable IDs and `gameProfiles` data. Public profile objects do not contain
 PIN hashes or raw passcodes.
 
 Collections: `gameProfiles` (public profile/statistics), `gameUsernames` (unique-name
-index), `gameLogins` (salted hash and session revision). Other paths remain denied.
+index), `gameLogins` (plain-text passcode and session revision). Other paths remain denied.
 No data or accounts are shared with the separate LSL Website/Melation Firebase projects.
 
 ## Full match archive
 Publish the updated firestore.rules to enable gameProfiles/{uid}/matches/{matchId}. Completed matches are immutable individual documents with no 50-match history cap. Reports are queued in IndexedDB before uploading and retried at sign-in, when reconnecting, or with History > Retry Sync. Do not clear site data while reports are pending. Charts, Account and History calculate statistics from these reports and retained legacy entries. Older matches already discarded by the old 50-match limit cannot be reconstructed. Legacy details are shown as unrecorded. Account merges retain archive source IDs; new identities do not inherit deleted accounts' archives.
 
+
+## Merge permission repair
+Publish the complete current rules, including the matches subcollection and historySources profile field. Merge archives retained legacy reports first, then atomically merges profiles and removes the source login. If archive permissions fail, both accounts remain intact and the error identifies the blocked stage. Original playing account names remain on historical reports. Updating local rules alone does not update Firebase.

@@ -1,3 +1,4 @@
+import {attributedHistory} from './account-store.js';
 import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,ADMIN_PASSWORD,validateCredentials} from './account-store.js';
 export {ADMIN_PASSWORD,validateCredentials} from './account-store.js';
 import {captureMatch,uniqueMatches,summarize,recordsFor} from './match-history.js';
@@ -114,7 +115,7 @@ export class CloudAccount {
   }
   async getHistory(profile=this.profile,{includePending=true}={}){
     await this.requireStore();if(!profile)return [];
-    const sources=[...new Set([profile.uid,...profile.historySources||[]])],records=[...(profile.history||[])];
+    const sources=[...new Set([profile.uid,...profile.historySources||[]])],records=attributedHistory(profile);
     let archiveError=null;
     for(const id of sources){try{records.push(...await fetchArchive(this.modules.firestore,this.db,id));}catch(error){archiveError=error;}}
     const pending=includePending&&this.user?.uid===profile.uid?(await pendingReports()).filter(r=>sources.includes(r.ownerId)):[];
@@ -136,10 +137,22 @@ export class CloudAccount {
   async adminResetPasscode(id,pin){await this.requireAdmin();return this.store.resetPasscode(id,pin);}
   async adminDeleteProfile(id){await this.requireAdmin();return this.store.remove(id);}
   async adminMergeProfiles(source,target,combine){
-    await this.requireAdmin();const fs=this.modules.firestore;
-    for(const id of [source,target]){const profile=await this.store.profile(id);if(!profile)throw new Error('Account not found.');
-      for(const record of profile.history||[]){if(!record.id)continue;const ref=fs.doc(this.db,`gameProfiles/${id}/matches`,record.id);await fs.runTransaction(this.db,async tx=>{if(!(await tx.get(ref)).exists())tx.set(ref,{...record,ownerId:id,accountName:profile.username,schemaVersion:record.schemaVersion||1,players:record.players||[],goals:record.goals||[]});});}}
-    return this.store.merge(source,target,combine);
+    await this.requireAdmin();if(source===target)throw new Error('Choose two different accounts.');
+    const fs=this.modules.firestore;
+    let stage='preserve match history';
+    try{
+      for(const id of [source,target]){const profile=await this.store.profile(id);if(!profile)throw new Error('Account not found.');
+        for(const record of attributedHistory(profile)){if(!record.id)continue;
+          const ref=fs.doc(this.db,`gameProfiles/${id}/matches`,record.id);
+          await fs.runTransaction(this.db,async tx=>{if(!(await tx.get(ref)).exists())tx.set(ref,{...record,ownerId:id,schemaVersion:record.schemaVersion||1,stats:record.stats||{},players:record.players||[],goals:record.goals||[]});});
+        }
+      }
+      stage='merge the account profiles';
+      return await this.store.merge(source,target,combine);
+    }catch(error){
+      if(error.code==='permission-denied')throw new Error(`Firebase blocked permission to ${stage}. Neither account was deleted. Publish the current firestore.rules in Firebase Console → lsl-rivals → Firestore Database → Rules, then retry. See ACCOUNT-RULES.md.`);
+      throw error;
+    }
   }
 }
 

@@ -20,6 +20,8 @@ export async function hashPasscode(pin, salt) {
   return Array.from(new Uint8Array(bits), value=>value.toString(16).padStart(2,'0')).join('');
 }
 
+export function attributedHistory(profile){return (profile.history||[]).map(r=>({...r,ownerId:r.ownerId||profile.uid,accountName:r.accountName||profile.username,accountNameInferred:r.accountNameInferred||!r.accountName}));}
+
 export function mergeAccountProfiles(source,target) {
   const merged=structuredClone(target),sum=(a={},b={})=>Object.fromEntries([...new Set([...Object.keys(a),...Object.keys(b)])].map(key=>[key,(Number(a[key])||0)+(Number(b[key])||0)]));
   merged.stats=sum(target.stats,source.stats);
@@ -27,7 +29,7 @@ export function mergeAccountProfiles(source,target) {
   for(const mode of Object.keys(source.modes||{}))merged.modes[mode]=sum(target.modes?.[mode],source.modes[mode]);
   merged.modes.all=merged.stats;
   merged.trophies=[...(target.trophies||[]),...(source.trophies||[])].filter((item,index,list)=>list.findIndex(other=>other.id===item.id)===index).slice(0,20);
-  merged.history=[...(target.history||[]),...(source.history||[])].sort((a,b)=>b.date-a.date).filter((item,index,list)=>!item.id||list.findIndex(other=>other.id===item.id)===index).slice(0,50);
+  merged.history=[...attributedHistory(target),...attributedHistory(source)].sort((a,b)=>b.date-a.date).filter((item,index,list)=>!item.id||list.findIndex(other=>other.id===item.id)===index).slice(0,50);
   merged.records={...target.records};
   for(const [key,value]of Object.entries(source.records||{})) {
     if(value==null)continue;
@@ -74,13 +76,13 @@ export class FirestoreAccountStore {
   async create(username, pin, makeProfile) {
     const c=validateCredentials(username,pin);
     if (await this.lookup(c.usernameKey)) throw new Error('That username is already taken. Choose SIGN IN instead.');
-    const id=crypto.randomUUID(), salt=crypto.randomUUID(), revision=crypto.randomUUID();
-    const pinHash=await hashPasscode(c.pin,salt), profile=makeProfile(c.username,id);
+    const id=crypto.randomUUID(), revision=crypto.randomUUID();
+    const profile=makeProfile(c.username,id);
     await this.fs.runTransaction(this.db,async tx=>{
       if ((await tx.get(this.nameRef(c.usernameKey))).exists()) throw new Error('That username is already taken.');
       tx.set(this.profileRef(id),profile);
       tx.set(this.nameRef(c.usernameKey),{uid:id});
-      tx.set(this.loginRef(id),{pinHash,salt,revision,algorithm:'pbkdf2-sha256-v1'});
+      tx.set(this.loginRef(id),{passcode:c.pin,revision,algorithm:'plain-v1'});
     });
     this.saveSession(id,revision); return profile;
   }
@@ -90,9 +92,15 @@ export class FirestoreAccountStore {
     const snapshot=await this.fs.getDoc(this.loginRef(id));
     if (!snapshot.exists()) throw new Error('This older account needs an admin passcode reset. Its stats are still saved.');
     const login=snapshot.data();
-    if (login.pinHash!==await hashPasscode(c.pin,login.salt)) throw new Error('Username or passcode is incorrect.');
+    const valid=login.algorithm==='plain-v1'?login.passcode===c.pin:login.pinHash===await hashPasscode(c.pin,login.salt);
+    if (!valid) throw new Error('Username or passcode is incorrect.');
     const profile=await this.profile(id);
     if (!profile || profile.usernameKey!==c.usernameKey) throw new Error('This account has changed. Sign in using its current username.');
+    if(login.algorithm!=='plain-v1')await this.fs.runTransaction(this.db,async tx=>{
+      const current=await tx.get(this.loginRef(id));
+      if(!current.exists()||current.data().revision!==login.revision)throw new Error('Passcode changed. Sign in again.');
+      tx.set(this.loginRef(id),{passcode:c.pin,revision:login.revision,algorithm:'plain-v1'});
+    });
     this.saveSession(id,login.revision); return profile;
   }
   async rename(id,username) {
@@ -110,13 +118,13 @@ export class FirestoreAccountStore {
   }
   async resetPasscode(id,pin) {
     pin=validateCredentials('Valid',pin).pin;
-    const salt=crypto.randomUUID(), revision=crypto.randomUUID(), pinHash=await hashPasscode(pin,salt);
+    const revision=crypto.randomUUID();
     await this.fs.runTransaction(this.db,async tx=>{
       const snap=await tx.get(this.profileRef(id));
       if (!snap.exists()) throw new Error('Account not found.');
       const name=await tx.get(this.nameRef(snap.data().usernameKey));
       if (name.exists() && name.data().uid!==id) throw new Error('Resolve the duplicate username before resetting this account.');
-      tx.set(this.loginRef(id),{pinHash,salt,revision,algorithm:'pbkdf2-sha256-v1'});
+      tx.set(this.loginRef(id),{passcode:pin,revision,algorithm:'plain-v1'});
       tx.set(this.nameRef(snap.data().usernameKey),{uid:id});
     });
   }
