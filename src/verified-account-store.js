@@ -1,9 +1,22 @@
 import {ACCOUNT_SESSION_KEY} from './account-store.js';
 import {FIREBASE_SDK_VERSION} from './firebase-config.js';
+import {FREE_BACKEND_URL} from './live-config.js';
 export class VerifiedAccountStore{
  constructor(fs,db,instance){this.fs=fs;this.db=db;this.instance=instance;this.ready=this.init();}
- async init(){const [a,f]=await Promise.all([import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`),import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-functions.js`)]);this.authModule=a;this.auth=a.getAuth(this.instance);this.functions=f.getFunctions(this.instance,'us-central1');this.callable=f.httpsCallable;await this.auth.authStateReady();}
- async call(name,data){await this.ready;try{return (await this.callable(this.functions,name)(data)).data;}catch(e){if(['functions/not-found','functions/unavailable','functions/internal'].includes(e.code))throw new Error('Online services are not available yet. Deploy the Lantern Rush Firebase functions and rules described in LIVE-H2H-SETUP.md.');throw e;}}
+ async init(){const a=await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`);this.authModule=a;this.auth=a.getAuth(this.instance);await this.auth.authStateReady();}
+ async call(name,data){
+  await this.ready;
+  let endpoint;try{endpoint=new URL(FREE_BACKEND_URL);}catch{throw new Error('The free online backend URL has not been configured. Follow LIVE-H2H-SETUP.md.');}
+  if(endpoint.protocol!=='https:'&&!(['localhost','127.0.0.1'].includes(endpoint.hostname)&&endpoint.protocol==='http:'))throw Error('Use an HTTPS URL for the free online service.');
+  const headers={'Content-Type':'application/json'};
+  if(name!=='accountAuth'){if(!this.auth.currentUser)throw Error('Please sign in again.');headers.Authorization='Bearer '+await this.auth.currentUser.getIdToken();}
+  let response;
+  try{response=await fetch(endpoint.href.replace(/\/$/,'')+'/api/'+encodeURIComponent(name),{method:'POST',headers,body:JSON.stringify(data||{}),signal:AbortSignal.timeout(name==='h2hFinalize'?90000:30000)});}catch{throw Object.assign(new Error('The free online service could not be reached. Check your connection and retry.'),{code:'functions/unavailable'});}
+  const result=await response.json().catch(()=>null);
+  if(!response.ok||result?.error)throw Object.assign(new Error(result?.error?.message||'The free service is unavailable or its quota has been reached. Try again later.'),{code:'functions/'+(result?.error?.code||'unavailable')});
+  if(!result||!Object.hasOwn(result,'data'))throw Error('The free online service returned an invalid response.');
+  return result.data;
+ }
  profileRef(id){return this.fs.doc(this.db,'gameProfiles',id);}
  async profile(id){const snap=await this.fs.getDoc(this.profileRef(id));return snap.exists()?{...snap.data(),uid:snap.id}:null;}
  async restore(){await this.ready;return this.auth.currentUser?this.profile(this.auth.currentUser.uid):null;}

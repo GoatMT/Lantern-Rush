@@ -9,3 +9,11 @@ functions/.env*
 functions/.runtimeconfig.json
 .npm-cache/
 
+
+# Free backend: never publish local credentials or generated runtime state.
+free-backend/.dev.vars*
+free-backend/.env*
+free-backend/.wrangler/
+free-backend/.build/
+**/*-firebase-adminsdk-*.json
+**/*service-account*.json

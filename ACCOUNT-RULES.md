@@ -4,18 +4,18 @@ Players use a case-insensitive 2–12 character username (letters, numbers, unde
 
 ## Live H2H account upgrade
 
-Read [LIVE-H2H-SETUP.md](./LIVE-H2H-SETUP.md) before deploying this version's rules. It contains the coordinated functions/rules deployment and final activation step.
+Read [LIVE-H2H-SETUP.md](./LIVE-H2H-SETUP.md) before deploying this version's rules. It contains the coordinated free Worker/rules deployment and final activation step.
 
 Until `runtime/live.enabled` is true, the site retains its existing browser-only account adapter. That legacy system does not provide verified identity and cannot authorize Live H2H. Live H2H is disabled in that state.
 
-After activation, server functions verify the same username/passcode and mint Firebase custom-auth tokens. No email sign-in is added. The new rules deny all client access to `gameLogins`; PINs remain plain text server-side as the owner requested. Older hashed PINs convert after a successful sign-in. A passcode reset changes the credential revision and invalidates earlier tokens for protected reads/writes.
+After activation, the free Worker verifies the same username/passcode and mints Firebase custom-auth tokens. No email sign-in is added. The new rules deny all client access to `gameLogins`; PINs remain plain text server-side as the owner requested. Older hashed PINs convert after a successful sign-in. A passcode reset changes the credential revision and invalidates earlier tokens for protected reads/writes.
 
 Public profiles and completed match reports are readable. Only the owning verified user may upload their CPU match reports. H2H histories are written by the server after both participants confirm the input timeline and it passes deterministic engine verification. CPU match uploads retain client-generated statistics; they are not advertised as verified H2H results.
 
 ## Administration
 
-Sign into a game account whose stable ID is configured in the function's `ADMIN_UIDS`, then unlock `admin.html` with the existing admin-page password. Only the server allowlist grants authority. Rename, passcode reset, removal and merging run through the callable backend after activation.
+Sign into a game account whose stable ID is configured in the Worker's `ADMIN_UIDS`, then unlock `admin.html` with the existing admin-page password. Only the server allowlist grants authority. Rename, passcode reset, removal and merging run through the authenticated Worker backend after activation.
 
 Merging retains the destination's credentials and preserves attributed histories, including source account names in older reports. Resetting a PIN does not erase match history. Profile photos are resized to 512 × 512 and checked against the storage limit.
 
-Do not deploy the new rules without the corresponding functions and activation steps. Do not restore public credential writes to fix a permission error. All setup instructions and troubleshooting are in the linked guide.
+Do not deploy the new rules without the corresponding free Worker and activation steps. Do not restore public credential writes to fix a permission error. All setup instructions and troubleshooting are in the linked guide.

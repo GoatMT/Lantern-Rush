@@ -1,7 +1,7 @@
 import {CloudAccount} from '../cloud-account.js';
 export class LiveService{
  constructor(onError=()=>{}){this.account=new CloudAccount();this.onError=onError;this.stops=[];}
- async init(){await this.account.ready;if(!this.account.available)throw this.account.error||Error('Firebase unavailable.');this.fs=this.account.modules.firestore;this.db=this.account.db;this.uid=this.account.user?.uid;if(!this.account.store.call)throw Error('Live H2H is awaiting Firebase deployment. Existing single-player accounts are unchanged. See LIVE-H2H-SETUP.md to enable verified rooms and the relay connection.');return this;}
+ async init(){await this.account.ready;if(!this.account.available)throw this.account.error||Error('Firebase unavailable.');this.fs=this.account.modules.firestore;this.db=this.account.db;this.uid=this.account.user?.uid;if(!this.account.store.call)throw Error('Free Live H2H has not been activated yet. Existing single-player accounts still work. See LIVE-H2H-SETUP.md for the free backend setup.');return this;}
  async signIn(username,passcode,create=false){await this.account[create?'create':'login'](username,passcode);this.uid=this.account.user.uid;return this.account.profile;}
  call(name,data){return this.account.store.call(name,data);}
  room(action,code,extra={}){return this.call('h2hRoom',{action,code,...extra});}

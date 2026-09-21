@@ -1,102 +1,125 @@
-# Live Head to Head — deployment
+# Make Live H2H work for $0
 
-The static game files are ready for GitHub Pages. **Live H2H stays disabled until the Firebase backend is deployed and activated.** Existing single-player sign-in keeps its current adapter until activation. No paid services have been provisioned by this update.
+The free backend is implemented. It still needs your Cloudflare account and Firebase configuration before real online matches work. Nothing has been deployed to your accounts by this update.
 
-## What runs where
+Use **Cloudflare Workers Free**, **Firebase Spark**, and the existing **GitHub Pages** site. Do not enable Workers Paid or Firebase Blaze. The previous Firebase Functions deployment is blocked and is not used by this version.
 
-- GitHub Pages serves the game and WebRTC client. Host simulation runs at 120 Hz, controls are transmitted at 30 Hz and compact visual snapshots at 20 Hz. The guest interpolates snapshots with a small local movement prediction.
-- Firebase handles verified usernames, room ownership, approvals, invites, presence, signaling and final reports. Firestore never receives per-frame player positions.
-- Firebase callable functions check credentials and mint custom Auth tokens. Players still enter only their existing **username + six-digit passcode**, with no email form/provider required. Stable profile IDs and old histories are preserved.
-- As requested, PINs remain plain text in `gameLogins`. The new rules make those documents inaccessible to website clients; only server code can check or reset them. Keep Firebase project access limited to trusted administrators.
-- A TURN service provides temporary relay credentials for networks where a direct peer connection is unavailable. Permanent relay credentials must never appear in frontend files.
+## 1. Create your free Cloudflare account
 
-## 1. Prepare Firebase
+1. Open <https://dash.cloudflare.com/sign-up> and create an account.
+2. You do not need to buy a domain or add an existing website. This backend uses a free `workers.dev` address.
+3. Keep Workers on the **Free** plan. If a screen asks you to buy a plan, stop; that is not a requirement for this setup.
 
-Use project **lsl-rivals**. Back up the current Firestore database/rules before the account migration. There is a brief sign-in maintenance window between publishing the new rules and activating the new account adapter.
+## 2. Prepare Firebase
 
-1. Open Firebase Console → Authentication → Get started. Custom-token authentication does not need the Email/Password sign-in provider. The existing configuration returned `CONFIGURATION_NOT_FOUND` during the local check, so Authentication needs to be initialized/checked before activation.
-2. In project settings, confirm `src/firebase-config.js` matches the web app configuration. Do not substitute an unrelated project's API key. Add the actual GitHub Pages host and `localhost` to Auth authorized domains where required.
-3. Cloud Functions deployment requires the Blaze billing plan. Review pricing and budget alerts before enabling billing: https://firebase.google.com/docs/functions/get-started
-4. Install Node.js 22 and Firebase CLI on your development computer, then sign in:
+Use the existing **lsl-rivals** project at <https://console.firebase.google.com/>.
 
-```sh
-npm install -g firebase-tools
-firebase login
-npm ci --prefix functions
-node scripts/build-h2h-server.mjs
+1. Check that its plan is **Spark**. Do not attach a billing account.
+2. Open **Build > Authentication** and click **Get started** if it has not been initialized. There is no need to enable Email/Password: the Worker signs custom tokens for the existing username/passcode form.
+3. Check that `src/firebase-config.js` matches the web app in **Project settings > General**. The backend public API key/project in `free-backend/wrangler.jsonc` must match too. If Auth reports `CONFIGURATION_NOT_FOUND`, initialize Authentication. If it reports an invalid API key, copy the correct web app configuration from this same project.
+4. Keep your existing Firestore database and data. Back up the current rules before changing them in step 5 below.
+5. Open **Project settings > Service accounts > Firebase Admin SDK > Generate new private key**. Download the JSON outside the GitHub repository. It lets the private Worker check credentials and save verified results. Never upload this JSON to GitHub, add it to the website, or paste it into chat.
+
+The service account needs access to this project's Firestore and Firebase Authentication. The Firebase Admin SDK service account normally already has this access. If using a dedicated service account instead, grant `roles/datastore.user` and `roles/firebaseauth.admin`. Signing uses its private key; no IAM `signBlob` call or Cloud Function is needed.
+
+## 3. Deploy the free backend
+
+Install Node.js 22 or newer if needed. In PowerShell, open your game folder:
+
+```powershell
+cd 'C:\Users\TMuhu\OneDrive\Documents\GitHub\Lantern-Rush'
+cd free-backend
+npm ci
+npx wrangler login
 ```
 
-The build command copies the same match engine and actual season catalog into the verification service. Run it again whenever match physics, rules, rosters or ratings change. Firebase deployment runs it automatically too. Release the matching frontend and backend together; do not change physics while live rooms are active.
+The login command opens Cloudflare in your browser. Sign in to the free account you just created and approve the CLI connection. This does not require a paid plan.
 
-## 2. Configure administrators and TURN
+Open `free-backend/wrangler.jsonc`:
 
-Create `functions/.env.lsl-rivals` locally (ignored by Git):
+- `ALLOWED_ORIGINS` must contain the website origin, for example `https://goatmt.github.io` (without `/Lantern-Rush/`). Local testing origins are already included.
+- Put your own existing `gameProfiles` document ID in `ADMIN_UIDS` if you want Account Admin. Use an account ID, not a username or the admin-page password. Leave it empty to disable administrative operations.
+- Leave the SQLite Durable Object configuration intact. SQLite-backed Durable Objects are available on Workers Free.
+- Leave `MAX_DAILY_REQUESTS` at `6000` initially. This is a safety cap, not a promise of a particular number of matches.
 
-```dotenv
-ADMIN_UIDS=your-existing-gameProfiles-document-id
+Build and deploy:
+
+```powershell
+npm run build
+npm run deploy
 ```
 
-Multiple admin IDs can be comma-separated. Use your existing `gameProfiles` document ID, not a username or password. Admin actions now require that signed-in account AND the existing admin-page unlock; a public browser password alone no longer grants database administration. Nobody is granted admin automatically.
+`build` only checks/bundles locally. `deploy` publishes the Worker. Copy the resulting address, such as `https://lantern-rush-free.YOUR-SUBDOMAIN.workers.dev`.
 
-Create a TURN key with your relay provider. This implementation accepts a provider endpoint that receives `POST {"ttl":3600}` and returns `{ "iceServers": [...] }`, such as Cloudflare Realtime TURN:
-https://developers.cloudflare.com/realtime/turn/generate-credentials/
+Store the downloaded Firebase JSON as a **Worker secret**, using your actual local filename:
 
-Set the secret interactively:
-
-```sh
-firebase functions:secrets:set H2H_TURN_CONFIG --project lsl-rivals
+```powershell
+Get-Content -Raw -LiteralPath 'C:\path\to\your-firebase-key.json' | npx wrangler secret put FIREBASE_SERVICE_ACCOUNT
 ```
 
-At its prompt, enter a JSON object with your own endpoint and authorization value:
+That command sends the key only to your Cloudflare Worker secret store. Do not put its contents in `wrangler.jsonc`. The downloaded JSON does not belong in either game folder.
 
-```json
-{
-  "endpoint": "https://rtc.live.cloudflare.com/v1/turn/keys/YOUR_TURN_KEY_ID/credentials/generate-ice-servers",
-  "authorization": "Bearer YOUR_TURN_API_TOKEN"
-}
+Open your Worker URL followed by `/health`. It should show `Lantern Rush Free H2H`. This confirms the Worker is reachable; account/Firestore access is checked separately when signing in.
+
+## 4. Point the game at your Worker
+
+From the main game folder:
+
+```powershell
+cd ..
+node scripts/configure-free-backend.mjs https://lantern-rush-free.YOUR-SUBDOMAIN.workers.dev
 ```
 
-Do not put that token in a GitHub commit or static asset. Firebase reads the secret server-side and returns only expiring credentials to accepted room participants. See https://webrtc.org/getting-started/turn-server for why a relay is necessary on some networks.
+This checks the public health endpoint and saves only the public URL in `src/live-config.js`. No secret goes into the website. Publish the updated repository to GitHub Pages. If you also run the other LSL Game copy, use the same URL in its `src/live-config.js`.
 
-## 3. Deploy, then activate
+## 5. Activate accounts and rooms together
 
-From the repository root:
+Do these steps together so users do not get stuck between the old and new account systems:
 
-```sh
-firebase deploy --project lsl-rivals --only functions:lantern-rush-live,firestore:rules
+1. Confirm the Worker is deployed, its secret is set, and GitHub Pages serves the updated `src/live-config.js`.
+2. In Firebase Console > Firestore > Rules, publish this repository's `firestore.rules`. These rules protect account credentials and restrict signaling to accepted match participants.
+3. In Firestore Data, create/update collection **runtime**, document **live**, with **enabled = true** (Boolean).
+4. Refresh the game and sign in again. Existing usernames, six-digit passcodes, profile IDs and histories are reused. Old hashed credentials migrate only after a correct sign-in. Accounts without usable credentials need an authorized admin reset.
+
+Do not publish the new rules early without finishing activation. Do not reopen public credential writes to work around a setup error.
+
+## 6. Play the first match
+
+1. Sign into two different Lantern Rush accounts on two devices.
+2. Host: **Live H2H > Create Room**. Start with a 1-minute match.
+3. Guest: **Join Room**, enter the Room ID, then **Request to Join**.
+4. Host: **Accept**. Each player chooses a team and starting lineup, then presses **Ready**.
+5. Host presses **Start Match**. Play both halves; both players press **Continue** at halftime.
+6. At full time, leave both pages open until both histories are confirmed saved. Check each account's History.
+
+Test on the same Wi-Fi first, then on different networks. WebRTC uses free STUN and a direct connection, with no TURN subscription. Some routers, school networks and mobile carriers block direct connections. If a connection times out, try another network; the game will not silently purchase a relay or fabricate a result.
+
+## Free limits and privacy
+
+- Workers Free and Firebase Spark have usage/storage limits. When reached, online operations fail until the quota resets or storage is freed; they do not automatically upgrade to a paid plan. Keep both accounts on their free plans.
+- The backend also stops at its daily API request cap, resetting at midnight UTC. Public Firestore reads and existing CPU-history writes have their own Firebase quotas.
+- Account passcodes remain plain text in the protected `gameLogins` collection, as requested. Only the server checks them. Profile/session responses never include them.
+- A short in-memory request throttle is used to reduce abuse. Request bodies, passcodes and service-account keys are not logged by application code. Worker observability is disabled in the supplied configuration.
+- The backend still requires both players' matching timeline confirmations and replays the game before saving two mirrored reports. Scores submitted by a browser are not used as final results. Two colluding modified clients can still agree on a fabricated input timeline; this is private peer-hosted play, not a dedicated anti-cheat simulation server.
+- Closing/reloading the host's tab loses the running simulation. Short interruptions have a 25-second reconnection window; abandoned matches are not saved as completed results.
+- Expired room/signaling/trace documents are retained until administrative cleanup. Clean these up periodically if usage grows; do not delete `gameProfiles/*/matches` history. No paid TTL cleanup feature is enabled.
+
+## Updates and validation
+
+After changing game physics, rules or roster data, rebuild and redeploy the Worker and publish the matching frontend together. Avoid updating the engine during live matches. The build generates `free-backend/api.generated.js` from the shared existing server operations and refreshes the verification engine/catalog.
+
+```powershell
+node --test tests/free-backend.test.js tests/live-h2h.test.js tests/account-store.test.js
+node scripts/check.mjs
+npm --prefix free-backend run build
+npm --prefix free-backend run test:runtime
 ```
 
-If custom-token creation reports a `signBlob` permission error, grant the function runtime service account the required Service Account Token Creator role on the signing service account, following https://firebase.google.com/docs/auth/admin/create-custom-tokens . Do not grant project-wide roles to players.
+Local tests cover room approval, credentials, token signing, result replay, report mirroring, free quota boundaries and the Worker runtime's setup errors. Production Firebase access/rules and a real cross-network match still require the activation steps above.
 
-Publish the updated static game files to GitHub Pages. Then create/update this Firestore document using Firebase Console:
-
-- Collection: `runtime`
-- Document: `live`
-- Field: `enabled` = **true** (Boolean)
-
-This is the final activation step. Players should refresh and sign in again. Existing plain PINs work; older PBKDF2 PINs migrate only after a correct sign-in. Unknown legacy credentials need an authorized admin reset.
-
-Do not publish these stricter rules alone and stop: old browser-only sign-in cannot read credentials under them. If deployment fails before activation, keep the update in maintenance while fixing the backend. Never reopen public credential/room writes to make H2H appear to work.
-
-## 4. Check a real two-device match
-
-Local tests cover room policy, both human controllers, JSON snapshots, deterministic full-match verification, and report mirroring. A local browser fixture also exercises real WebRTC channels with local signaling. **Production Firebase rules/functions and a cross-network TURN match still require this deployment check.**
-
-1. Sign into two different accounts, preferably on Wi-Fi and cellular. Create a 1-minute room on one device.
-2. Request to join. Verify no lobby entry before host acceptance; test Deny, Lock and Unlock. An invitation still requires host approval.
-3. Choose different teams/formations. Both must press Ready before Start becomes available.
-4. Confirm countdown, both players' movement, passing/shooting, goalkeeper control, restarts and score updates. Check live room status from the invite/recent views.
-5. At halftime, make a substitution and continue on both devices. Attack directions and kickoff possession should reverse correctly.
-6. Interrupt a connection briefly, then reconnect within 25 seconds. Controls pause during reconnection; a timeout abandons the match without fabricating a win.
-7. At full time, keep both pages open until **Verified · Saved to both players’ History** appears. Check both reports have mirrored scores, actual opponent account names, lineups and full stats. Repeated save attempts must not create duplicate records.
-8. Test signed-out, unrelated-account, non-host approval, locked-room entry and direct room/result writes against the deployed rules. These must fail.
-
-## Integrity and practical limits
-
-The host is the live simulation authority; the guest sends controls, not positions or scores. Reliable input/command timelines are shared with both players. Both accounts confirm the same timeline digest, and the server re-runs the bundled engine from the stored seed and official rosters before atomically saving both reports. Final submitted scores/stats are not trusted. Room-card live scores are provisional until verification completes.
-
-This is private peer-hosted play, not a dedicated authoritative anti-cheat server. Two colluding modified clients can agree on a fabricated input timeline; server replay proves that the submitted inputs produce the result, not that real human fingers produced those inputs. Competitive prizes would need a dedicated live simulation service.
-
-A temporary network interruption can reconnect while the hosting tab remains alive. Closing/reloading the hosting tab loses its in-memory simulation and ends that match. Abandoned matches do not enter completed-match History. Completed room cards remain visible for five minutes, then are filtered out of the active list; result reports remain in History. Expired room/signaling documents are retained in Firestore until administrative cleanup (no automatic deletion of account history).
-
-Room previews update approximately every 2.5 seconds, presence every 25 seconds. Signaling, input traces and verification incur Firebase usage. Keep both accounts' pages open through verification. All match lengths are shared across modes: 1/2/3/4/5/6 minutes, split equally at halftime.
+Official references (checked September 21, 2026):
+- Workers Free limits: <https://developers.cloudflare.com/workers/platform/pricing/>
+- Free SQLite Durable Objects: <https://developers.cloudflare.com/durable-objects/platform/pricing/>
+- Free STUN: <https://developers.cloudflare.com/realtime/turn/faq/>
+- Custom Firebase tokens: <https://firebase.google.com/docs/auth/admin/create-custom-tokens>
+- Firestore REST server access: <https://firebase.google.com/docs/firestore/use-rest-api>

@@ -7,7 +7,7 @@ service cloud.firestore {
   function participant(code){return signed() && request.auth.uid in room(code).members && room(code).expiresAt>request.time.toMillis();}
   match /gameProfiles/{uid} {
    allow read: if true;
-   // Identity, credentials, administration and H2H results go through verified callable functions.
+   // Identity, credentials, administration and H2H results go through the authenticated free backend.
    allow update: if own(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats','modes','records','trophies','currentStreak','updatedAtMs','history','historySources']) && request.resource.data.history==resource.data.history && request.resource.data.get('historySources',[])==resource.data.get('historySources',[]);
    match /matches/{id} {
     allow read: if true;

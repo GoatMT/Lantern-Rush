@@ -1,3 +1,4 @@
+import {busyAction,confirmAction} from './ui.js';
 import {Settings} from '../settings.js';
 import {GameRenderer} from '../engine/renderer.js';
 import {GameLoop} from '../engine/loop.js';
@@ -20,8 +21,29 @@ export class LiveArena{
   this.view=new SnapshotView(this.match,this.side,()=>{},p=>this.renderer.refreshPlayer(p,this.match));
   $('live-arena').hidden=false;document.body.dataset.screen='match';document.body.style.overflow='hidden';$('live-home-name').textContent=this.room.names[this.room.host]+' · '+this.teams[0].name;$('live-away-name').textContent=this.room.names[this.room.guest]+' · '+this.teams[1].name;
   this.loop=new GameLoop((dt)=>this.update(dt),dt=>this.render(dt));this.loop.start();
-  $('live-menu-button').onclick=()=>this.menu();$('live-menu').onclick=ev=>{const b=ev.target.closest('[data-live-action]');if(!b)return;const a=b.dataset.liveAction;if(a==='resume')$('live-menu').close();if(a==='leave'&&confirm('Leave this live match? It will end for both players.'))this.onCommand('abandon');if(a==='subs')this.substitutions();if(a==='settings'){$('live-menu').close();import('../page-settings.js').then(m=>m.openSettings()).then(()=>{const dialog=$('settings-dialog');dialog.addEventListener('close',()=>{this.settings=new Settings();this.controls.settings=this.settings;this.mobile.applyLayout();this.renderer.applyGraphics(this.settings.value.graphics);this.match.settings.camera=this.settings.value.camera;},{once:true});});}};
-  $('live-overlay').onclick=ev=>{const b=ev.target.closest('[data-command]');if(!b)return;const command=b.dataset.command;if(command==='retryConnection'){this.onCommand('retry');return;}if(command==='retrySave'){this.retrySave?.();return;}if(command==='leave'){this.onCommand('abandon');return;}if(command==='subs'){this.menu();this.substitutions();return;}if(command==='continue')b.disabled=true;this.command({type:command});};
+  $('live-menu-button').onclick=()=>this.menu();
+  $('live-menu').onclick=ev=>{const b=ev.target.closest('[data-live-action]');if(!b)return;const a=b.dataset.liveAction;
+   if(a==='resume')$('live-menu').close();
+   if(a==='leave')busyAction(b,()=>this.leave(),this.onError);
+   if(a==='subs')this.substitutions();
+   if(a==='settings')busyAction(b,()=>this.openSettings(),this.onError);
+  };
+  $('live-overlay').onclick=ev=>{const b=ev.target.closest('[data-command]');if(!b)return;const command=b.dataset.command;
+   if(command==='retryConnection'){busyAction(b,()=>this.onCommand('retry'),this.onError);return;}
+   if(command==='retrySave'){this.retrySave?.();return;}
+   if(command==='leave'){busyAction(b,()=>this.leave(),this.onError);return;}
+   if(command==='subs'){this.menu();this.substitutions();return;}
+   if(this.command({type:command})&&command==='continue'){b.disabled=true;b.textContent='WAITING FOR OPPONENT';}
+  };
+ }
+ async leave(){if(await confirmAction('Leave this match?','The match will end for both players. An abandoned match does not count as a completed result.'))await this.onCommand('abandon');}
+ async openSettings(){
+  $('live-menu').close();const {openSettings}=await import('../page-settings.js');await openSettings();const dialog=$('settings-dialog');
+  let note=dialog.querySelector('.live-settings-note');if(!note){note=document.createElement('p');note.className='live-settings-note';dialog.querySelector('.settings-tabs').after(note);}note.textContent=`Host rules: ${this.room.options.duration} min, ${this.room.options.difficulty} AI. Graphics, camera and controls apply to your device. Match rules stay fixed until full time.`;
+  const locked=dialog.querySelectorAll('[data-difficulty],[data-duration],#setting-minor-injuries,#setting-lighting,#setting-weather');locked.forEach(el=>el.disabled=true);
+  const showRules=()=>{for(const kind of ['difficulty','duration'])dialog.querySelectorAll(`[data-${kind}]`).forEach(b=>b.classList.toggle('active',b.dataset[kind]===String(this.room.options[kind])));dialog.querySelector('#setting-lighting').value=this.room.options.lighting||'evening';dialog.querySelector('#setting-weather').value=this.match.settings.weather||'clear';dialog.querySelector('#setting-minor-injuries').checked=!!this.match.settings.minorInjuries;};showRules();dialog.addEventListener('click',showRules);dialog.addEventListener('change',showRules);
+  dialog.addEventListener('close',()=>{dialog.removeEventListener('click',showRules);dialog.removeEventListener('change',showRules);},{once:true});
+  dialog.addEventListener('close',()=>{locked.forEach(el=>el.disabled=false);note.remove();this.settings=new Settings();this.controls.settings=this.settings;this.mobile.applyLayout();this.renderer.applyGraphics(this.settings.value.graphics);this.renderer.stadium.setCrowdReactions(this.settings.value.crowdReactions);this.match.settings.camera=this.settings.value.camera;},{once:true});
  }
  event(type,data){if(type==='notice'){this.notice=data;this.noticeUntil=performance.now()+Math.min(6,data.seconds||3)*1000;this.send({type:'notice',data});}if(type==='substitution')this.renderer?.refreshPlayer(data.player,this.match);}
  connection(ready,text){this.ready=ready;if(ready)this.wasConnected=true;this.status=text||'';this.controls?.clear();if(ready&&this.host){this.lastRemoteSequence=-1;this.remotePacket=idlePacket();this.remoteAt=performance.now();this.outgoing=[];this.send({type:'trace-reset'});for(let i=0;i<this.trace.length;i+=150)this.send({type:'trace',events:this.trace.slice(i,i+150)});this.send({type:'snapshot',value:snapshot(this.match,this.sim.tick)},true);if(this.done){this.send({type:'final-snapshot',value:snapshot(this.match,this.sim.tick)});this.send({type:'finish',tick:this.sim.tick,report:this.finalReport});}}}
@@ -31,9 +53,10 @@ export class LiveArena{
   if(message.type==='trace-reset')this.trace=[];
   if(message.type==='trace'&&Array.isArray(message.events)&&message.events.length<=150&&this.trace.length+message.events.length<=100000)this.trace.push(...message.events);
   if(message.type==='notice'){this.notice=message.data;this.noticeUntil=performance.now()+Math.min(6,message.data.seconds||3)*1000;}
+  if(message.type==='command-error')this.onError(Error(String(message.message||'The action could not be completed.')));
   if(message.type==='finish'&&!this.done){this.done=true;this.finalReport=message.report;this.onFinish(this.trace,message.tick);}
  }
- command(command){if(this.host)this.pendingCommands.push({side:0,command});else this.send({type:'command',command});}
+ command(command){if(!this.ready){this.onError(Error('Wait for the match connection before trying again.'));return false;}if(this.host){this.pendingCommands.push({side:0,command});return true;}const sent=this.send({type:'command',command});if(!sent)this.onError(Error('Command could not be sent. Please reconnect and retry.'));return !!sent;}
  log(side,input,command){const record={t:this.sim.tick,side,...(input?{input}:{command})};if(input)this.sim.input(side,input);else this.sim.command(side,command);this.trace.push(record);this.outgoing.push(record);}
  update(dt){
   if(!this.controls)return;
@@ -46,7 +69,7 @@ export class LiveArena{
   if(!this.host)return;
   if(this.remotePacket){this.log(1,this.remotePacket);this.remotePacket=null;}
   if(performance.now()-this.remoteAt>700&&(this.sim.inputs[1].held.size||this.sim.inputs[1].x||this.sim.inputs[1].z)){this.log(1,idlePacket());}
-  for(const event of this.pendingCommands.splice(0))try{this.log(event.side,null,event.command);}catch(error){this.onError(error);}
+  for(const event of this.pendingCommands.splice(0))try{this.log(event.side,null,event.command);}catch(error){if(event.side===1)this.send({type:'command-error',message:error.message});else this.onError(error);}
   this.sim.step();
   if(this.sim.tick%6===0)this.send({type:'snapshot',value:snapshot(this.match,this.sim.tick)},true);
   if(this.outgoing.length&&this.sim.tick%6===0)this.flushTrace();
@@ -61,7 +84,7 @@ export class LiveArena{
   $('live-power').hidden=m.charge<=0;$('live-power').firstElementChild.style.width=Math.round(m.charge*100)+'%';
   $('touch-controls').hidden=!['playing','restart'].includes(m.phase)||!this.ready;
   const notice=$('live-notice');notice.hidden=!this.notice||performance.now()>this.noticeUntil;if(!notice.hidden)notice.textContent=this.notice.title+' · '+this.notice.subtitle;
-  let key='',markup='';const button=(command,label)=>`<button class="hub-button primary" data-command="${command}">${label}</button>`;
+  let key='',markup='';const button=(command,label)=>`<button class="hub-button ${command==='leave'?'danger':command==='subs'||command==='skipIntro'||command==='skipReplay'?'':'primary'}" data-command="${command}">${label}</button>`;
   if(!this.ready){key='connect:'+this.status;markup=`<h2>${this.wasConnected?'RECONNECTING':'CONNECTING'}</h2><p>${e(this.status||'Connecting both players…')}</p><div class="live-actions">${button('retryConnection','RETRY CONNECTION')}${button('leave','LEAVE MATCH')}</div>`;}
   else if(!this.room.kickoffAt){key='connected';markup='<h2>CONNECTED</h2><p>Both players are joining the pitch…</p>';}
   else if(Date.now()<this.room.startedAt){const count=Math.ceil((this.room.startedAt-Date.now())/1000);key='count'+count;markup=`<span class="eyebrow">BOTH PLAYERS READY</span><h2>${count}</h2><p>Welcome to Grenoble Field</p>`;}
@@ -72,7 +95,7 @@ export class LiveArena{
   const overlay=$('live-overlay');overlay.hidden=!markup;overlay.style.background=key.startsWith('replay')?'transparent':'';overlay.style.backdropFilter=key.startsWith('replay')?'none':'';if(key!==this.overlayKey){this.overlayKey=key;overlay.innerHTML=markup?`<section class="live-panel">${markup}</section>`:'';}
  }
  statsMarkup(){return '<div class="live-stats">'+[['Shots','shots'],['On target','onTarget'],['Passes','passes'],['Saves','saves'],['Fouls','fouls'],['Corners','corners']].map(([label,k])=>`<div>${label}<strong> · ${this.match.stats[0][k]||0} — ${this.match.stats[1][k]||0}</strong></div>`).join('')+'</div>';}
- menu(){this.controls.clear();if(!$('live-menu').open)$('live-menu').showModal();}
- substitutions(){const m=this.match,side=this.side,active=m.active(side),bench=m.benches[side];$('live-subs').innerHTML=`<h3>Substitutions</h3><label>PLAYER OUT<select id="live-sub-out">${active.map(p=>`<option value="${e(p.id)}">${e(playerLabel(p))} · ${p.role}</option>`).join('')}</select></label><label>PLAYER IN<select id="live-sub-in">${bench.map(p=>`<option value="${e(p.id)}">${e(playerLabel(p))}</option>`).join('')}</select></label><button id="live-sub-confirm" class="hub-button" ${bench.length?'':'disabled'}>QUEUE SUBSTITUTION</button>`;$('live-sub-confirm').onclick=()=>{const out=$('live-sub-out').value;this.command({type:'sub',out,in:$('live-sub-in').value});this.subbedOut||=new Set();this.subbedOut.add(out);$('live-menu').close();};}
+ menu(){this.controls.clear();$('live-menu').querySelector('[data-live-action=leave]').hidden=this.done;$('live-menu').querySelector('[data-live-action=subs]').disabled=this.done;if(!$('live-menu').open)$('live-menu').showModal();}
+ substitutions(){const m=this.match,side=this.side,active=m.active(side),bench=m.benches[side];$('live-subs').innerHTML=`<h3>Substitutions</h3><label>PLAYER OUT<select id="live-sub-out">${active.map(p=>`<option value="${e(p.id)}">${e(playerLabel(p))} · ${p.role}</option>`).join('')}</select></label><label>PLAYER IN<select id="live-sub-in">${bench.map(p=>`<option value="${e(p.id)}">${e(playerLabel(p))}</option>`).join('')}</select></label><button id="live-sub-confirm" class="hub-button" ${bench.length?'':'disabled'}>QUEUE SUBSTITUTION</button>`;$('live-sub-confirm').onclick=()=>{const out=$('live-sub-out').value;if(this.command({type:'sub',out,in:$('live-sub-in').value})){$('live-sub-confirm').disabled=true;$('live-menu').close();}};}
  stop(){this.loop?.stop();this.controls?.clear();this.mobile?.releaseAll?.();if(this.controls)this.controls.enabled=false;this.renderer?.renderer.dispose();this.renderer?.resizeObserver?.disconnect();if(this.renderer)removeEventListener('resize',this.renderer.onResize);$('live-arena').hidden=true;$('live-menu').close();document.body.dataset.screen='lobby';document.body.style.overflow='';}
 }

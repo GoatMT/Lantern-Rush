@@ -1,14 +1,14 @@
 export class LivePeer{
  constructor(service,room,{onMessage=()=>{},onState=()=>{}}={}){this.service=service;this.room=room;this.host=room.host===service.uid;this.onMessage=onMessage;this.onState=onState;this.channels={};this.outbox=[];this.pending=[];this.chain=Promise.resolve();this.closed=false;this.lastSeen=performance.now();}
  async connect(){
-  const {iceServers}=await this.service.call('h2hConnection',{code:this.room.code});if(this.closed)return;
+  const {iceServers,relay}=await this.service.call('h2hConnection',{code:this.room.code});this.directOnly=relay===false;if(this.closed)return;
   this.pc=new RTCPeerConnection({iceServers});
   this.pc.onicecandidate=e=>{if(e.candidate)this.service.signal(this.room.code,this.room.epoch,'candidate',e.candidate.toJSON()).catch(e=>this.onState('error',e.message));};
   this.pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(this.pc.connectionState)&&!this.closed)this.onState('disconnected');};
   this.pc.ondatachannel=e=>this.attach(e.channel);
   this.stop=this.service.signals(this.room.code,this.room.epoch,data=>{this.chain=this.chain.then(()=>this.signal(data)).catch(e=>this.onState('error',e.message));});
   if(this.host){this.attach(this.pc.createDataChannel('reliable'));this.attach(this.pc.createDataChannel('snapshots',{ordered:false,maxRetransmits:0}));const offer=await this.pc.createOffer();await this.pc.setLocalDescription(offer);await this.service.signal(this.room.code,this.room.epoch,'offer',offer);}
-  this.connectDeadline=setTimeout(()=>{if(!this.ready&&!this.closed)this.onState('error','The connection timed out. Try reconnecting.');},15000);
+  this.connectDeadline=setTimeout(()=>{if(!this.ready&&!this.closed)this.onState('error',this.directOnly?'A direct connection could not be made. Try another Wi-Fi network or the same Wi-Fi. This free mode has no paid relay.':'The connection timed out. Try reconnecting.');},15000);
   this.health=setInterval(()=>{this.send({type:'ping',at:performance.now()});if(this.ready&&performance.now()-this.lastSeen>6500)this.onState('disconnected');},2000);
  }
  async signal(data){if(this.closed)return;const p=JSON.parse(data.payload);

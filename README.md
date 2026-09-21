@@ -250,11 +250,14 @@ All modes share the same player profile presentation: published LSL OVR, derived
 `account.html` stores trophies, fastest goal, most goals in a match, biggest win and longest winning streak in `lsl-account-v1` local storage. The storage shape is deliberately isolated so a future Firebase account service can replace persistence without changing match pages.
 
 
-## Live Head to Head
+## Live Head to Head - free hosting
 
-`live-h2h.html` adds private, account-approved two-player rooms with invitations, independent team/formation selection, readiness, live room statuses, WebRTC match synchronization and a 25-second reconnection window. Completed results are replay-verified by Firebase Functions and saved to both accounts' History with the real opponent's name.
+`live-h2h.html` provides private, host-approved two-player rooms, invitations, independent teams and formations, readiness, live room status, WebRTC matches and a 25-second reconnection window. A Cloudflare Workers Free backend with a SQLite Durable Object replaces Firebase Functions. Firebase stays on Spark. Players still use their existing username and six-digit passcode; no email form is added.
 
-**This online mode requires backend deployment and activation.** Follow [LIVE-H2H-SETUP.md](./LIVE-H2H-SETUP.md) for Firebase custom-token accounts, rules, TURN credentials, admin IDs and deployment. The frontend remains compatible with static GitHub Pages hosting. Existing CPU game modes remain available before H2H activation. The account form still uses a username and six-digit passcode, without email.
+The backend replays the agreed input timeline against the official engine before saving both match reports. The frontend uses direct WebRTC with free STUN and no paid TURN relay. Some networks cannot connect directly; players see a clear explanation and can try another network.
 
-All modes now share 1–6 minute match lengths with equal halves. Run `node --test tests/live-h2h.test.js tests/match.test.js tests/account-store.test.js tests/match-history.test.js` for focused checks. After changing physics or rosters, regenerate/deploy the verification engine with `node scripts/build-h2h-server.mjs` and release matching frontend files.
+**Setup is required before online play works.** Follow [LIVE-H2H-SETUP.md](./LIVE-H2H-SETUP.md). Create a Cloudflare Free account, deploy the backend, store the Firebase service-account secret privately, set `src/live-config.js`, publish the matching rules/site and activate the runtime document. Until then, H2H remains unavailable. No paid services have been provisioned. The previous Firebase Functions deployment stays blocked.
 
+Keep Cloudflare on Workers Free and Firebase on Spark. Requests stop when free quotas are exhausted; there is no automatic paid fallback. A configurable 6,000-request daily backend cap further limits usage. This cap does not replace provider quotas or limit public Firestore reads.
+
+All modes share 1-6 minute matches with equal halves. Checks: `node --test tests/free-backend.test.js tests/live-h2h.test.js tests/account-store.test.js` and `node scripts/check.mjs`. Backend build: `npm --prefix free-backend ci` then `npm --prefix free-backend run build`. Rebuild/redeploy the matching backend when the engine or rosters change.
