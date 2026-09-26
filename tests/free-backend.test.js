@@ -2,12 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {generateKeyPairSync,createHash} from 'node:crypto';
 import {FirebaseRest,encodeFields,decodeFields} from '../free-backend/firebase-rest.js';
-import worker,{LiveBackend} from '../free-backend/worker.js';
+import worker,{LiveBackend,safeError} from '../free-backend/worker.js';
 import {createApi} from '../free-backend/api.generated.js';
 import {LiveSimulation,buildSquad,idlePacket} from '../src/h2h/simulation.js';
 import catalog from '../functions/catalog.json' with {type:'json'};
 
 const copy=structuredClone;
+test('unexpected backend failures expose a reference without leaking exception contents',()=>{
+ const logs=[],original=console.error;
+ console.error=value=>logs.push(value);
+ try{
+  const result=safeError(new TypeError('PRIVATE_CREDENTIAL_VALUE'));
+  assert.equal(result.code,'unavailable');
+  assert.match(result.message,/reference [a-f0-9]{8}/);
+  assert.equal(JSON.parse(logs[0]).type,'TypeError');
+  assert.equal(JSON.stringify({result,logs}).includes('PRIVATE_CREDENTIAL_VALUE'),false);
+  assert.deepEqual(safeError({code:'permission-denied',message:'Username or passcode is incorrect.'}),{code:'permission-denied',message:'Username or passcode is incorrect.'});
+ }finally{console.error=original;}
+});
 function database(){
  const records=new Map([['runtime/live',{enabled:true}]]);
  const ref=path=>({path,id:path.split('/').at(-1),get:async()=>({exists:records.has(path),data:()=>copy(records.get(path))}),set:async d=>records.set(path,copy(d)),create:async d=>{if(records.has(path))throw Object.assign(Error('exists'),{code:6});records.set(path,copy(d));},update:async d=>{const old=records.get(path);for(const [key,v]of Object.entries(d)){const parts=key.split('.');let p=old;for(const part of parts.slice(0,-1))p=p[part]||={};p[parts.at(-1)]=copy(v);}},delete:async()=>records.delete(path),collection:name=>collection(path+'/'+name)});

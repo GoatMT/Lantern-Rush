@@ -5,6 +5,16 @@ const apiNames=new Set(['accountAuth','accountProfile','accountAdmin','h2hRoom',
 const statusCode={ 'invalid-argument':400,unauthenticated:401,'permission-denied':403,'not-found':404,'already-exists':409,'failed-precondition':409,'resource-exhausted':429,unavailable:503 };
 const json=(body,status=200,headers={})=>Response.json(body,{status,headers:{'Cache-Control':'no-store',...headers}});
 const error=(code,message)=>Object.assign(new Error(message),{code});
+export function safeError(e){
+ const code=Object.hasOwn(statusCode,e?.code)?e.code:'unavailable';
+ if(code!=='unavailable')return {code,message:e.message};
+ const reference=crypto.randomUUID().slice(0,8);
+ // Never log messages, requests, account data, tokens or credentials. Stack locations
+ // identify the failing code while excluding the potentially sensitive first line.
+ const frames=String(e?.stack||'').split('\n').slice(1,5).map(line=>line.trim().match(/^at [a-zA-Z0-9_.$<> ]+ \([^()]+:\d+:\d+\)$/)?.[0]).filter(Boolean);
+ console.error(JSON.stringify({event:'live-service-error',reference,type:['TypeError','ReferenceError','RangeError','SyntaxError','Error','NotSupportedError'].includes(e?.name)?e.name:'Error',frames}));
+ return {code,message:`Online sign-in or play failed. Please retry; if it continues, share error reference ${reference}.`};
+}
 export function allowedOrigin(request,env){const origin=request.headers.get('Origin');return !!origin&&String(env.ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).includes(origin);}
 
 export default {
@@ -60,6 +70,6 @@ export class LiveBackend {
    let auth=null;
    if(name!=='accountAuth'){const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token)throw error('unauthenticated','Sign in before using online play.');auth=await this.db.verifyIdToken(token);}
    const result=await this.api[name]({data,auth});return json({data:result});
-  }catch(e){const code=Object.hasOwn(statusCode,e.code)?e.code:'unavailable';return json({error:{code,message:code==='unavailable'?'The free online service could not complete this request. Check Firebase setup or try again later.':e.message}},statusCode[code]);}
+  }catch(e){const failure=safeError(e);return json({error:failure},statusCode[failure.code]);}
  }
 }
