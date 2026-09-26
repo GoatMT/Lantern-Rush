@@ -10,7 +10,7 @@ import {replayTrace,buildSquad} from './engine/h2h/simulation.js';
 import {mergeAccountProfiles} from './engine/account-store.js';
 import {captureMatch} from './engine/match-history.js';
 initializeApp();const db=getFirestore(),auth=getAuth();
-const ADMIN_PASSWORD=defineSecret('ADMIN_PASSWORD');
+const ADMIN_UIDS=defineString('ADMIN_UIDS',{default:''});
 const TURN_CONFIG=defineSecret('H2H_TURN_CONFIG');
 const catalog=JSON.parse(readFileSync(new URL('./catalog.json',import.meta.url),'utf8'));
 const base={region:'us-central1',maxInstances:12};
@@ -19,7 +19,7 @@ const enabled=async()=>{if((await db.doc('runtime/live').get()).data()?.enabled!
 const signed=async request=>{await enabled();const uid=request.auth?.uid;if(!uid)err('unauthenticated','Sign in again to verify your Lantern Rush account.');const login=(await db.doc('gameLogins/'+uid).get()).data();if(!login||login.revision!==request.auth.token.revision)err('unauthenticated','Your session expired. Sign in again.');return uid;};
 const equal=(a,b)=>{const x=Buffer.from(String(a||'')),y=Buffer.from(String(b||''));return x.length===y.length&&timingSafeEqual(x,y);};
 async function rate(key,limit,windowMs){const ref=db.doc('h2hLimits/'+key);await db.runTransaction(async t=>{const old=(await t.get(ref)).data(),now=Date.now(),count=old&&now-old.at<windowMs?old.count+1:1;if(count>limit)err('resource-exhausted','Too many attempts. Please wait and try again.');t.set(ref,{at:count===1?now:old.at,count,expiresAt:now+windowMs});});}
-async function identity(uid){const profile=(await db.doc('gameProfiles/'+uid).get()).data();if(!profile)err('not-found','Account not found.');return {...profile,uid,usernameKey:profile.usernameKey||String(profile.username||'').toLowerCase()};}
+async function identity(uid){const profile=(await db.doc('gameProfiles/'+uid).get()).data();if(!profile)err('not-found','Account not found.');return profile;}
 export const accountAuth=onCall(base,async request=>{
  await enabled();
  const {action,username,passcode}=request.data||{},name=String(username||'').trim(),pin=String(passcode||'');
@@ -118,21 +118,21 @@ export const h2hFinalize=onCall({...base,memory:'1GiB',timeoutSeconds:540,maxIns
   for(let side=0;side<2;side++){const player=room.members[side],opponent=room.members[1-side],record=personalReport(report,room,side,now);t.create(db.doc(`gameProfiles/${player}/matches/h2h-${room.code}-${room.startedAt}`),record);t.set(db.doc(`h2hRecent/${player}/players/${opponent}`),{uid:opponent,username:room.names[opponent],code:room.code,playedAt:now});}
   t.update(ref,{status:'FULL TIME',score:report.score,elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
 });
-export const accountAdmin=onCall({...base,secrets:[ADMIN_PASSWORD]},async request=>{
- await enabled();if(!ADMIN_PASSWORD.value())err('failed-precondition','The server admin password has not been configured.');if(!equal(request.data?.adminPassword,ADMIN_PASSWORD.value()))err('permission-denied','Incorrect admin password.');
+export const accountAdmin=onCall(base,async request=>{
+ const actor=await signed(request);if(!ADMIN_UIDS.value().split(',').map(x=>x.trim()).includes(actor))err('permission-denied','Sign in with an account listed in the server ADMIN_UIDS setting.');
  const d=request.data||{};if(d.action==='authorize')return {allowed:true};
  if(d.action==='merge'){
-  if(![d.source,d.target].every(id=>typeof id==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(id))||d.source===d.target)err('invalid-argument','Choose two different accounts.');
+  if(d.source===d.target)err('invalid-argument','Choose two accounts.');
   const profiles=await Promise.all([identity(d.source),identity(d.target)]);
   for(const profile of profiles)for(const record of profile.history||[]){if(!record.id)continue;const ref=db.doc(`gameProfiles/${profile.uid}/matches/${record.id}`);await db.runTransaction(async t=>{if(!(await t.get(ref)).exists)t.create(ref,{...record,ownerId:profile.uid,accountName:record.accountName||profile.username});});}
-  await db.runTransaction(async t=>{const aRef=db.doc('gameProfiles/'+d.source),bRef=db.doc('gameProfiles/'+d.target),a=(await t.get(aRef)).data(),b=(await t.get(bRef)).data();if(!a||!b)err('not-found','Account no longer exists.');const sourceKey=a.usernameKey||String(a.username||'').toLowerCase(),targetKey=b.usernameKey||String(b.username||'').toLowerCase(),sourceAlias=db.doc('gameUsernames/'+sourceKey),targetAlias=db.doc('gameUsernames/'+targetKey),sourceOwner=(await t.get(sourceAlias)).data()?.uid,targetOwner=(await t.get(targetAlias)).data()?.uid;if(targetOwner&&![d.source,d.target].includes(targetOwner))err('failed-precondition','Rename the destination account first; another account owns that username.');const merged=mergeAccountProfiles(a,b);t.set(bRef,{...merged,historySources:[...new Set([...(a.historySources||[]),...(b.historySources||[]),d.source])],updatedAtMs:Date.now()});t.delete(aRef);t.delete(db.doc('gameLogins/'+d.source));if(sourceKey!==targetKey&&sourceOwner===d.source)t.delete(sourceAlias);t.set(targetAlias,{uid:d.target});});await auth.deleteUser(d.source).catch(()=>{});return {};
+  await db.runTransaction(async t=>{const aRef=db.doc('gameProfiles/'+d.source),bRef=db.doc('gameProfiles/'+d.target),a=(await t.get(aRef)).data(),b=(await t.get(bRef)).data();if(!a||!b)err('not-found','Account no longer exists.');const merged=mergeAccountProfiles(a,b);t.set(bRef,{...merged,historySources:[...new Set([...(a.historySources||[]),...(b.historySources||[]),d.source])],updatedAtMs:Date.now()});t.delete(aRef);t.delete(db.doc('gameLogins/'+d.source));t.delete(db.doc('gameUsernames/'+a.usernameKey));});return {};
  }
- const uid=String(d.uid||'');if(!/^[A-Za-z0-9_-]{1,128}$/.test(uid))err('invalid-argument','Select a valid account.');const profile=await identity(uid),ref=db.doc('gameProfiles/'+uid);
+ const uid=String(d.uid||''),profile=await identity(uid),ref=db.doc('gameProfiles/'+uid);
  if(d.action==='rename'){
   const name=String(d.username||'').trim(),key=name.toLowerCase();if(!/^[a-zA-Z0-9_]{2,12}$/.test(name))err('invalid-argument','Invalid username.');
-  await db.runTransaction(async t=>{const n=db.doc('gameUsernames/'+key),exists=(await t.get(n)).data(),oldAlias=db.doc('gameUsernames/'+profile.usernameKey),oldOwner=(await t.get(oldAlias)).data()?.uid;if(exists&&exists.uid!==uid)err('already-exists','Username taken.');t.set(n,{uid});t.update(ref,{username:name,usernameKey:key,updatedAtMs:Date.now()});if(key!==profile.usernameKey&&oldOwner===uid)t.delete(oldAlias);});
+  await db.runTransaction(async t=>{const n=db.doc('gameUsernames/'+key),exists=(await t.get(n)).data();if(exists&&exists.uid!==uid)err('already-exists','Username taken.');t.set(n,{uid});t.update(ref,{username:name,usernameKey:key,updatedAtMs:Date.now()});if(key!==profile.usernameKey)t.delete(db.doc('gameUsernames/'+profile.usernameKey));});
  }else if(d.action==='reset'){
   if(!/^\d{6}$/.test(d.passcode))err('invalid-argument','Passcode must contain six digits.');await db.doc('gameLogins/'+uid).set({passcode:d.passcode,revision:randomUUID(),algorithm:'plain-v1'});await auth.revokeRefreshTokens(uid).catch(()=>{});
- }else if(d.action==='remove'){await db.runTransaction(async t=>{const alias=db.doc('gameUsernames/'+profile.usernameKey),owner=(await t.get(alias)).data()?.uid;t.delete(ref);t.delete(db.doc('gameLogins/'+uid));if(owner===uid)t.delete(alias);});await auth.deleteUser(uid).catch(()=>{});}
+ }else if(d.action==='remove'){const b=db.batch();b.delete(ref);b.delete(db.doc('gameLogins/'+uid));b.delete(db.doc('gameUsernames/'+profile.usernameKey));await b.commit();await auth.deleteUser(uid).catch(()=>{});}
  else err('invalid-argument','Unsupported admin operation.');return {};
 });

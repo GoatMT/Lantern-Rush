@@ -49,11 +49,11 @@ export class LiveBackend {
   sql.exec('INSERT INTO daily_budget (day, calls) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET calls = calls + 1',day);
   if(!row)sql.exec('DELETE FROM daily_budget WHERE day < ?',day);
  }
- limitClient(ip,limit=180){
+ limitClient(ip){
   const now=Date.now();for(const [key,value]of this.clients)if(value.until<=now)this.clients.delete(key);
   if(this.clients.size>5000)throw error('resource-exhausted','The free service is busy. Try again shortly.');
   const entry=this.clients.get(ip)||{count:0,until:now+60000};
-  if(++entry.count>limit)throw error('resource-exhausted','Too many requests. Please wait a minute.');
+  if(++entry.count>180)throw error('resource-exhausted','Too many requests. Please wait a minute.');
   this.clients.set(ip,entry);
  }
  async fetch(request){
@@ -64,12 +64,11 @@ export class LiveBackend {
    const bytes=new Uint8Array(size);let offset=0;for(const part of chunks){bytes.set(part,offset);offset+=part.length;}
    let data;try{data=JSON.parse(new TextDecoder().decode(bytes));}catch{throw error('invalid-argument','Invalid request JSON.');}
    if(!data||typeof data!=='object'||Array.isArray(data))throw error('invalid-argument','Invalid request.');
-   if(!this.db){this.db=new FirebaseRest(this.env);this.api=createApi({db:this.db,auth:this.db,adminPassword:this.env.ADMIN_PASSWORD||''});}
+   if(!this.db){this.db=new FirebaseRest(this.env);this.api=createApi({db:this.db,auth:this.db,adminUids:this.env.ADMIN_UIDS||''});}
    const name=new URL(request.url).pathname.split('/').at(-1);
    if(!Object.hasOwn(this.api,name))throw error('not-found','Unknown online operation.');
    let auth=null;
-   if(name==='accountAdmin')this.limitClient('admin:'+(request.headers.get('CF-Connecting-IP')||'local'),12);
-   if(!['accountAuth','accountAdmin'].includes(name)){const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token)throw error('unauthenticated','Sign in before using online play.');auth=await this.db.verifyIdToken(token);}
+   if(name!=='accountAuth'){const token=request.headers.get('Authorization')?.match(/^Bearer (.+)$/)?.[1];if(!token)throw error('unauthenticated','Sign in before using online play.');auth=await this.db.verifyIdToken(token);}
    const result=await this.api[name]({data,auth});return json({data:result});
   }catch(e){const failure=safeError(e);return json({error:failure},statusCode[failure.code]);}
  }

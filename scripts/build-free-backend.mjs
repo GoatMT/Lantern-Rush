@@ -26,8 +26,8 @@ import {captureMatch} from '../functions/engine/match-history.js';
 import catalog from '../functions/catalog.json' with {type:'json'};
 class HttpsError extends Error {constructor(code,message){super(message);this.code=code;}}
 const onCall=(_options,handler)=>handler,base={};
-export function createApi({db,auth,adminPassword=''}){
- const ADMIN_PASSWORD={value:()=>adminPassword};
+export function createApi({db,auth,adminUids=''}){
+ const ADMIN_UIDS={value:()=>adminUids};
  ${source}
  return {${names.join(',')}};
 }
