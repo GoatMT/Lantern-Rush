@@ -1,3 +1,4 @@
+import {scoreboardNotice} from './scoreboard-events.js';
 import {durationButtons} from '../match-options.js';
 import { escapeHTML as e,clockText } from '../config.js';
 import { DEFAULT_KEYS,CONTROL_NAMES,keyLabel } from '../settings.js';
@@ -79,7 +80,7 @@ export class Menus {
   show(screen){
     document.body.dataset.screen=screen;
     for(const id of ['home','selection','stats-screen'])$(id).hidden=id!==screen;
-    $('match-hud').hidden=screen!=='match';$('intro-overlay').hidden=true;$('notice').hidden=true;$('replay-overlay').hidden=true;this.replayTime=0;
+    this.app.hud?.events.reset();$('match-hud').hidden=screen!=='match';$('intro-overlay').hidden=true;$('notice').hidden=true;$('replay-overlay').hidden=true;this.replayTime=0;
     this.screen=screen;this.app.controls.enabled=screen==='match';this.app.controls.clear();
     if(screen==='stats-screen')$('stats-screen').scrollTop=0;
   }
@@ -153,7 +154,10 @@ export class Menus {
     $('intro-overlay').hidden=false;
   }
   phase(phase){if(phase==='halftime'||phase==='fulltime'){this.results();return;}if(phase==='home')return;if(this.screen!=='match')this.show('match');$('intro-overlay').hidden=phase!=='intro';}
-  notice({title,subtitle,seconds}){
+  notice(data){
+    const {title,subtitle,seconds}=data;
+    if(scoreboardNotice(data,this.app.match)){this.app.hud.events.show(data,this.app.match);$('notice').hidden=true;this.noticeTime=0;return;}
+    this.app.hud?.events.reset();
     const root=$('notice'),goal=title==='GOAL!',m=this.app.match;
     root.querySelector('strong').textContent=title;root.querySelector('span').textContent=subtitle;
     root.querySelector('.notice-kicker').textContent=m?.dream?'LSL DREAM F.C. · CPU MATCH':m?.rivalry?'RIVALRY MATCH · '+m.rivalry.title.toUpperCase():m?.tournament?'INTER-MADRASAH · '+m.tournament.season:m?.seasonMatch?'SEASON MODE · '+m.seasonMatch.year:'LANTERN RUSH · MATCHDAY';

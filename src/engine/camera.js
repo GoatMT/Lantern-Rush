@@ -65,7 +65,7 @@ export class BroadcastCamera{
           const scale=aspect<1.3?1.3:1;
           this.position.set(r.x,39*scale,r.z+36*scale);this.target.set(r.x-d*3,.35,r.z+2);fov=aspect<1.3?59:52;
         }
-        if(match.moment?.player&&match.moment.type!=='miss'){
+        if(match.phase!=='playing'&&match.moment?.player&&match.moment.type!=='miss'){
           const focus=match.moment.player;this.position.set(focus.x-7,5,focus.z+10);this.target.set(focus.x,2,focus.z);fov=45;
         }
       }

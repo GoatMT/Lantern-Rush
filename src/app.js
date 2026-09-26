@@ -96,7 +96,7 @@ class App {
     if(type==='phase'){if(data==='fulltime'){this.cloudAccount?.recordMatch(this.match).catch(()=>{this.menus.notice({title:'HISTORY SYNC PENDING',subtitle:this.match.historySavedLocally?'Saved on this device. Open History to retry cloud sync.':'Could not save the report. Keep this page open and check device storage.',seconds:6});});}this.menus.phase(data);}
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
-    if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
+    if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',team:data.team,subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
   }
   returnToTournament(){this.menus.closeAll();this.mode='tournament';this.tournament.afterGame(this.match);this.menus.selection();}
   returnToSeason(){this.menus.closeAll();this.mode='season';this.seasonMode.afterGame(this.match);this.menus.selection();}

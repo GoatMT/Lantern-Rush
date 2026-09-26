@@ -1,3 +1,4 @@
+import {ScoreboardEvents,scoreboardNotice} from '../ui/scoreboard-events.js';
 import {busyAction,confirmAction} from './ui.js';
 import {Settings} from '../settings.js';
 import {GameRenderer} from '../engine/renderer.js';
@@ -15,6 +16,7 @@ export async function traceDigest(trace){const hash=await crypto.subtle.digest('
 export class LiveArena{
  constructor({room,teams,side,send,onFinish,onCommand,onError}){Object.assign(this,{room,teams,side,send,onFinish,onCommand,onError});this.host=side===0;this.trace=[];this.outgoing=[];this.ready=false;this.done=false;this.settings=new Settings();this.pendingCommands=[];this.inputAge=0;this.sentInput=0;this.sequence=0;this.lastRemoteSequence=-1;this.remoteAt=performance.now();this.status='Connecting both players…';}
  async start(){
+  this.scoreboardEvents=new ScoreboardEvents(document.querySelector('.live-score'));
   this.controls=new Controls(this.settings);this.mobile=new MobileControls(this.controls);
   const options={...this.settings.value,...this.room.options};this.sim=new LiveSimulation(this.teams,options,this.room.seed,(type,data)=>this.event(type,data));this.match=this.sim.match;this.match.localTeam=this.side;
   this.renderer=new GameRenderer($('live-canvas'),options);this.renderer.setMatch(this.match);this.renderer.stadium.setCrowdReactions(options.crowdReactions);
@@ -45,14 +47,15 @@ export class LiveArena{
   dialog.addEventListener('close',()=>{dialog.removeEventListener('click',showRules);dialog.removeEventListener('change',showRules);},{once:true});
   dialog.addEventListener('close',()=>{locked.forEach(el=>el.disabled=false);note.remove();this.settings=new Settings();this.controls.settings=this.settings;this.mobile.applyLayout();this.renderer.applyGraphics(this.settings.value.graphics);this.renderer.stadium.setCrowdReactions(this.settings.value.crowdReactions);this.match.settings.camera=this.settings.value.camera;},{once:true});
  }
- event(type,data){if(type==='notice'){this.notice=data;this.noticeUntil=performance.now()+Math.min(6,data.seconds||3)*1000;this.send({type:'notice',data});}if(type==='substitution')this.renderer?.refreshPlayer(data.player,this.match);}
+ showNotice(data){if(scoreboardNotice(data,this.match)){this.scoreboardEvents?.show(data,this.match);this.notice=null;}else{this.scoreboardEvents?.reset();this.notice=data;this.noticeUntil=performance.now()+Math.min(6,data.seconds||3)*1000;}}
+ event(type,data){if(type==='substitution'){this.renderer?.refreshPlayer(data.player,this.match);data={title:'SUBSTITUTION',team:data.team,playerName:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:4.5,compact:true};type='notice';}if(type==='notice'){data={...data,compact:scoreboardNotice(data,this.match)};this.showNotice(data);this.send({type:'notice',data});}}
  connection(ready,text){this.ready=ready;if(ready)this.wasConnected=true;this.status=text||'';this.controls?.clear();if(ready&&this.host){this.lastRemoteSequence=-1;this.remotePacket=idlePacket();this.remoteAt=performance.now();this.outgoing=[];this.send({type:'trace-reset'});for(let i=0;i<this.trace.length;i+=150)this.send({type:'trace',events:this.trace.slice(i,i+150)});this.send({type:'snapshot',value:snapshot(this.match,this.sim.tick)},true);if(this.done){this.send({type:'final-snapshot',value:snapshot(this.match,this.sim.tick)});this.send({type:'finish',tick:this.sim.tick,report:this.finalReport});}}}
  receive(message){
   if(this.host){if(message.type==='input'&&Number.isInteger(message.sequence)&&message.sequence>this.lastRemoteSequence){this.lastRemoteSequence=message.sequence;this.remoteAt=performance.now();this.remotePacket=cleanInput(message.input);}if(message.type==='command'&&['skipIntro','skipReplay','continue','sub'].includes(message.command?.type))this.pendingCommands.push({side:1,command:message.command});return;}
   if(message.type==='snapshot')this.view.push(message.value);if(message.type==='final-snapshot'){this.view.queue=[];this.view.latestTick=-1;this.view.push(message.value);this.view.update();}
   if(message.type==='trace-reset')this.trace=[];
   if(message.type==='trace'&&Array.isArray(message.events)&&message.events.length<=150&&this.trace.length+message.events.length<=100000)this.trace.push(...message.events);
-  if(message.type==='notice'){this.notice=message.data;this.noticeUntil=performance.now()+Math.min(6,message.data.seconds||3)*1000;}
+  if(message.type==='notice')this.showNotice(message.data);
   if(message.type==='command-error')this.onError(Error(String(message.message||'The action could not be completed.')));
   if(message.type==='finish'&&!this.done){this.done=true;this.finalReport=message.report;this.onFinish(this.trace,message.tick);}
  }
@@ -77,6 +80,7 @@ export class LiveArena{
  }
  flushTrace(){while(this.outgoing.length){const events=this.outgoing.slice(0,150);if(!this.send({type:'trace',events}))break;this.outgoing.splice(0,events.length);}}
  render(dt){
+  this.scoreboardEvents?.update(dt);
   if(!this.host)this.view.update(this.controls?.movement());else Object.assign(this.match,this.match.humanSeats[0]);
   const m=this.match,p=m.controlled;this.renderer.render(dt,m);this.renderer.adaptPerformance(this.loop.fps,dt);this.renderer.stadium.score(m.stats[0].goals,m.stats[1].goals);
   $('live-score').textContent=m.stats[0].goals+' – '+m.stats[1].goals;$('live-clock').textContent=(m.half===1?'FIRST HALF':'SECOND HALF')+' · '+clockText(m.elapsed);
@@ -97,5 +101,5 @@ export class LiveArena{
  statsMarkup(){return '<div class="live-stats">'+[['Shots','shots'],['On target','onTarget'],['Passes','passes'],['Saves','saves'],['Fouls','fouls'],['Corners','corners']].map(([label,k])=>`<div>${label}<strong> · ${this.match.stats[0][k]||0} — ${this.match.stats[1][k]||0}</strong></div>`).join('')+'</div>';}
  menu(){this.controls.clear();$('live-menu').querySelector('[data-live-action=leave]').hidden=this.done;$('live-menu').querySelector('[data-live-action=subs]').disabled=this.done;if(!$('live-menu').open)$('live-menu').showModal();}
  substitutions(){const m=this.match,side=this.side,active=m.active(side),bench=m.benches[side];$('live-subs').innerHTML=`<h3>Substitutions</h3><label>PLAYER OUT<select id="live-sub-out">${active.map(p=>`<option value="${e(p.id)}">${e(playerLabel(p))} · ${p.role}</option>`).join('')}</select></label><label>PLAYER IN<select id="live-sub-in">${bench.map(p=>`<option value="${e(p.id)}">${e(playerLabel(p))}</option>`).join('')}</select></label><button id="live-sub-confirm" class="hub-button" ${bench.length?'':'disabled'}>QUEUE SUBSTITUTION</button>`;$('live-sub-confirm').onclick=()=>{const out=$('live-sub-out').value;if(this.command({type:'sub',out,in:$('live-sub-in').value})){$('live-sub-confirm').disabled=true;$('live-menu').close();}};}
- stop(){this.loop?.stop();this.controls?.clear();this.mobile?.releaseAll?.();if(this.controls)this.controls.enabled=false;this.renderer?.renderer.dispose();this.renderer?.resizeObserver?.disconnect();if(this.renderer)removeEventListener('resize',this.renderer.onResize);$('live-arena').hidden=true;$('live-menu').close();document.body.dataset.screen='lobby';document.body.style.overflow='';}
+ stop(){this.scoreboardEvents?.reset();this.loop?.stop();this.controls?.clear();this.mobile?.releaseAll?.();if(this.controls)this.controls.enabled=false;this.renderer?.renderer.dispose();this.renderer?.resizeObserver?.disconnect();if(this.renderer)removeEventListener('resize',this.renderer.onResize);$('live-arena').hidden=true;$('live-menu').close();document.body.dataset.screen='lobby';document.body.style.overflow='';}
 }

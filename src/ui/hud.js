@@ -5,11 +5,12 @@ import { teamOverall } from '../ratings.js';
 import { playerLabel } from '../player-label.js';
 import { SHOT_NAMES } from '../match/shooting.js';
 import { INTRO,introPlayer } from '../presentation.js';
+import {ScoreboardEvents} from './scoreboard-events.js';
 export class HUD{
-  constructor(app){this.app=app;this.labels=new Map();this.ctx=$('minimap').getContext('2d');this.acc=0;this.intro=new MatchIntro();}
-  reset(){this.labels.clear();$('player-labels').replaceChildren();}
+  constructor(app){this.app=app;this.labels=new Map();this.ctx=$('minimap').getContext('2d');this.acc=0;this.intro=new MatchIntro();this.events=new ScoreboardEvents(document.querySelector('.scoreboard'));}
+  reset(){this.events.reset();this.labels.clear();$('player-labels').replaceChildren();}
   update(dt){
-    const m=this.app.match;if(!m||this.app.menus.screen!=='match')return;const p=m.controlled;
+    const m=this.app.match;if(!m||this.app.menus.screen!=='match')return;const p=m.controlled;this.events.update(dt);
     $('match-hud').dataset.phase=m.phase;
     $('score-user').textContent=m.stats[0].goals;$('score-cpu').textContent=m.stats[1].goals;
     $('hud-user-ovr').textContent=(teamOverall(m.teams[0])??'—')+' OVR';$('hud-cpu-ovr').textContent=(teamOverall(m.teams[1])??'—')+' OVR';
