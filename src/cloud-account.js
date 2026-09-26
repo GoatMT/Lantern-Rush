@@ -1,7 +1,7 @@
 import {VerifiedAccountStore} from './verified-account-store.js';
 import {attributedHistory} from './account-store.js';
-import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,ADMIN_PASSWORD,validateCredentials} from './account-store.js';
-export {ADMIN_PASSWORD,validateCredentials} from './account-store.js';
+import {FirestoreAccountStore,ACCOUNT_SESSION_KEY,validateCredentials} from './account-store.js';
+export {validateCredentials} from './account-store.js';
 import {captureMatch,uniqueMatches,summarize,recordsFor} from './match-history.js';
 import {enqueueReport,removePending,pendingReports,fetchArchive} from './history-store.js';
 import {FIREBASE_CONFIG,FIREBASE_SDK_VERSION} from './firebase-config.js';
@@ -131,9 +131,9 @@ export class CloudAccount {
   }
   async getProfiles(){await this.requireStore();const snapshot=await this.modules.firestore.getDocs(this.modules.firestore.collection(this.db,PROFILE_COLLECTION));return snapshot.docs.map(item=>sanitizeProfile(item.data(),item.id));}
   async getProfile(id){await this.requireStore();if(!id)return null;return this.loadProfile(id);}
-  async adminLogin(password){if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');await this.requireStore();await this.store.authorizeAdmin?.();this.adminUnlocked=true;return true;}
+  async adminLogin(password){this.adminUnlocked=false;await this.requireStore();if(!this.store.authorizeAdmin)throw new Error('Online administration must be enabled before managing accounts.');await this.store.authorizeAdmin(password);this.adminUnlocked=true;return true;}
   isAdmin(){return this.adminUnlocked;}
-  adminLogout(){this.adminUnlocked=false;}
+  adminLogout(){this.adminUnlocked=false;this.store?.lockAdmin?.();}
   async requireAdmin(){await this.requireStore();if(!this.isAdmin())throw new Error('Unlock the admin page first.');}
   async adminUpdateProfile(id,patch){await this.requireAdmin();if(patch.username)await this.store.rename(id,patch.username);else await this.modules.firestore.updateDoc(this.store.profileRef(id),{...patch,updatedAtMs:Date.now()});return this.getProfile(id);}
   async adminResetPasscode(id,pin){await this.requireAdmin();return this.store.resetPasscode(id,pin);}

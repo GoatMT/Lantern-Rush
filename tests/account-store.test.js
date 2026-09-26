@@ -99,11 +99,15 @@ test('admin locks are independent of the current player and reject the wrong pas
   const f=fixture(),a=await f.store.create('Player','123456',profile);
   const service=Object.create(CloudAccount.prototype);
   Object.assign(service,{store:f.store,available:true,ready:Promise.resolve(),onChange:()=>{},adminUnlocked:false});service.adopt(a);
+  let serverLocked=false;
+  f.store.authorizeAdmin=async password=>{if(password!=='fixture-admin')throw Error('Incorrect admin password.');};
+  f.store.lockAdmin=()=>{serverLocked=true;};
   await assert.rejects(service.adminLogin('incorrect'),/Incorrect admin password/);
   assert.equal(service.isAdmin(),false);
-  // The existing operator password only unlocks this browser console.
-  const {ADMIN_PASSWORD}=await import('../src/account-store.js');await service.adminLogin(ADMIN_PASSWORD);
+  // The backend verifies the supplied password; the browser has no embedded secret.
+  await service.adminLogin('fixture-admin');
   assert.equal(service.isAdmin(),true);service.adminLogout();assert.equal(service.isAdmin(),false);
+  assert.equal(serverLocked,true);
   assert.equal(service.isSignedIn(),true);assert.equal((await f.store.restore()).uid,a.uid);
 });
 

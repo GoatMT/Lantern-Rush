@@ -38,7 +38,7 @@ The login command opens Cloudflare in your browser. Sign in to the free account 
 Open `free-backend/wrangler.jsonc`:
 
 - `ALLOWED_ORIGINS` must contain the website origin, for example `https://goatmt.github.io` (without `/Lantern-Rush/`). Local testing origins are already included.
-- Put your own existing `gameProfiles` document ID in `ADMIN_UIDS` if you want Account Admin. Use an account ID, not a username or the admin-page password. Leave it empty to disable administrative operations.
+- To enable Account Admin, run `npx wrangler secret put ADMIN_PASSWORD` in `free-backend` and enter your operator password at the private prompt. Open `admin.html` and use that password; no player sign-in or `ADMIN_UIDS` allowlist is needed. Without this secret, admin operations remain disabled.
 - Leave the SQLite Durable Object configuration intact. SQLite-backed Durable Objects are available on Workers Free.
 - Leave `MAX_DAILY_REQUESTS` at `6000` initially. This is a safety cap, not a promise of a particular number of matches.
 

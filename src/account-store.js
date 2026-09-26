@@ -2,7 +2,7 @@
 // PIN checks and the admin lock are client-side, not server authentication.
 // Keep this adapter replaceable when verified accounts are introduced.
 export const ACCOUNT_SESSION_KEY = 'lsl-rush-firestore-session-v2';
-export const ADMIN_PASSWORD = 'BlueM123';
+
 const ITERATIONS = 120000;
 
 export function validateCredentials(username, pin) {

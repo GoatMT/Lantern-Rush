@@ -25,6 +25,7 @@ function database(){
  const ref=path=>({path,id:path.split('/').at(-1),get:async()=>({exists:records.has(path),data:()=>copy(records.get(path))}),set:async d=>records.set(path,copy(d)),create:async d=>{if(records.has(path))throw Object.assign(Error('exists'),{code:6});records.set(path,copy(d));},update:async d=>{const old=records.get(path);for(const [key,v]of Object.entries(d)){const parts=key.split('.');let p=old;for(const part of parts.slice(0,-1))p=p[part]||={};p[parts.at(-1)]=copy(v);}},delete:async()=>records.delete(path),collection:name=>collection(path+'/'+name)});
  const collection=(path,filter=()=>true,limit=Infinity)=>({doc:id=>ref(path+'/'+id),where:(field,op,v)=>collection(path,d=>d[field]===v,limit),limit:n=>collection(path,filter,n),orderBy:()=>collection(path,filter,limit),get:async()=>({docs:[...records].filter(([key,data])=>key.startsWith(path+'/')&&!key.slice(path.length+1).includes('/')&&filter(data)).sort(([a],[b])=>a.localeCompare(b)).slice(0,limit).map(([path,d])=>({id:path.split('/').at(-1),data:()=>copy(d)}))})});
  const db={doc:ref,collection,records};
+ db.batch=()=>{const writes=[];const batch={delete:r=>{writes.push(()=>r.delete());return batch;},commit:async()=>{for(const write of writes)await write();}};return batch;};
  db.runTransaction=async fn=>{const writes=[],t={get:r=>r.get(),set:(r,v)=>writes.push(()=>r.set(v)),update:(r,v)=>writes.push(()=>r.update(v)),create:(r,v)=>writes.push(()=>r.create(v)),delete:r=>writes.push(()=>r.delete())};const result=await fn(t);for(const write of writes)await write();return result;};
  db.createCustomToken=async(uid,claims)=>JSON.stringify({uid,claims});db.revokeRefreshTokens=async()=>{};db.deleteUser=async()=>{};
  return db;
@@ -39,7 +40,29 @@ test('free account API keeps username/PIN identity, rejects wrong PIN and revoke
  await assert.rejects(api.accountAuth({data:{action:'login',username:'Player',passcode:'000000'}}),/incorrect/);
  const old=session(db,created.profile.uid,{action:'avatar',value:'data:image/png;base64,AA=='});
  db.records.get('gameLogins/'+created.profile.uid).revision='reset';await assert.rejects(api.accountProfile(old),/expired/);
- await assert.rejects(api.accountAdmin(session(db,created.profile.uid,{action:'authorize'})),/ADMIN_UIDS/);
+ await assert.rejects(api.accountAdmin(session(db,created.profile.uid,{action:'authorize'})),/admin password has not been configured/);
+});
+
+test('server password unlocks admin without player sign-in, protects deletion and preserves merged history',async()=>{
+ const db=database(),api=createApi({db,auth:db,adminPassword:'fixture-admin-only'});
+ const a=(await api.accountAuth({data:{action:'create',username:'Source',passcode:'123456'}})).profile;
+ const b=(await api.accountAuth({data:{action:'create',username:'Target',passcode:'654321'}})).profile;
+ const admin=data=>api.accountAdmin({data:{...data,adminPassword:'fixture-admin-only'}});
+ await assert.rejects(api.accountAdmin({data:{action:'remove',uid:a.uid,adminPassword:'wrong'}}),/Incorrect admin password/);
+ assert(db.records.has('gameProfiles/'+a.uid));
+ assert.equal((await admin({action:'authorize'})).allowed,true);
+ db.records.get('gameProfiles/'+a.uid).history=[{id:'old-game',accountName:'Source',score:[2,1]}];
+ db.records.set(`gameProfiles/${a.uid}/matches/full-report`,{id:'full-report',goals:[{name:'Scorer'}]});
+ await assert.rejects(admin({action:'merge',source:a.uid,target:a.uid}),/two different/);
+ await admin({action:'merge',source:a.uid,target:b.uid});
+ const kept=db.records.get('gameProfiles/'+b.uid);
+ assert.equal(kept.username,'Target');assert(kept.historySources.includes(a.uid));
+ assert(db.records.has(`gameProfiles/${a.uid}/matches/old-game`));assert(db.records.has(`gameProfiles/${a.uid}/matches/full-report`));
+ assert.equal(db.records.has('gameProfiles/'+a.uid),false);assert.equal(db.records.has('gameLogins/'+a.uid),false);
+ assert.equal((await api.accountAuth({data:{action:'login',username:'Target',passcode:'654321'}})).profile.uid,b.uid);
+ await admin({action:'remove',uid:b.uid});
+ assert.equal(db.records.has('gameProfiles/'+b.uid),false);assert.equal(db.records.has('gameLogins/'+b.uid),false);assert.equal(db.records.has('gameUsernames/target'),false);
+ await assert.rejects(api.accountAuth({data:{action:'login',username:'Target',passcode:'654321'}}),/incorrect/);
 });
 
 test('free room API rejects unapproved players and only returns free STUN after both are ready',async()=>{
@@ -57,6 +80,20 @@ test('free room API rejects unapproved players and only returns free STUN after 
  const connection=await api.h2hConnection(session(db,guest,{code}));assert.equal(connection.relay,false);assert.deepEqual(connection.iceServers,[{urls:'stun:stun.cloudflare.com:3478'}]);
  await assert.rejects(api.h2hProgress(session(db,guest,{code,elapsed:1,score:[0,0]})),/not your/);
  await assert.rejects(api.h2hTrace(session(db,stranger,{code,action:'confirm',digest:'a'.repeat(64),tick:500})),/participant/);
+});
+
+test('merging and deleting legacy duplicate names preserves the surviving sign-in',async()=>{
+ const db=database(),api=createApi({db,auth:db,adminPassword:'fixture-admin'});
+ const a=(await api.accountAuth({data:{action:'create',username:'MT',passcode:'123456'}})).profile;
+ const b=(await api.accountAuth({data:{action:'create',username:'OtherMT',passcode:'654321'}})).profile;
+ db.records.get('gameProfiles/'+b.uid).username='MT';db.records.get('gameProfiles/'+b.uid).usernameKey='mt';db.records.delete('gameUsernames/othermt');
+ const admin=data=>api.accountAdmin({data:{...data,adminPassword:'fixture-admin'}});
+ await admin({action:'merge',source:a.uid,target:b.uid});
+ assert.equal(db.records.get('gameUsernames/mt').uid,b.uid);
+ assert.equal((await api.accountAuth({data:{action:'login',username:'MT',passcode:'654321'}})).profile.uid,b.uid);
+ db.records.set('gameProfiles/duplicate',{uid:'duplicate',username:'MT',usernameKey:'mt'});
+ await admin({action:'remove',uid:'duplicate'});
+ assert.equal(db.records.get('gameUsernames/mt').uid,b.uid);
 });
 
 test('free finalize replays the actual timeline and saves both histories once',async()=>{
