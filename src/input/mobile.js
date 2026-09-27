@@ -62,11 +62,12 @@ export class MobileControls {
     });
     this.applyLayout();
   }
-  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style.setProperty('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));this.applyPosition('joystick');this.applyPosition('actions');}
+  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style?.setProperty?.('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));this.applyPosition('joystick');this.applyPosition('actions');}
   applyPosition(key){
     const position=this.controls.settings.value.mobileControlPositions?.[key]||{x:4,y:4},prefix=key==='joystick'?'--touch-pad':'--touch-action';
-    this.root.style.setProperty(prefix+'-x',Math.max(0,Math.min(42,position.x))+'%');this.root.style.setProperty(prefix+'-y',Math.max(0,Math.min(38,position.y))+'%');
+    this.root.style?.setProperty?.(prefix+'-x',Math.max(0,Math.min(42,position.x))+'%');this.root.style?.setProperty?.(prefix+'-y',Math.max(0,Math.min(38,position.y))+'%');
   }
+  resetPositions(){this.controls.settings.set('mobileControlPositions',{joystick:{x:4,y:4},actions:{x:4,y:4}});this.applyLayout();}
   armCurve(touch){
     if(!this.controls.held.has('shoot')||touch.curve)return;
     touch.curve=true;this.controls.down('curve',touch.source);touch.button.classList.add('curve-armed');

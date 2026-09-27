@@ -98,9 +98,11 @@ export class Match {
     return this.active(this.inputTeam).filter(p=>p.role!=='GK').sort((a,b)=>score(a)-score(b))[0];
   }
   toggleGoalkeeper(){
-    if(this.phase!=='playing')return;
+    const penaltyKeeper=this.phase==='restart'&&this.restart?.type==='PENALTY'&&this.restart.team!==this.inputTeam;
+    if(this.phase!=='playing'&&!penaltyKeeper)return;
     const keeper=this.active(this.inputTeam).find(p=>p.role==='GK');if(!keeper)return;
     this.receiverAssist=false;this.charge=0;this.curveRequested=false;
+    if(penaltyKeeper){this.controlled=keeper;this.manualKeeper=true;this.keeperReturn=false;return;}
     if(this.controlled===keeper){this.controlled=this.bestOutfield()||keeper;this.manualKeeper=false;this.keeperReturn=true;this.switchCooldown=2.3;}
     else{this.controlled=keeper;this.manualKeeper=true;this.keeperReturn=false;}
   }
@@ -145,7 +147,19 @@ export class Match {
       if(this.goalReturnTime<=0){this.resetFormation();this.beginRestart({type:'KICK OFF',team:1-this.scoringTeam,x:0,z:0});}
       return;
     }
-    if(this.phase==='restart'){if(this.humanSeats)this.withHuman(this.restart.team,()=>this.updateRestart(dt,this.restart.team===0?input:this.remoteInput));else this.updateRestart(dt,input);return;}
+    if(this.phase==='restart'){
+      const restart=this.restart;
+      if(this.humanSeats){
+        this.withHuman(restart.team,()=>this.updateRestart(dt,restart.team===0?input:this.remoteInput));
+        if(this.phase==='restart'&&restart.type==='PENALTY'){
+          const defender=1-restart.team;this.withHuman(defender,()=>this.updatePenaltyKeeper(dt,defender===0?input:this.remoteInput));
+        }
+      }else if(restart.type==='PENALTY'&&restart.team===1){
+        const keeper=this.active(0).find(p=>p.role==='GK');this.controlled=keeper;this.manualKeeper=true;this.keeperReturn=false;
+        this.updatePenaltyKeeper(dt,input);this.updateRestart(dt,null);
+      }else this.updateRestart(dt,input);
+      return;
+    }
     if(this.phase!=='playing')return;
     this.elapsed+=dt;
     for(const p of this.players){p.previousX=p.x;p.previousZ=p.z;}
@@ -439,7 +453,7 @@ export class Match {
     for(const p of this.players){
       if(p.sentOff||p===taker)continue;
       if(data.type==='PENALTY'){
-        if(p.role==='GK'){p.x=-this.direction(p.team)*(FIELD.halfLength-.7);p.z=0;}
+        if(p.role==='GK'){p.x=-this.direction(p.team)*(FIELD.halfLength-.7);p.z=0;p.keeperState.penaltyDive=null;if(p.action?.name==='keeper-dive')p.action=null;}
         else{p.x=direction*(FIELD.halfLength-FIELD.boxDepth-u(2+p.slot%3*2));p.z=(p.slot%2?1:-1)*u(6+p.slot);}
       }else if(data.type==='CORNER'){
         if(p.role==='GK'){p.reset(this.direction(p.team));}
@@ -480,6 +494,21 @@ export class Match {
     if(this.phaseTime>automatic){
       if(r.type==='PENALTY'||(r.type==='FREE KICK'&&FIELD.halfLength-r.x*this.direction(r.team)<PLAY.shootingRange))this.requestShot(r.taker,.65);
       else this.requestPass(r.taker);
+    }
+  }
+  updatePenaltyKeeper(dt,input){
+    if(this.phase!=='restart'||this.restart?.type!=='PENALTY')return;
+    const team=this.inputTeam,keeper=this.active(team).find(p=>p.role==='GK');if(!keeper)return;
+    this.controlled=keeper;this.manualKeeper=true;this.keeperReturn=false;keeper.watch(this.ball);
+    const move=input?.movement?.()||{x:0,z:0,intensity:0},own=-this.direction(team)*FIELD.halfLength;
+    keeper.move(move.x,move.z,move.intensity,dt,!!input?.held?.has('sprint'),{x:this.ball.x,z:this.ball.z});
+    const depth=clamp((keeper.x-own)*this.direction(team),.1,1.7);keeper.x=own+this.direction(team)*depth;
+    keeper.z=clamp(keeper.z,-FIELD.goalHalf*1.28,FIELD.goalHalf*1.28);
+    if(input?.pressed?.has('shoot')){
+      const side=Math.abs(move.z)>.18?Math.sign(move.z):0,height=clamp(move.x,-1,1);
+      keeper.keeperState.penaltyDive={side,height,at:this.phaseTime};
+      keeper.z=clamp(keeper.z+side*1.05,-FIELD.goalHalf*1.28,FIELD.goalHalf*1.28);
+      keeper.animate('keeper-dive',.82,{penalty:true,side,high:height>.45,low:height<-.45,oneHand:side!==0});
     }
   }
   finishRestart(){

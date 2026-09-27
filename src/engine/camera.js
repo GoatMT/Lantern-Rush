@@ -58,7 +58,10 @@ export class BroadcastCamera{
       }
       if(match.phase==='restart'&&match.restart){
         const r=match.restart,d=match.direction(r.team);
-        if(r.type==='PENALTY'){this.position.set(r.x-d*19,10,r.z+13);this.target.set(r.x+d*10,1.5,0);fov=48;}
+        if(r.type==='PENALTY'){
+          if(r.team!==(match.localTeam??0)){const goalX=d*FIELD.halfLength;this.position.set(goalX+d*8,7.2,0);this.target.set(r.x,1.5,0);fov=43;}
+          else{this.position.set(r.x-d*19,10,r.z+13);this.target.set(r.x+d*10,1.5,0);fov=48;}
+        }
         else if(r.type==='CORNER'){const cx=r.x-d*12;this.position.set(cx,49,r.z+(r.z>0?26:50));this.target.set(cx,0,r.z*.52);}
         else if(r.type==='FREE KICK'&&FIELD.halfLength-r.x*d<42){this.position.set(r.x-d*19,25,r.z+27);this.target.set(r.x+d*12,0,r.z*.6);}
         else if(r.type==='KICK OFF'){this.position.set(0,mode.height*portrait*wide,mode.back*portrait*wide);this.target.set(0,.4,0);}

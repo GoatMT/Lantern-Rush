@@ -23,9 +23,10 @@ export class HUD{
     $('power-meter').dataset.level=level;
     $('power-label').textContent=keeperKick?'LONG KICK POWER':level==='max'?'MAX · HIGH MISS RISK':level==='high'?'HIGH · LESS ACCURATE':'SHOT POWER';
     $('shot-type').textContent=m.charge>0?(keeperKick?'DOWNFIELD':SHOT_NAMES[m.previewShot().kind]||'SHOT'):'';
-    $('touch-shoot').textContent=m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT';
+    const savingPenalty=m.phase==='restart'&&m.restart?.type==='PENALTY'&&m.restart.team!==0&&p.role==='GK';
+    $('touch-shoot').textContent=savingPenalty?'DIVE':m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT';
     const passLabel=m.possessionTeam()===0?'PASS':'SWITCH';$('touch-pass').textContent=passLabel;$('touch-pass').setAttribute('aria-label',passLabel);$('touch-pass').dataset.mode=passLabel.toLowerCase();
-    $('touch-goalie').disabled=m.phase!=='playing';$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
+    $('touch-goalie').disabled=m.phase!=='playing'&&!savingPenalty;$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
     $('touch-goalie').setAttribute('aria-label',p.role==='GK'?'Switch back to outfield player':'Switch to goalkeeper');
     $('set-piece-hint').hidden=m.phase!=='restart';
     if(m.phase==='restart'){const r=m.restart;$('set-piece-hint').innerHTML='<strong>'+r.type+' · '+(r.team===0?'YOU':'CPU')+'</strong>'+(m.phaseTime<r.readyAt?'Getting ready…':r.team===0?'Aim with movement · Hold Shoot or tap Pass':'Finding the restart…');}

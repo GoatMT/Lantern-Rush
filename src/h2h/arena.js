@@ -88,7 +88,7 @@ export class LiveArena{
   const m=this.match,p=m.controlled;this.renderer.render(dt,m);this.renderer.adaptPerformance(this.loop.fps,dt);this.renderer.stadium.score(m.stats[0].goals,m.stats[1].goals);
   this.audio.update(dt,m,true,this.renderer.camera);
   $('live-score').textContent=m.stats[0].goals+' – '+m.stats[1].goals;$('live-clock').textContent=(m.half===1?'FIRST HALF':'SECOND HALF')+' · '+clockText(m.elapsed);
-  $('live-nameplate').textContent=playerLabel(p)+' · '+p.role;$('touch-pass').textContent=m.ball.owner?.team===this.side?'PASS':'SWITCH';$('touch-pass').dataset.mode=m.ball.owner?.team===this.side?'pass':'switch';
+  $('live-nameplate').textContent=playerLabel(p)+' · '+p.role;$('touch-pass').textContent=m.ball.owner?.team===this.side?'PASS':'SWITCH';$('touch-pass').dataset.mode=m.ball.owner?.team===this.side?'pass':'switch';const savingPenalty=m.phase==='restart'&&m.restart?.type==='PENALTY'&&m.restart.team!==this.side&&p.role==='GK';$('touch-shoot').textContent=savingPenalty?'DIVE':m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT';$('touch-goalie').disabled=m.phase!=='playing'&&!savingPenalty;$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
   $('live-power').hidden=m.charge<=0;$('live-power').firstElementChild.style.width=Math.round(m.charge*100)+'%';
   $('touch-controls').hidden=!['playing','restart'].includes(m.phase)||!this.ready;
   const notice=$('live-notice');notice.hidden=!this.notice||performance.now()>this.noticeUntil;if(!notice.hidden)notice.textContent=this.notice.title+' · '+this.notice.subtitle;

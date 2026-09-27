@@ -78,6 +78,7 @@
 body { touch-action:auto !important; -webkit-user-select:text; user-select:text; }
 .screen, dialog { touch-action:auto; }
 body[data-screen="match"] #game-canvas,
+body[data-screen="match"] #live-canvas,
 #touch-controls,
 #touch-controls * { touch-action:none; }
 #touch-controls,
@@ -92,6 +93,8 @@ body[data-screen="match"] #game-canvas,
 #touch-controls[data-editing="true"] .touch-actions,
 #touch-controls[data-editing="true"] .touch-movement { outline:1px dashed #f4dc8a; outline-offset:7px; cursor:move; }
 @media (max-width:360px) and (orientation:portrait) {
+  #touch-controls .touch-actions,
+  #touch-controls .touch-movement { zoom:min(var(--touch-scale,1),.95); }
   #touch-controls .touch-secondary { width:48px; height:48px; }
   #touch-controls #touch-goalie { left:-53px; }
   #touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-53px; }

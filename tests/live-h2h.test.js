@@ -40,6 +40,11 @@ test('two human teams move independently and guest can pass and take a restart',
  const p=m.humanSeats[1].controlled,start=p.z;sim.input(1,{...idlePacket(),z:1});for(let n=0;n<30;n++)sim.step();assert.ok(p.z>start+.01);
  m.beginRestart({type:'FREE KICK',team:1,x:5,z:0});m.phaseTime=100;sim.input(1,{...idlePacket(),pressed:['pass']});sim.step();for(let n=0;n<120;n++)sim.step();assert.ok(m.stats[1].passes>0);assert.equal(m.phase,'playing');assert.ok(m.humanSeats[1].controlled.team===1);
 });
+test('during an H2H penalty the defending account can control its keeper independently of the taker',()=>{
+ const sim=new LiveSimulation(teams(),{duration:1,difficulty:'normal'},71),m=sim.match;m.beginRestart({type:'PENALTY',team:1,x:-55,z:0});
+ const keeper=m.active(0).find(p=>p.role==='GK');sim.input(0,{...idlePacket(),z:1,held:['sprint'],pressed:['shoot']});sim.input(1,idlePacket());
+ for(let i=0;i<12;i++)sim.step();assert.equal(m.humanSeats[0].controlled,keeper);assert(m.humanSeats[0].manualKeeper);assert(keeper.z>0);assert.equal(keeper.keeperState.penaltyDive.side,1);
+});
 test('full match input replay produces identical stats and snapshots on the server',()=>{
  const sim=new LiveSimulation(teams(),{duration:1,difficulty:'normal'},872),trace=[];
  const command=(side,c)=>{sim.command(side,c);trace.push({t:sim.tick,side,command:c});};command(0,{type:'skipIntro'});

@@ -5,7 +5,9 @@ import { Controls } from '../src/input/controls.js';
 import { MobileControls } from '../src/input/mobile.js';
 import { Settings } from '../src/settings.js';
 import { Match } from '../src/match/match.js';
+import { keeperContact } from '../src/match/goalkeeper.js';
 import { createLineup } from '../src/data.js';
+import { FIELD } from '../src/config.js';
 class Element extends EventTarget{
   constructor(action){super();this.dataset={touch:action};this.style={};this.captures=new Set();this.classes=new Set();this.classList={add:(...s)=>s.forEach(x=>this.classes.add(x)),remove:(...s)=>s.forEach(x=>this.classes.delete(x))};}
   setPointerCapture(id){this.captures.add(id);}hasPointerCapture(id){return this.captures.has(id);}releasePointerCapture(id){this.captures.delete(id);}
@@ -91,6 +93,21 @@ test('manual goalkeeper selection persists, moves under user input, and toggles 
   for(let i=0;i<12;i++)m.update(1/120,input);assert.equal(m.controlled,keeper);assert(keeper.z>z);
   m.toggleGoalkeeper();assert.notEqual(m.controlled.role,'GK');m.selectPlayer();assert.notEqual(m.controlled.role,'GK');
   m.ball.take(keeper,{hands:true});m.controlled=keeper;m.toggleGoalkeeper();m.selectPlayer();assert.notEqual(m.controlled.role,'GK');
+});
+test('opponent penalties give the user goalkeeper control, movement and a directional dive',()=>{
+  const m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>.5});m.resetFormation();m.beginRestart({type:'PENALTY',team:1,x:-55,z:0});
+  const keeper=m.active(0).find(p=>p.role==='GK'),input={pressed:new Set(['shoot']),held:new Set(),released:new Set(),movement:()=>({x:0,z:1,intensity:1})};
+  m.update(1/120,input);assert.equal(m.controlled,keeper);assert(m.manualKeeper);assert.equal(keeper.keeperState.penaltyDive.side,1);assert(keeper.z>0);assert.equal(keeper.action.name,'keeper-dive');
+});
+test('penalty keeper saves depend on dive direction and allow a correct-side stop',()=>{
+  const build=side=>{const m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>.5});m.resetFormation();m.phase='playing';m.inputTeam=1;m.controlled=m.active(1).find(p=>p.role==='GK');m.manualKeeper=true;const keeper=m.controlled,shooter=m.players[5];keeper.cooldown=0;keeper.x=FIELD.halfLength-.7;keeper.z=side===1?1.05:0;keeper.keeperState.penaltyDive={side,height:0,at:0};keeper.animate('keeper-dive',.8,{penalty:true,side});Object.assign(m.ball,{x:FIELD.halfLength-1.7,y:.32,z:1.5,vx:20,vy:0,vz:0,owner:null,lastTouch:shooter,shot:{team:0,player:shooter,setPiece:'PENALTY',counted:false}});return {m,keeper};};
+  const wrong=build(-1);assert.equal(keeperContact(wrong.m,wrong.keeper),false);
+  const right=build(1);assert.equal(keeperContact(right.m,right.keeper),true);assert.equal(right.m.stats[1].penaltiesSaved,1);
+});
+test('mobile size and drag-to-position preferences are bounded and restored locally',()=>{
+  const {settings,storage}=setup();settings.set('mobileControlScale',1.2);settings.set('mobileControlEdit',true);settings.set('mobileControlPositions',{joystick:{x:42,y:38},actions:{x:12,y:14}});
+  const restored=new Settings(storage);assert.equal(restored.value.mobileControlScale,1.2);assert.equal(restored.value.mobileControlEdit,true);assert.deepEqual(restored.value.mobileControlPositions,{joystick:{x:42,y:38},actions:{x:12,y:14}});
+  const clamped=new Settings({getItem:()=>'{"mobileControlScale":4,"mobileControlPositions":{"joystick":{"x":900,"y":-4}}}',setItem:()=>{}});assert.equal(clamped.value.mobileControlScale,1.2);assert.deepEqual(clamped.value.mobileControlPositions.joystick,{x:42,y:0});
 });
 test('standing steal stays standing at sprint speed, wins on time, and can foul',()=>{
   for(const random of [.99,0]){
