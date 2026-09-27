@@ -27,7 +27,7 @@ test('canvas sizing keeps projection and drawing buffer synchronized through rot
 });
 test('render synchronizes resized canvas even when no window resize event is delivered',()=>{
   const g=Object.create(GameRenderer.prototype);let synced=false,rendered=false;
-  Object.assign(g,{time:0,models:[],resize(){synced=true;},broadcast:{update(){assert(synced);}},lighting:{update(){}},renderer:{render(){rendered=true;}}});
+  Object.assign(g,{time:0,models:[],resize(){synced=true;},sidelineOverlay:{update(){}},broadcast:{update(){assert(synced);}},lighting:{update(){}},weather:{update(){}},sidelineCast:{update(){}},renderer:{render(){rendered=true;}}});
   g.render(1/60,null);assert(rendered);
 });
 test('phone quality adapts to sustained low frame rate without repeated buffer resizing',()=>{

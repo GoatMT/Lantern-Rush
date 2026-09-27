@@ -28,5 +28,5 @@ export const FORMATION_LIMITS=Object.freeze({xMin:-.93,xMax:.92,zMin:-.88,zMax:.
 export function clampFormationPoint(point){return {x:clamp(Number(point?.x)||0,FORMATION_LIMITS.xMin,FORMATION_LIMITS.xMax),z:clamp(Number(point?.z)||0,FORMATION_LIMITS.zMin,FORMATION_LIMITS.zMax)};}
 export function presetSlots(id=DEFAULT_FORMATION_ID){const preset=FORMATION_PRESETS[id]||FORMATION_PRESETS[DEFAULT_FORMATION_ID];return preset.map(slot=>({...slot}));}
 export function formationKey(team,season){return String(season||team?.season||'2026')+':'+String(team?.id||'team');}
-export function formationToWorld(slots){return slots.map((slot,index)=>{const point=clampFormationPoint(slot);return {role:slot.role||FORMATION[index]?.role||'MID',x:point.x*FIELD.halfLength,z:point.z*FIELD.halfWidth};});}
+export function formationToWorld(slots){return slots.map((slot,index)=>{const point=clampFormationPoint(slot);return {role:slot.role||FORMATION[index]?.role||'MID',x:(point.x-1)*FIELD.halfLength*.5,z:point.z*FIELD.halfWidth};});}
 export function formationLabel(id){return id==='custom'?'CUSTOM':String(id||DEFAULT_FORMATION_ID).replaceAll('-', ' — ');}

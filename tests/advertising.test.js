@@ -34,7 +34,7 @@ test('printed board faces sit in front of their backing instead of rendering bla
   assert(AD_BOARD.faceZ>AD_BOARD.depth/2+.02);
   for(const side of [-1,1]){
     const stadium=Object.create(Stadium.prototype),frames=[];
-    Object.assign(stadium,{root:new T.Group(),boardTextures:[new T.Texture(),new T.Texture()],banners:[],structure:{box:(w,h,d,x,y,z)=>frames.push({w,h,d,x,y,z})}});
+    Object.assign(stadium,{root:new T.Group(),professional:new T.Group(),boardTextures:[new T.Texture(),new T.Texture()],banners:[],structure:{box:(w,h,d,x,y,z)=>frames.push({w,h,d,x,y,z})}});
     stadium.buildBoards(side);assert.equal(stadium.banners.length,17);
     stadium.banners.forEach((face,i)=>{
       const frame=frames[i],normal=new T.Vector3(0,0,1).applyEuler(face.rotation),offset=face.position.clone().sub(new T.Vector3(frame.x,frame.y,frame.z));

@@ -66,7 +66,14 @@ export function keeperContact(match,p){
   const easy=gap<1.45&&speed<24&&b.y<2.4;
   const probability=direct?clamp(.955+config.keeper*.043,.97,.9995)
     :clamp(ability-speed*.0015*(1.2-config.keeper)-reaction-(gap>1.8?.1*(1.2-config.keeper):0),.18,.995);
-  const success=gap<.75||easy||match.random()<probability;
+  let success=gap<.75||easy||match.random()<probability;
+  if(b.shot?.setPiece==='PENALTY'&&match.isHumanControlled(p)){
+    const goalX=-match.direction(p.team)*FIELD.halfLength,time=b.vx?clamp((goalX-b.x)/b.vx,0,.8):0,target=predictBall(b,time),lateral=target.z-p.z,dive=p.keeperState.penaltyDive;
+    const centered=Math.abs(lateral)<.72,correctDive=!!dive&&Math.abs(lateral)<2.55&&(Math.abs(lateral)<.45||Math.sign(lateral)===dive.side);
+    const heightReach=dive?.height>.45?target.y<2.8:dive?.height<-.45?target.y<1.15:target.y<2.35;
+    const ability=clamp(config.keeper*(.55+p.attributes.keeper*.45),.2,1),chance=clamp(.52+ability*.36-(speed>32?.13:0),.48,.91);
+    success=(centered||correctDive)&&heightReach&&match.random()<chance;
+  }
   if(!success){p.cooldown=.16;if(!p.action)p.animate('keeper-dive',.65,{...context,high:b.y>1.7});return false;}
   if(b.shot){match.onTarget();match.stats[p.team].saves++;p.saves++;if(b.shot.setPiece==='PENALTY'&&!b.shot.penaltySaved){match.stats[p.team].penaltiesSaved++;b.shot.penaltySaved=true;}match.notify('SAVE',playerLabel(p),4.5,{team:p.team,playerName:playerLabel(p)});}
   const pressure=match.active(1-p.team).some(o=>distance(o,b)<3);

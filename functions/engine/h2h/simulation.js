@@ -2,6 +2,7 @@ import {weatherOption} from '../weather-options.js';
 import {Match} from '../match/match.js';
 import {FORMATION_PRESETS,presetSlots,formationToWorld} from '../formation.js';
 import {matchDuration} from '../match-options.js';
+import {teamKit} from '../kits.js';
 export const PROTOCOL=1, STEP=1/120, INPUT_HZ=30, SNAPSHOT_HZ=20, RECONNECT_SECONDS=25;
 export const ACTIONS=['sprint','pass','shoot','skill','curve','goalie'];
 export function seedRandom(seed){let state=seed>>>0;return ()=>{state+=0x6D2B79F5;let t=Math.imul(state^state>>>15,1|state);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296;};}
@@ -18,7 +19,8 @@ export function buildSquad(team,selection){
  const ids=selection.lineup||team.lineup.map(p=>p.id);
  if(ids.length!==7||new Set(ids).size!==7)throw Error('Choose seven different players.');
  const lineup=ids.map(id=>team.roster.find(p=>p.id===id));if(lineup.some(p=>!p))throw Error('A selected player is not on this season’s roster.');
- return {...structuredClone(team),lineup:structuredClone(lineup),bench:structuredClone(team.roster.filter(p=>!ids.includes(p.id))),formation:formationToWorld(presetSlots(selection.formation))};
+ const copy=structuredClone(team),primary=typeof team.kit==='string'&&team.kit?team.kit:team.colors?.primary||team.logoBg||'#557b72',fallback=teamKit(team.season,team.id,primary),uniform={...fallback,...(team.uniform&&typeof team.uniform==='object'?team.uniform:{})};
+ return {...copy,kit:primary,uniform,lineup:structuredClone(lineup),bench:structuredClone(team.roster.filter(p=>!ids.includes(p.id))),formation:formationToWorld(presetSlots(selection.formation))};
 }
 export class LiveSimulation{
  constructor(teams,settings,seed,event=()=>{}){
@@ -30,6 +32,7 @@ export class LiveSimulation{
   const m=this.match;
   if(command.type==='skipIntro')m.skipIntro();
   if(command.type==='skipReplay')m.skipReplay();
+  if(command.type==='skipSideline')m.skipSideline();
   if(command.type==='continue'&&m.phase==='halftime'){this.halfReady[team]=true;if(this.halfReady.every(Boolean))m.continueHalf();}
   if(command.type==='sub'&&['playing','halftime','restart'].includes(m.phase))m.queueSubstitution(command.out,command.in,team);
  }

@@ -107,5 +107,5 @@ test('fouls, cards and goals keep the ball and clock stopped for their presentat
     assert(m.restart.readyAt>=expected);const pos={x:m.ball.x,z:m.ball.z};for(let i=0;i<120;i++)m.update(1/60,{...idle,pressed:new Set(['pass'])});
     assert.equal(m.elapsed,0);assert.equal(distance(pos,m.ball),0);assert.equal(m.phase,'restart');
   }
-  const m=match();m.ball.lastTouch=m.players[5];m.goal(0);m.update(7,idle);assert.equal(m.phase,'goal');assert.equal(m.elapsed,0);m.update(1.6,idle);assert.equal(m.phase,'restart');
+  const m=match();m.ball.lastTouch=m.players[5];m.goal(0);m.update(7,idle);assert.equal(m.phase,'goal');assert.equal(m.elapsed,0);for(let i=0;i<600&&m.phase==='goal';i++)m.update(.1,idle);assert.equal(m.phase,'restart');assert.equal(m.elapsed,0);
 });
