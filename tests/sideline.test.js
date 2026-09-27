@@ -14,7 +14,7 @@ test('substitution cutaway starts only after a confirmed change at a stoppage',(
  m.beginRestart({type:'THROW-IN',team:0,x:10,z:41});m.update(1/60,idle);
  assert.equal(m.sideline.kind,'substitution');assert.equal(m.sideline.outPlayer.name,name);assert.equal(m.sideline.inPlayer.id,incoming.id);assert.equal(out.id,incoming.id);
  const ball={x:m.ball.x,z:m.ball.z},clock=m.elapsed;m.update(2,idle);assert.equal(m.elapsed,clock);assert.deepEqual({x:m.ball.x,z:m.ball.z},ball);assert.equal(m.stats[0].substitutions,1);
- m.skipSideline();assert(m.sideline);assert.equal(m.sideline.time,m.sideline.duration);m.update(SIDELINE_RETURN+.01,idle);assert.equal(m.sideline,null);assert.equal(m.phase,'restart');assert.equal(m.stats[0].substitutions,1);
+ m.skipSideline();assert(m.sideline);assert.equal(m.sideline.time,m.sideline.duration);m.update(SIDELINE_RETURN+.01,idle);assert.equal(m.sideline,null);assert.equal(m.phase,'restart');assert.equal(m.stats[0].substitutions,1);assert(m.restart.readyAt>m.phaseTime);
 });
 test('half-time changes wait for Continue and replace the extra half-time cutaway',()=>{
  const m=fixture();m.phase='halftime';m.elapsed=90;m.queueSubstitution(m.players[5].id,m.benches[0][0].id);m.update(20,idle);assert(!m.sideline);assert.equal(m.phase,'halftime');

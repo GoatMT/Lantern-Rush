@@ -24,7 +24,8 @@ export class Player {
     const boosting=sprint&&moving&&!recovering;
     const settling=this.hasBall&&this.lastReceive<.24?.74:1;
     const injuryPenalty=this.injured?.72:1;
-    const speed=(boosting?PLAY.sprintSpeed:PLAY.runSpeed)*this.attributes.speed*clamp(intensity,0,1)*settling*injuryPenalty;
+    const momentumBoost=boosting&&previousSpeed>PLAY.runSpeed*.72?this.attributes.momentum:1;
+    const speed=(boosting?PLAY.sprintSpeed:PLAY.runSpeed)*this.attributes.speed*momentumBoost*clamp(intensity,0,1)*settling*injuryPenalty;
     let tx=moving?n.x*speed:0,tz=moving?n.z*speed:0;
     if(this.skillPlan){
       const envelope=Math.sin(Math.PI*clamp(this.skillPlan.time/this.skillPlan.duration,0,1));

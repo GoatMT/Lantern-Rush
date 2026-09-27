@@ -141,7 +141,7 @@ export class Stadium{
   }
   score(a,b){
     const c=this.scoreTexture.image.getContext('2d');c.fillStyle='#0b1e2b';c.fillRect(0,0,1024,320);c.fillStyle='#d8c78e';c.fillRect(32,31,960,4);
-    c.textAlign='center';c.textBaseline='middle';c.font='700 30px Arial';c.fillText('LANTERN RUSH  /  GRENOBLE FIELD',512,65);c.fillStyle='#f0f1e8';c.font='800 110px Arial';c.fillText(a+'  :  '+b,512,173);
+    c.textAlign='center';c.textBaseline='middle';c.font='700 30px Arial';c.fillText('LANTERN RUSH  /  STADIUM ONE',512,65);c.fillStyle='#f0f1e8';c.font='800 110px Arial';c.fillText(a+'  :  '+b,512,173);
     c.font='700 22px Arial';c.fillStyle='#aebfc0';c.fillText((this.teamNames||['LANTERN SOCCER LEAGUE']).join('   /   '),512,268,940);this.scoreTexture.needsUpdate=true;
   }
   update(t,match){

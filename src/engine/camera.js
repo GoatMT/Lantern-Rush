@@ -77,7 +77,7 @@ export class BroadcastCamera{
       // Pull back by the matching amount so teammates stay in view without a wide-angle lens.
       this.position.sub(this.target).multiplyScalar(lens.distanceScale).add(this.target);fov=lens.fov;
     }
-    const blend=1-Math.exp(-Math.min(dt,.1)*(match?.phase==='playing'?(match.settings.camera==='mobile'?4.4:3.6):2.1));
+    const blend=1-Math.exp(-Math.min(dt,.1)*(match?.sideline&&match.sideline.time>=match.sideline.duration?6:match?.phase==='playing'?(match.settings.camera==='mobile'?4.4:3.6):2.1));
     this.camera.position.lerp(this.position,blend);this.look.lerp(this.target,blend);this.camera.lookAt(this.look);
     if(Math.abs(this.camera.fov-fov)>.015){this.camera.fov+=(fov-this.camera.fov)*blend;this.camera.updateProjectionMatrix();}
   }

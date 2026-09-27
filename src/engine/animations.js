@@ -45,7 +45,7 @@ export function animationPose(p,time){
     if(names==='power-shot'){action.pitch=c.skied?-.32*f:.22*f;action[leg]*=1.15;action.yaw=-side*f*.4;}
     if(names==='volley'||names==='half-volley'){action[leg]=-f*1.65;action[knee]=.2;action.y=.16*f;action.pitch=-.15*f;}
   }else if(names==='header'||names==='header-pass'){
-    action.y=.48*f;action.pitch=Math.sin(t*Math.PI*2)*-.35;action.laZ=-.55;action.raZ=.55;action.lk=action.rk=.4*f;
+    action.y=.48*f*(p.attributes?.headerJump||1);action.pitch=Math.sin(t*Math.PI*2)*-.35;action.laZ=-.55;action.raZ=.55;action.lk=action.rk=.4*f;
   }else if(['trap','cushion','receive-run','receive-turn'].includes(names)){
     action[leg]=-.35*f;action[knee]=.55*f;action.pitch=.13*f;action.laZ=-.25;action.raZ=.25;action.yaw=names==='receive-turn'?side*f*.4:0;
   }else if(['body-feint','step-over','double-step','ball-roll','fake-shot','drag-back','roulette','quick-cut','directional-touch','stop-go','heel-to-heel','close-control'].includes(names)){

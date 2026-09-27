@@ -127,7 +127,7 @@ export class Menus {
     $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
     $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
-    $('home-venue').textContent='GRENOBLE FIELD · '+$('setting-lighting').value.toUpperCase()+' MATCH';
+    $('home-venue').textContent='STADIUM ONE · '+$('setting-lighting').value.toUpperCase()+' MATCH';
     $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · WEATHER: CLEAR · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
   }
   renderAccount(){

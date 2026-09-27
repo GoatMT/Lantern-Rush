@@ -30,6 +30,7 @@ function faceTexture(a){
   ctx.strokeStyle='#633c3088';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(58,50);ctx.lineTo(55,66);ctx.quadraticCurveTo(64,70,69,66);ctx.stroke();
   ctx.strokeStyle='#6d423baa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(53,86);ctx.quadraticCurveTo(64,90,77,85);ctx.stroke();
   if(a.beard){ctx.fillStyle=a.hair;ctx.globalAlpha=.30;ctx.beginPath();ctx.moveTo(20,70);ctx.quadraticCurveTo(28,119,64,121);ctx.quadraticCurveTo(104,119,110,70);ctx.lineTo(92,95);ctx.quadraticCurveTo(65,118,34,95);ctx.fill();ctx.globalAlpha=1;}
+  if(a.glasses){ctx.strokeStyle='#242424';ctx.lineWidth=3.5;ctx.strokeRect(22,32,30,22);ctx.strokeRect(76,32,30,22);ctx.beginPath();ctx.moveTo(52,40);ctx.lineTo(76,40);ctx.moveTo(20,37);ctx.lineTo(13,33);ctx.moveTo(106,37);ctx.lineTo(114,33);ctx.stroke();}
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
 function identityTexture(player,color,back){
@@ -45,7 +46,7 @@ function identityTexture(player,color,back){
 
 export class PlayerModel{
   constructor(player,color,referee=false){
-    this.player=player;this.appearance=appearanceFor(player.id);const a=this.appearance;
+    this.player=player;this.appearance=appearanceFor(player.data);const a=this.appearance;
     this.root=new T.Group();this.orientation=new T.Group();this.body=new T.Group();this.root.add(this.orientation);this.orientation.add(this.body);
     this.details=[];this.fineDetails=[];this.keeper=player.role==='GK'&&!referee;
     const kit=referee?{primary:'#e9d546',secondary:'#dfc831',shorts:'#18272c',socks:'#18272c',trim:'#243438',pattern:'solid'}:

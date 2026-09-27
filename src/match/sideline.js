@@ -11,7 +11,7 @@ export function queueSideline(match,kind,team,details={}){
   if(existing){if(kind==='substitution')existing.changes.push(details);return true;}
   match.sidelineSerial=(match.sidelineSerial||0)+1;
   const options=variants[kind],last=match.sidelineVariants?.[kind],available=options.filter(v=>v!==last);
-  const variant=available[(match.sidelineSerial+team)%available.length];
+  const variant=available[Math.min(available.length-1,Math.floor((match.random?.()??.5)*available.length))];
   (match.sidelineVariants||={})[kind]=variant;
   match.sidelineQueue.push({id:match.sidelineSerial,kind,team,variant,duration:durations[kind],time:0,after:0,...details,changes:kind==='substitution'?[details]:[]});
   return true;
@@ -28,6 +28,7 @@ export function advanceSideline(match,dt){
   const cue=match.sideline;cue.time+=dt;match.phaseTime+=dt;
   if(cue.time>=cue.duration+SIDELINE_RETURN){
     if(cue.kind==='substitution'&&match.moment?.type==='substitution')match.moment=null;
+    if(match.phase==='restart'&&match.restart)match.restart.readyAt=Math.max(match.restart.readyAt,match.phaseTime+.65);
     match.sideline=null;
   }
   return true;

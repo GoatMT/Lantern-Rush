@@ -60,12 +60,13 @@ export function updateAI(match,dt){
         }
         p.move(forward.x+avoidX,forward.z+avoidZ,defenders.length?.82:1,dt,defenders.length===0&&goalDistance>u(8)&&p.holdTime>.5);
         if(p.decision<=0){
-          p.decision=config.reaction*(.9+match.random()*.2);
+          p.decision=config.reaction*(.9+match.random()*.2)/(p.attributes.iq||1);
           const decision=attackingDecision(match,p,bestPass(match,p));
           if(decision==='shoot'||decision==='surprise-shot'){
             const power=decision==='surprise-shot'?.92:clamp(.36+goalDistance/65,.4,.92);
             match.requestShot(p,power,null,{curve:decision!=='surprise-shot'&&goalDistance>16&&Math.abs(p.z)>6&&Math.abs(p.z)<FIELD.boxHalf});
           }else if(decision==='pass')match.requestPass(p);
+          else if(decision==='clear')match.requestPass(p,{x:direction,z:0},{firstTime:true});
           else if(decision==='skill')match.skill(p,{...normalize(direction,-Math.sign(p.z)*.7),intensity:1});
         }
         continue;
@@ -97,7 +98,8 @@ export function updateAI(match,dt){
         if(p.role==='FWD'){
           tx=clamp(b.x*direction+u(11)*p.attributes.forwardRun,-u(4),FIELD.halfLength-u(2.5))*direction;
           const nearWing=Math.sign(home.z)===Math.sign(b.z),boxAttack=b.x*direction>FIELD.halfLength-FIELD.boxDepth*1.6;
-          tz=boxAttack?(nearWing?Math.sign(b.z)*FIELD.goalHalf*.6:-Math.sign(b.z||1)*FIELD.goalHalf*.8):home.z*1.85;
+          const lane=p.data.gameplayProfile?.preferredLane,preferredSide=lane==='left'?-direction:lane==='right'?direction:Math.sign(home.z)||1;
+          tz=lane?preferredSide*(boxAttack?FIELD.goalHalf*.62:FIELD.halfWidth*.68):boxAttack?(nearWing?Math.sign(b.z)*FIELD.goalHalf*.6:-Math.sign(b.z||1)*FIELD.goalHalf*.8):home.z*1.85;
           tx-=u(1.5)*(1+Math.sin(match.tacticalTime*.6+p.slot));sprint=tx*direction-p.x*direction>u(6);
         }
         if(p.role==='MID'){
@@ -130,7 +132,9 @@ export function updateAI(match,dt){
       tx=clamp(tx,-FIELD.halfLength+.7,FIELD.halfLength-.7);tz=clamp(tz,-FIELD.halfWidth+.7,FIELD.halfWidth-.7);
       const direct=chasers.includes(p)||b.pass?.target===p;
       if(!p.aiTarget)p.aiTarget={x:tx,z:tz};
-      const blend=1-Math.exp(-(direct?18:5)*dt);p.aiTarget.x+=(tx-p.aiTarget.x)*blend;p.aiTarget.z+=(tz-p.aiTarget.z)*blend;
+      const organizer=squad.find(m=>m!==p&&m.data.gameplayProfile?.tendencies?.organizer);
+      if(organizer&&!direct){tx+=(home.x*direction-tx)*.08;tz+=(home.z-tz)*.08;}
+      const blend=1-Math.exp(-(direct?18:organizer?5.8:5)*dt);p.aiTarget.x+=(tx-p.aiTarget.x)*blend;p.aiTarget.z+=(tz-p.aiTarget.z)*blend;
       tx=p.aiTarget.x;tz=p.aiTarget.z;const gap=Math.hypot(tx-p.x,tz-p.z);
       let sx=0,sz=0;
       for(const mate of squad){

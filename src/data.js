@@ -13,16 +13,17 @@ function normalizePlayer(player){
 }
 export function createLineup(roster,preferredIds=[]){
   const remaining=roster.map(normalizePlayer);
-  const preferred=FORMATION.map((slot,index)=>{const found=remaining.findIndex(p=>p.id===preferredIds[index]);return found>=0?remaining.splice(found,1)[0]:null;});
+  const findEligible=predicate=>remaining.findIndex(p=>p.gameplayProfile?.usage!=='bench'&&predicate(p));
+  const preferred=FORMATION.map((slot,index)=>{const found=findEligible(p=>p.id===preferredIds[index]);return found>=0?remaining.splice(found,1)[0]:null;});
   const selectedSlots=FORMATION.map((slot,index)=>{
     if(preferred[index])return preferred[index];
     const pattern=index===0?/goal|keeper/i:index<3?/defend/i:index<5?/midfield/i:/strik|forward|wing/i;
-    const selected=remaining.findIndex(p=>pattern.test(p.position));
+    const selected=findEligible(p=>pattern.test(p.position));
     return selected>=0?remaining.splice(selected,1)[0]:null;
   });
   return FORMATION.map((slot,index)=>{
     let player=selectedSlots[index];
-    if(!player){let selected=remaining.findIndex(p=>/field/i.test(p.position));if(selected<0)selected=remaining.findIndex(p=>!/goal|keeper/i.test(p.position));if(selected<0)selected=0;player=remaining.splice(selected,1)[0];}
+    if(!player){let selected=findEligible(p=>/field/i.test(p.position));if(selected<0)selected=findEligible(p=>!/goal|keeper/i.test(p.position));if(selected<0)selected=0;player=remaining.splice(selected,1)[0];}
     if(!player)throw Error('A team needs at least seven verified players.');
     return {...player,role:slot.role,slot:index};
   });
@@ -42,10 +43,13 @@ export class LeagueData{
       const res=await fetch(new URL('../'+season.file,import.meta.url),{cache:'no-cache'});
       if(!res.ok)throw Error('Roster unavailable: '+season.year);
       const payload=await res.json();
+      let profileDb=null;
+      if(String(season.year)==='2026'){try{const pr=await fetch(new URL('../data/player-gameplay-2026.json',import.meta.url),{cache:'no-cache'});if(pr.ok)profileDb=await pr.json();}catch{}}
       this.teams[season.year]=payload.teams.filter(t=>t.roster?.length>=7).map(t=>{
-        const lineup=createLineup(t.roster,DEFAULT_LINEUPS[String(season.year)]?.[t.id]);
+        const roster=t.roster.map(p=>({...p,gameplayProfile:String(season.year)==='2026'?(profileDb?.players?.[p.id]||{status:'unknown'}):(p.gameplayProfile||null)}));
+        const lineup=createLineup(roster,DEFAULT_LINEUPS[String(season.year)]?.[t.id]);
         const official=SEASON_KITS[season.year]?.[t.id];
-        return {...t,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,season:season.year,lineup,bench:t.roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit:official?.primary||t.colors?.primary||null,uniform:official?teamKit(season.year,t.id):null};
+        return {...t,roster,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,season:season.year,lineup,bench:roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit:official?.primary||t.colors?.primary||null,uniform:official?teamKit(season.year,t.id):null};
       });
       progress((i+1)/this.seasons.length);
     }

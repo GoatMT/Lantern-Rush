@@ -245,7 +245,7 @@ export class Match {
       if(keeper)add('keeper',p.action?.name==='keeper-dive'?2.45:1.25,3.5);
       else{
         add('feet',1,1.12);
-        if(p.role!=='GK'&&((p===this.controlled&&this.passHeldTime>.18)||(p.team===1&&p.x*this.direction(p.team)>FIELD.halfLength-FIELD.boxDepth*1.2)))add('header',1.2,2.85,1.15);
+        if(p.role!=='GK'&&((p===this.controlled&&this.passHeldTime>.18)||(p.team===1&&p.x*this.direction(p.team)>FIELD.halfLength-FIELD.boxDepth*1.2)))add('header',1.2,2.85*(p.attributes.headerJump||1),1.15);
         if(b.lastTouch?.team!==p.team&&(b.shot||speed>26))add('block',.72,2.45,1.12);
       }
     }
@@ -354,12 +354,14 @@ export class Match {
     if(victim.team===p.team||distance(p,victim)>(sliding?3.2:2.25))return;
     const toward=normalize(p.x-victim.x,p.z-victim.z),behind=toward.x*victim.faceX+toward.z*victim.faceZ<-.45;
     const late=distance(p,this.ball)>1.95,protectedBall=victim.skill>0;
-    const foulChance=behind?.55:late?.35:protectedBall?.28:.06/p.attributes.defending;
+    const frustration=p.data?.gameplayProfile?.tendencies?.frustration||0,trailing=this.stats[p.team].goals<this.stats[1-p.team].goals;
+    const foulChance=(behind?.55:late?.35:protectedBall?.28:.06/p.attributes.defending)*(p.attributes.foulRisk||1)*(trailing?1+frustration:1);
     if(this.random()<foulChance){
       const severity=behind&&Math.hypot(p.vx,p.vz)>PLAY.runSpeed*1.15?'red':behind||late?'yellow':'none';
       this.foul(p,victim,severity);return;
     }
-    if(protectedBall&&this.random()<.65)return;
+    const strengthEdge=(p.attributes.strength||1)-(victim.attributes?.strength||1);
+    if(protectedBall&&this.random()<clamp(.65-strengthEdge*.16,.42,.82))return;
     if(sliding){this.ball.release(p.faceX*7,p.faceZ*7,.4);this.ball.touch(p);victim.animate('stumble',.55,{side:1});}
     else{this.claim(p);p.animate(distance(p,victim)<1.1?'shoulder':'standing-tackle',.5);victim.animate('stumble',.4,{side:-1});}
     p.tackles++;p.cooldown=.5;victim.cooldown=.7;if(this.settings.minorInjuries!==false&&this.random()<.045)this.minorInjury(victim,p);
@@ -368,7 +370,7 @@ export class Match {
     if(!player||player.injured||player.sentOff||this.settings.minorInjuries===false)return;
     player.injured=true;player.injuryTime=3.5;this.stats[player.team].injuries=(this.stats[player.team].injuries||0)+1;
     const event={team:player.team,player:player.name,jersey:player.jersey??null,playerId:player.id,time:this.elapsed};this.injuryEvents.push(event);player.animate('stumble',.8);this.notify('MINOR INJURY',playerLabel(player)+' needs attention',PRESENTATION.injury,{team:player.team,playerName:playerLabel(player)});this.event('injury',{player,opponent,event});
-    const bench=(this.benches[player.team]||[]).filter(p=>!this.pending.some(s=>s.incoming.id===p.id&&s.team===player.team));if(!this.humanSeats&&player.team===1&&bench.length&&!this.pending.some(s=>s.out===player)){const role=p=>/goal|keeper/i.test(p.position)?'GK':/def/i.test(p.position)?'DEF':/mid/i.test(p.position)?'MID':'FWD';const incoming=bench.find(p=>role(p)===player.role)||bench[0];if(incoming)this.pending.push({out:player,incoming,team:player.team});}
+    const bench=(this.benches[player.team]||[]).filter(p=>!this.pending.some(s=>s.incoming.id===p.id&&s.team===player.team));if(!this.humanSeats&&player.team===1&&bench.length&&!this.pending.some(s=>s.out===player)){const role=p=>p.gameplayProfile?.backupGoalkeeper||/goal|keeper/i.test(p.position)||/field\s*\/\s*goalie/i.test(p.position)?'GK':/def/i.test(p.position)?'DEF':/mid/i.test(p.position)?'MID':'FWD';const incoming=bench.find(p=>role(p)===player.role)||bench[0];if(incoming)this.pending.push({out:player,incoming,team:player.team});}
   }
   foul(offender,victim,severity='none'){
     const foulNames=playerLabel(offender)+' · Foul on '+playerLabel(victim);
