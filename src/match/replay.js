@@ -74,7 +74,8 @@ export function finishReplay(match){
   match.replayActive=false;match.replayStage='done';match.replayStageTime=0;match.replayFocus=null;match.goalReturnTime=1.4;
   match.ball.settleInNet(match.direction(match.scoringTeam));
   match.active(match.scoringTeam).forEach(p=>p.animate(p===match.celebratingPlayer?'celebrate-calm':'applaud',1.4));
-  if(match.elapsed>=match.settings.duration*48)queueSideline(match,'late-goal',match.scoringTeam,{variant:match.celebration?.lateWinner?'celebrate':'urgent'});
+  const event=match.goalEvents.at(-1);
+  queueSideline(match,'goal-reaction',1-match.scoringTeam,{scoringTeam:match.scoringTeam,scorerName:event?.name,scorerJersey:event?.jersey});
 }
 
 export function applyReplayCamera(match,camera){

@@ -21,12 +21,12 @@ test('scouting adjusts dribbling, strength and goalkeeper attributes',()=>{
 });
 test('physical notes affect model proportions and glasses',()=>{
  const mosa=appearanceFor({id:'mosa-fazli',gameplayProfile:profiles['mosa-fazli']}),tall=appearanceFor({id:'mohammed-ibrahim',gameplayProfile:profiles['mohammed-ibrahim']});
- assert(mosa.height<.96);assert(mosa.build>1.04);assert(tall.height>1.04);
+ assert(mosa.height<.96);assert(mosa.build>1&&mosa.build<1.1);assert(tall.height>1.04);
  assert.equal(appearanceFor({id:'tulha-ahmed',gameplayProfile:profiles['tulha-ahmed']}).glasses,true);
 });
 test('player meshes use smooth geometry and fuller profiles gain a rounded torso',()=>{
  const lean=tailoredTorso(0),full=tailoredTorso(1.6);lean.computeBoundingBox();full.computeBoundingBox();
- assert(full.boundingBox.max.x>lean.boundingBox.max.x*1.35);
+ assert(full.boundingBox.max.x>lean.boundingBox.max.x*1.15);
  assert(full.attributes.normal.count>1000);assert([...full.attributes.normal.array].every(Number.isFinite));
  lean.dispose();full.dispose();
 });

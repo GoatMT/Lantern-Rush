@@ -35,9 +35,9 @@ test('major fouls show the referee first; ordinary fouls have no staff scene',()
  const m=fixture();m.phase='playing';m.players[5].x=0;m.players[5].z=0;m.foul(m.players[9],m.players[5]);assert.equal(m.sidelineQueue?.length||0,0);
  m.foul(m.players[9],m.players[5],'red');m.update(.1,idle);assert(!m.sideline);m.phaseTime=6;m.update(.1,idle);assert.equal(m.sideline.kind,'foul');
 });
-test('late goal cutaways follow the replay, and full-time results wait for their own short scene',()=>{
- const m=fixture();m.phase='playing';m.elapsed=170;m.ball.lastTouch=m.players[5];m.goal(0);assert(!m.sideline);assert.equal(m.sidelineQueue?.length||0,0);
- m.skipReplay();m.update(.01,idle);assert.equal(m.sideline.kind,'late-goal');assert.equal(m.elapsed,170);
+test('opponent coach reacts after every goal replay, and full-time results wait for their own short scene',()=>{
+ const m=fixture();m.phase='playing';m.elapsed=20;m.ball.lastTouch=m.players[5];m.goal(0);assert(!m.sideline);assert.equal(m.sidelineQueue?.length||0,0);
+ m.skipReplay();m.update(.01,idle);assert.equal(m.sideline.kind,'goal-reaction');assert.equal(m.sideline.team,1);assert.equal(m.sideline.scoringTeam,0);assert.equal(m.elapsed,20);
  const end=fixture();end.phase='playing';end.half=2;end.elapsed=179.999;end.update(1/120,idle);assert.equal(end.phase,'outro');end.update(.01,idle);assert.equal(end.sideline.kind,'fulltime');assert.equal(end.elapsed,180);
  end.skipSideline();end.update(1,idle);end.update(.01,idle);assert.equal(end.phase,'fulltime');assert.equal(end.elapsed,180);
 });

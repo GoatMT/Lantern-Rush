@@ -84,6 +84,7 @@ export class SidelineCast{
         else if(v==='discussion')action=assistant?(t<2.1?'staff-talk':'staff-listen'):(t<2.1?'staff-listen':'staff-instructions');
         else if(v==='welcome')action=assistant?'staff-talk':'staff-welcome';
         else if(v==='appeal'||v==='urgent')action=assistant?'staff-argue':'staff-shout';
+        else if(v==='angry')action=assistant?'staff-listen':'staff-shout';
         else if(v==='celebrate')action=assistant?'staff-applaud':'staff-celebrate';
         else if(v==='applaud')action='staff-applaud';
         else if(v==='reflection')action=assistant?'staff-talk':'staff-reflect';

@@ -40,7 +40,7 @@ export function audioCueForEvent(type,data){
 
 export class GameAudio{
   constructor(settings){
-    this.settings=settings;this.context=null;this.master=null;this.sfx=null;this.crowd=null;this.buffers=new Map();this.lastVariant=new Map();this.voices=new Set();this.footstepTimers=new WeakMap();this.dribbleTimer=0;this.ambient=null;this.wasMatchActive=false;this.lastUIAt=0;
+    this.settings=settings;this.context=null;this.master=null;this.sfx=null;this.crowd=null;this.buffers=new Map();this.lastVariant=new Map();this.voices=new Set();this.footstepTimers=new WeakMap();this.dribbleTimer=0;this.lastTouchCount=null;this.ambient=null;this.wasMatchActive=false;this.lastUIAt=0;
     this.onPointerDown=()=>this.unlock();this.onClick=event=>this.uiClick(event);
     document.addEventListener('pointerdown',this.onPointerDown,{capture:true,passive:true});document.addEventListener('keydown',this.onPointerDown,{capture:true});document.addEventListener('click',this.onClick,{capture:true});
   }
@@ -90,7 +90,8 @@ export class GameAudio{
   }
   matchEvent(type,data,match){
     const cue=audioCueForEvent(type,data);if(!cue)return;
-    const position=data?.player||data?.offender||data?.position||{x:match?.ball?.x||0,z:match?.ball?.z||0};
+    const actor=data?.player&&typeof data.player==='object'?data.player:data?.offender&&typeof data.offender==='object'?data.offender:null;
+    const position=data?.position||actor||{x:match?.ball?.x||0,z:match?.ball?.z||0};
     if(cue==='intro'){this.play('uiConfirm',{volume:.45});return;}
     if(cue==='restart'){this.play('whistle',{position,volume:.48});return;}
     if(cue==='halftime'){this.play('whistle',{volume:.68});this.play('uiConfirm',{volume:.4,rate:.86});return;}
@@ -99,12 +100,18 @@ export class GameAudio{
       this.play('goalNet',{position,volume:.84,rate:.93});this.reaction('crowdBuild',null,.46);this.reaction('crowdCheer',null,.95);return;
     }
     if(cue==='save'){this.play('goalkeeper',{position,volume:.72});this.reaction('crowdCheer',null,.33);return;}
-    if(cue==='pass'||cue==='header'||cue==='shot'||cue==='keeper-kick'||cue==='first-touch'||cue==='tackle'||cue==='post'||cue==='block'||cue==='foul'||cue==='injury'){
-      const names={pass:'kick',shot:'kick','keeper-kick':'kick','first-touch':'ballTouch',tackle:'tackle',post:'post',block:'tackle',foul:'tackle',injury:'tackle',header:'header'};
-      this.play(names[cue],{position,volume:cue==='first-touch' ? .3 : cue==='pass' ? .48 : .66,rate:cue==='shot' ? 1.03 : 1});return;
+    if(cue==='foul'){this.play('whistle',{position,volume:.54});this.reaction('crowdShout',position,.12);return;}
+    if(cue==='pass'||cue==='header'||cue==='shot'||cue==='keeper-kick'||cue==='first-touch'||cue==='tackle'||cue==='post'||cue==='block'||cue==='injury'){
+      const names={pass:'kick',shot:'kick','keeper-kick':'kick','first-touch':'ballTouch',tackle:'tackle',post:'post',block:'tackle',injury:'whistle',header:'header'};
+      const force=clamp(Number(data?.speed)||0,0,50),power=clamp(Number(data?.power)||.5,0,1),volume=cue==='first-touch'?.3:cue==='pass'?clamp(.34+force/105,.38,.66):cue==='shot'?clamp(.52+power*.24,.52,.78):cue==='header'?.68:cue==='injury'?.42:.62;
+      const rate=cue==='shot'?clamp(.9+force/90,.98,1.4):cue==='pass'?clamp(.92+force/120,.96,1.24):cue==='keeper-kick'?1.12:1;
+      this.play(names[cue],{position,volume,rate});
+      if(cue==='injury')this.reaction('crowdShout',position,.12);
+      if(cue==='first-touch'&&match?.ball)this.lastTouchCount=match.ball.touchCount;
+      return;
     }
     if(cue==='substitution'){this.play('uiConfirm',{volume:.34,rate:.92});return;}
-    if(cue==='card'){this.play('whistle',{position,volume:.62});this.play('uiError',{position,volume:.48,rate:.9});return;}
+    if(cue==='card'){this.play('uiError',{position,volume:.34,rate:.9});return;}
     if(cue==='miss'){this.reaction('crowdShout',null,.2);return;}
   }
   reaction(name,position,volume){if(this.settings.value.crowdReactions!==false)this.play(name,{position,volume,group:'crowd'});}
@@ -118,14 +125,14 @@ export class GameAudio{
   update(dt,match,inMatch,camera){
     if(camera?.position){this.cameraPosition={x:camera.position.x,z:camera.position.z};const e=camera.matrixWorld?.elements;if(e)this.cameraRight={x:e[0],z:e[2]};}
     const active=inMatch&&match&&!['home','fulltime'].includes(match.phase);this.setCrowdActive(active);
-    if(!active||match.paused||match.phase!=='playing')return;
-    const choices=[match.controlled,match.ball.owner].filter((player,index,array)=>player&&!player.sentOff&&array.indexOf(player)===index);
+    if(!active||match.paused||match.phase!=='playing'){this.lastTouchCount=match?.ball?.touchCount??null;return;}
+    const owner=match.ball.owner,choices=[match.controlled,owner].filter((player,index,array)=>player&&!player.sentOff&&array.indexOf(player)===index);
     for(const player of choices){
       const speed=Math.hypot(player.vx||0,player.vz||0);if(speed<2.5)continue;
-      let until=this.footstepTimers.get(player)||0;until-=dt;if(until<=0){this.play('footsteps',{position:player,volume:player===match.controlled ? .23 : .13,rate:clamp(speed/7,.78,1.12)});until=clamp(.54-speed*.018,.34,.49);}this.footstepTimers.set(player,until);
+      let until=this.footstepTimers.get(player)||0;until-=dt;if(until<=0){this.play('footsteps',{position:player,volume:player===owner ? .15:player===match.controlled ? .23 : .13,rate:clamp(speed/7,.78,1.12)});until=clamp(.54-speed*.018,.34,.49);}this.footstepTimers.set(player,until);
     }
-    const owner=match.ball.owner;this.dribbleTimer-=dt;
-    if(owner&&Math.hypot(owner.vx||0,owner.vz||0)>2&&this.dribbleTimer<=0){this.play('ballTouch',{position:match.ball,volume:.27,rate:.92+Math.random()*.1});this.dribbleTimer=.52;}
+    const touchCount=match.ball.touchCount;this.dribbleTimer-=dt;
+    if(this.lastTouchCount!==touchCount){this.lastTouchCount=touchCount;if(owner&&Math.hypot(owner.vx||0,owner.vz||0)>1.6&&this.dribbleTimer<=0){this.play('ballTouch',{position:match.ball,volume:.2,rate:clamp(.9+Math.hypot(owner.vx||0,owner.vz||0)/45,.92,1.12)});this.dribbleTimer=.14;}}
   }
   dispose(){document.removeEventListener('pointerdown',this.onPointerDown,true);document.removeEventListener('keydown',this.onPointerDown,true);document.removeEventListener('click',this.onClick,true);for(const voice of this.voices){try{voice.source.stop();}catch{}}this.voices.clear();this.context?.close().catch(()=>{});this.context=null;}
 }

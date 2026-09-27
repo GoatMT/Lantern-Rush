@@ -15,7 +15,7 @@ class Element extends EventTarget{
   pointer(type,id,x=28,y=28){const e=new Event(type,{cancelable:true});Object.assign(e,{pointerId:id,clientX:x,clientY:y});this.dispatchEvent(e);}
 }
 function setup(){
-  const doc=new EventTarget(),win=new EventTarget(),buttons=['shoot','pass','skill','sprint'].map(x=>new Element(x)),root=new Element(),pad=new Element(),thumb=new Element();
+  const doc=new EventTarget(),win=new EventTarget(),buttons=['shoot','pass','skill','sprint','goalie'].map(x=>new Element(x)),root=new Element(),pad=new Element(),thumb=new Element();
   root.querySelectorAll=()=>buttons;doc.querySelector=s=>({'#touch-controls':root,'#joystick':pad,'#joystick-thumb':thumb})[s];
   globalThis.document=doc;globalThis.addEventListener=win.addEventListener.bind(win);
   const memory=new Map(),storage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)},settings=new Settings(storage),controls=new Controls(settings),mobile=new MobileControls(controls);controls.enabled=true;
@@ -27,6 +27,12 @@ test('left joystick is default; mirroring is immediate, saved and clears active 
   pad.pointer('pointerdown',8,90,40);settings.set('mobileLayout','right');mobile.applyLayout();assert.equal(root.dataset.layout,'right');assert.deepEqual(controls.joystick,{x:0,z:0});assert.equal(pad.captures.size,0);
   settings.set('holdAutoSwitch',false);const restored=new Settings(storage);assert.equal(restored.value.mobileLayout,'right');assert.equal(restored.value.holdAutoSwitch,false);
   assert.equal(new Settings({getItem:()=>'{"mobileLayout":"broken","holdAutoSwitch":"false"}',setItem:()=>{}}).value.mobileLayout,'left');
+});
+test('goalkeeper button can be hidden and restored with a persisted control preference',()=>{
+  const {settings,mobile,buttons,storage}=setup();assert.equal(buttons.goalie.hidden,false);
+  settings.set('mobileGoalieVisible',false);mobile.applyLayout();assert.equal(buttons.goalie.hidden,true);
+  const restored=new Settings(storage);assert.equal(restored.value.mobileGoalieVisible,false);
+  settings.set('mobileGoalieVisible',true);mobile.applyLayout();assert.equal(buttons.goalie.hidden,false);
 });
 test('joystick, sprint and charge work simultaneously with proportional 360 degree movement',()=>{
   const {controls,pad,buttons}=setup();pad.pointer('pointerdown',1,70,42);const partial=controls.movement();assert(partial.intensity>0&&partial.intensity<1&&partial.x>0&&partial.z<0);

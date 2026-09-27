@@ -32,7 +32,8 @@
 #touch-controls #touch-pass { left:0; top:auto; bottom:0; --accent:#81b9dc; font-size:10px; }
 #touch-controls #touch-sprint { left:auto; right:0; top:auto; bottom:0; width:calc(var(--button)*1.2); height:calc(var(--button)*1.2); padding-top:7px; font-size:10px; --accent:#80c98b; }
 #touch-controls #touch-sprint::before { top:3px; font-size:10px; opacity:.7; }
-#touch-controls .touch-secondary { outline-offset:2px; outline-width:1px; border-width:1px; --accent:#c9ddd4;opacity:.25; pointer-events:none; }
+#touch-controls .touch-secondary { outline-offset:2px; outline-width:1px; border-width:1px; --accent:#c9ddd4;opacity:.88; pointer-events:auto; }
+#touch-controls .touch-secondary:disabled { opacity:.35; pointer-events:none; }
 #touch-controls #touch-goalie[aria-pressed="true"] { background:#76bc8f68; border-color:#b4ffd0; }
 #touch-controls .touch-action.held { background:#d4e5cb45; color:#fff; border-color:#fff; }
 .mobile-settings .muted-copy { font-size:11px; line-height:1.5; }
@@ -71,14 +72,15 @@ body[data-screen="match"] #live-canvas,
 #touch-controls[data-layout="right"] .touch-actions { right:auto; left:var(--touch-action-x,4%); transform:scaleX(-1); transform-origin:bottom left; }
 #touch-controls[data-layout="right"] .touch-movement { left:auto; right:var(--touch-pad-x,4%); transform-origin:bottom right; }
 #touch-controls .touch-secondary { width:52px; height:52px; font-size:9px; }
-#touch-controls #touch-goalie { left:-58px; bottom:8px; top:auto; }
-#touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-58px; }
+#touch-controls #touch-goalie { left:-78px; bottom:8px; top:auto; }
+#touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-78px; }
 #touch-controls[data-editing="true"] .touch-actions,
 #touch-controls[data-editing="true"] .touch-movement { outline:1px dashed #f4dc8a; outline-offset:7px; cursor:move; }
 @media (max-width:360px) and (orientation:portrait) {
   #touch-controls .touch-actions,
   #touch-controls .touch-movement { zoom:min(var(--touch-scale,1),.95); }
   #touch-controls .touch-secondary { width:48px; height:48px; }
-  #touch-controls #touch-goalie { left:-53px; }
-  #touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-53px; }
+  #touch-controls #touch-goalie { left:-70px; }
+  #touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-70px; }
 }
+#touch-controls #touch-goalie[hidden] { display:none !important; }

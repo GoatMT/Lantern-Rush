@@ -43,6 +43,7 @@ export class Menus {
     $('setting-mobile-layout').addEventListener('change',ev=>{a.settings.set('mobileLayout',ev.target.checked?'right':'left');a.mobile.applyLayout();this.renderSettings();});
     $('setting-mobile-control-scale').addEventListener('input',ev=>{const value=Number(ev.target.value)/100;a.settings.set('mobileControlScale',value);$('setting-mobile-control-scale-value').value=Math.round(value*100)+'%';$('setting-mobile-control-scale-value').textContent=$('setting-mobile-control-scale-value').value;a.mobile.applyLayout();});
     $('setting-mobile-control-edit').addEventListener('change',ev=>{a.settings.set('mobileControlEdit',ev.target.checked);a.mobile.applyLayout();});
+    $('setting-mobile-goalie-visible').addEventListener('change',ev=>{a.settings.set('mobileGoalieVisible',ev.target.checked);a.mobile.applyLayout();});
     on('reset-mobile-controls',()=>{a.mobile.resetPositions();this.renderSettings();});
     $('setting-hold-switch').addEventListener('change',ev=>{a.settings.set('holdAutoSwitch',ev.target.checked);if(a.match)a.match.settings.holdAutoSwitch=ev.target.checked;});
     on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('pause-close',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
@@ -141,7 +142,7 @@ export class Menus {
     for(const [id,key] of [['setting-audio-master','audioMaster'],['setting-audio-sfx','audioSfx'],['setting-audio-crowd','audioCrowd']]){const value=Math.round(this.app.settings.value[key]*100),slider=$(id),output=$(id+'-value');slider.value=value;output.value=value+'%';output.textContent=value+'%';}
     $('setting-audio-muted').checked=this.app.settings.value.audioMuted===true;
     $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
-    const scale=Math.round(this.app.settings.value.mobileControlScale*100);$('setting-mobile-control-scale').value=scale;$('setting-mobile-control-scale-value').value=scale+'%';$('setting-mobile-control-scale-value').textContent=scale+'%';$('setting-mobile-control-edit').checked=this.app.settings.value.mobileControlEdit===true;
+    const scale=Math.round(this.app.settings.value.mobileControlScale*100);$('setting-mobile-control-scale').value=scale;$('setting-mobile-control-scale-value').value=scale+'%';$('setting-mobile-control-scale-value').textContent=scale+'%';$('setting-mobile-control-edit').checked=this.app.settings.value.mobileControlEdit===true;$('setting-mobile-goalie-visible').checked=this.app.settings.value.mobileGoalieVisible!==false;
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
     $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
     $('home-venue').textContent=this.app.settings.value.randomConditions!==false?'RANDOM MATCHDAY · WEATHER · STADIUM · TIME':(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE')+' · '+this.app.settings.value.lighting.toUpperCase()+' MATCH';

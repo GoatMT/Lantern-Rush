@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as T from '../vendor/three.module.js';
 import {PLAYER_VISUAL_SCALE,FIELD} from '../src/config.js';
 import {appearanceFor} from '../src/engine/appearance.js';
+import {playerAttributes} from '../src/match/attributes.js';
 import {playerShapes} from '../src/engine/player-mesh-parts.js';
 import fs from 'node:fs';
 const profiles=JSON.parse(fs.readFileSync(new URL('../data/player-gameplay-2026.json',import.meta.url)));
@@ -62,8 +63,11 @@ test('net ripples affect only the struck goal, keep the posts pinned and settle'
 test('2026 model appearance honors player hair, build, and shared pitch scale',()=>{
   const player=id=>({id,gameplayProfile:profiles.players[id]});
   assert.equal(appearanceFor(player('ajmal-shakkari')).hairstyle,5,'Ajmal has a close short haircut');
-  assert.equal(appearanceFor(player('muhammad-teli')).hairstyle,'long','Teli has longer hair');
-  assert.equal(appearanceFor(player('abubakr-manjra')).bulk,1.65,'Abu keeps his visibly heavy build');
+  assert.equal(appearanceFor(player('muhammad-teli')).hairstyle,5,'Teli has short hair');
+  const abu=appearanceFor(player('abubakr-manjra')),stocky=appearanceFor(player('mosa-fazli'));
+  assert(abu.bulk<.6&&abu.build<1.15,'Abu remains broad but no longer scales much larger than teammates');
+  assert(stocky.bulk<.25,'stocky players get a subtle build difference');
+  for(const id of ['haroon-ahmadi','mudassir'])assert(playerAttributes({id,name:id,overall:90,gameplayProfile:profiles.players[id]}).dribble>1.1,id+' gets elite close-control ability');
   assert(playerShapes.sphere.parameters.widthSegments>=32);assert(playerShapes.limb.parameters.radialSegments>=28);
   assert.equal(FIELD.halfLength,64);assert.equal(FIELD.halfWidth,42);
 });

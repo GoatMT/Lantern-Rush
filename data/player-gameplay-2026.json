@@ -17,7 +17,7 @@
       },
       "physical": {
         "height": 0.93,
-        "build": 1.24
+        "build": 1.12
       },
       "tendencies": {
         "shoot": 1.22,
@@ -120,7 +120,7 @@
         "dribbling": 0.91
       },
       "physical": {
-        "build": 1.24
+        "build": 1.12
       },
       "tendencies": {
         "passFirst": 0.86
@@ -144,7 +144,7 @@
       },
       "physical": {
         "height": 0.92,
-        "build": 1.24
+        "build": 1.12
       },
       "tendencies": {},
       "potential": "high"
@@ -461,7 +461,7 @@
         "defending": 1.01
       },
       "physical": {
-        "build": 1.24
+        "build": 1.12
       },
       "tendencies": {}
     },
@@ -520,7 +520,7 @@
       },
       "physical": {
         "height": 1.04,
-        "build": 1.48
+        "build": 1.25
       },
       "tendencies": {
         "passFirst": 1.02,
@@ -573,7 +573,7 @@
       },
       "physical": {
         "height": 1.04,
-        "hairStyle": "long"
+        "hairStyle": "short"
       },
       "tendencies": {
         "run": 1.1

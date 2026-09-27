@@ -189,7 +189,7 @@ dialog.first-match-tour::backdrop{background:#020b09b8;backdrop-filter:blur(5px)
 .first-tour-slide .eyebrow{color:#d8c38a;font-size:9px;letter-spacing:1.8px}
 .first-tour-slide h2{margin:8px 0 12px;font-size:clamp(24px,6vw,34px);letter-spacing:.5px}
 .first-tour-slide p{max-width:410px;margin:0;color:#d0d8d0;font-size:14px;line-height:1.75}
-.first-tour-actions{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.first-tour-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:22px}
 .first-tour-actions button{min-height:46px;padding:12px 20px}
 @keyframes first-tour-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:420px){dialog.first-match-tour{width:calc(100vw - 20px);padding:18px}.first-tour-slide{min-height:205px;padding:17px}.first-tour-slide p{font-size:13px}.first-tour-actions button{padding:11px 14px;font-size:10px}}

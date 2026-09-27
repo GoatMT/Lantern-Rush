@@ -3,6 +3,7 @@ export class MobileControls {
     this.controls=controls;this.touches=new Map();this.pointer=null;
     this.root=document.querySelector('#touch-controls');
     this.pad=document.querySelector('#joystick');this.thumb=document.querySelector('#joystick-thumb');
+    this.goalieButton=[...this.root.querySelectorAll('[data-touch]')].find(button=>button.dataset.touch==='goalie')||null;
     addEventListener('keydown',()=>this.renderKeyboardThumb());
     addEventListener('keyup',()=>this.renderKeyboardThumb());
     for(const button of this.root.querySelectorAll('[data-touch]')){
@@ -62,7 +63,7 @@ export class MobileControls {
     });
     this.applyLayout();
   }
-  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style?.setProperty?.('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));this.applyPosition('joystick');this.applyPosition('actions');}
+  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style?.setProperty?.('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));if(this.goalieButton){this.goalieButton.hidden=this.controls.settings.value.mobileGoalieVisible===false;this.goalieButton.setAttribute?.('aria-hidden',String(this.goalieButton.hidden));}this.applyPosition('joystick');this.applyPosition('actions');}
   applyPosition(key){
     const position=this.controls.settings.value.mobileControlPositions?.[key]||{x:4,y:4},prefix=key==='joystick'?'--touch-pad':'--touch-action';
     this.root.style?.setProperty?.(prefix+'-x',Math.max(0,Math.min(42,position.x))+'%');this.root.style?.setProperty?.(prefix+'-y',Math.max(0,Math.min(38,position.y))+'%');

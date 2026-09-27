@@ -1,8 +1,8 @@
 import {FIELD} from '../config.js';
 export const SIDELINE_RETURN=.85;
-const durations={substitution:5.4,timeout:5.2,foul:3.8,'late-goal':3.6,halftime:5.8,fulltime:4.6};
+const durations={substitution:5.4,timeout:5.2,foul:3.8,'goal-reaction':4.0,halftime:5.8,fulltime:4.6};
 const variants={substitution:['instructions','welcome','discussion'],timeout:['tactical','heated'],foul:['appeal','heated'],
-  'late-goal':['celebrate','urgent'],halftime:['water','discussion','instructions'],fulltime:['applaud','reflection']};
+  'goal-reaction':['angry'],halftime:['water','discussion','instructions'],fulltime:['applaud','reflection']};
 export function queueSideline(match,kind,team,details={}){
   if(!durations[kind]||![0,1].includes(team)||['playing','intro','home','fulltime'].includes(match.phase))return false;
   match.sidelineQueue||=[];

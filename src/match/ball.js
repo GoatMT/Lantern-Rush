@@ -67,7 +67,7 @@ export class Ball {
       const forward=speed>.7?normalize(p.vx,p.vz):{x:p.faceX,z:p.faceZ},intent=normalize(p.dribbleX??forward.x,p.dribbleZ??forward.z),steer=normalize(forward.x*.58+intent.x*.42,forward.z*.58+intent.z*.42);
       const skillBlend=skill?Math.sin(Math.PI*clamp(skill.time/skill.duration,0,1))*.45:0;
       const n=skill?normalize(steer.x+skill.x*skillBlend,steer.z+skill.z*skillBlend):steer;
-      const lead=closeControl?.36:p.boosting?.74+(1-quality)*.12:.43+(1-quality)*.11+speed*.006;
+      const lead=closeControl?.34:p.boosting?.72+(1-quality)*.12:.41+(1-quality)*.11+speed*.006;
       p.touchFoot=contactFoot(p,this);const side=p.touchFoot==='right'?1:-1;
       const correctionX=p.x+n.x*lead+p.faceZ*side*.14-this.x,correctionZ=p.z+n.z*lead-p.faceX*side*.14-this.z;
       const interval=(p.boosting?.19:closeControl?.115:.145)+(1-quality)*.045;

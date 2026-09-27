@@ -34,7 +34,7 @@ export class Player {
     if(recovering){tx=this.vx*(this.action.name==='slide-tackle'?.92:.25);tz=this.vz*(this.action.name==='slide-tackle'?.92:.25);}
     const alignment=previousSpeed>.1?(this.vx*n.x+this.vz*n.z)/previousSpeed:1;
     this.cutTime=moving&&alignment<.65?.23:Math.max(0,(this.cutTime||0)-dt);
-    const control=this.hasBall?.86+this.attributes.dribble*.72:1;
+    const control=this.hasBall?.86+this.attributes.dribble*.82:1;
     const rate=(!moving?PLAY.braking:this.cutTime>0?PLAY.turnAcceleration:boosting?PLAY.sprintAcceleration:PLAY.acceleration)*control;
     const dv=Math.hypot(tx-this.vx,tz-this.vz),step=Math.min(1,rate*dt/(dv||1));
     this.vx+=(tx-this.vx)*step;this.vz+=(tz-this.vz)*step;

@@ -25,6 +25,7 @@ test('match moments and interface actions map to audio cues',()=>{
   assert.equal(audioCueForEvent('sound',{name:'post'}),'post');
   assert.equal(audioCueForEvent('notice',{title:'CORNER'}),'restart');
   assert.equal(audioCueForEvent('notice',{title:'SAVE'}),'save');
+  assert.equal(audioCueForEvent('notice',{title:'FOUL'}),'foul');
   assert.equal(audioCueForEvent('injury',{}),'injury');
   assert.equal(audioCueForEvent('card',{}),'card');
   assert.equal(audioCueForEvent('substitution',{}),'substitution');
