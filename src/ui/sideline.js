@@ -6,12 +6,13 @@ export class SidelineOverlay{
     this.root=document.createElement('aside');this.root.className='sideline-overlay';this.root.hidden=true;
     const copy=document.createElement('div');copy.className='sideline-caption';this.kind=document.createElement('small');this.team=document.createElement('strong');this.detail=document.createElement('span');copy.append(this.kind,this.team,this.detail);
     this.button=document.createElement('button');this.button.className='sideline-skip';this.button.textContent='SKIP CUTSCENE ›';this.button.onclick=skip;
-    this.root.append(copy,this.button);document.body.append(this.root);
+    this.root.append(copy,this.button);document.body.append(this.root);this.lastVisible=false;this.exitAt=0;
   }
   update(match){
     const cue=match?.sideline,visible=!!cue&&!match.paused&&!document.querySelector('dialog[open]')&&!['home','playing','halftime','fulltime'].includes(match.phase);
-    this.root.hidden=!visible;document.body.classList.toggle('sideline-active',visible);
-    if(!visible)return;
+    document.body.classList.toggle('sideline-active',visible);
+    if(!visible){if(this.lastVisible){this.lastVisible=false;this.exitAt=performance.now()+650;this.root.dataset.returning='true';}if(this.exitAt&&performance.now()>=this.exitAt){this.root.hidden=true;this.exitAt=0;}return;}
+    this.lastVisible=true;this.exitAt=0;this.root.hidden=false;
     this.root.dataset.returning=String(cue.time>=cue.duration);
     this.button.disabled=cue.time>=cue.duration;
     if(this.id===cue.id&&this.match===match)return;this.id=cue.id;this.match=match;

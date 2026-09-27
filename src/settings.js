@@ -16,7 +16,8 @@ export class Settings {
       camera:['low','medium','high','broadcast','mobile'].includes(saved.camera)?saved.camera:saved.camera?'medium':startingCamera(),
       lighting:['day','evening','night'].includes(saved.lighting)?saved.lighting:'evening',venue:['stadium-one','grenoble-ps'].includes(saved.venue)?saved.venue:'stadium-one',weather:weatherOption(saved.weather),randomConditions:saved.randomConditions!==false,crowdReactions:saved.crowdReactions!==false,minorInjuries:saved.minorInjuries!==false,
       audioMaster:volumeSetting(saved.audioMaster,.8),audioSfx:volumeSetting(saved.audioSfx,.75),audioCrowd:volumeSetting(saved.audioCrowd,.45),audioMuted:saved.audioMuted===true,
-      mobileLayout:saved.mobileLayout==='right'?'right':'left',holdAutoSwitch:typeof saved.holdAutoSwitch==='boolean'?saved.holdAutoSwitch:true,
+      mobileLayout:saved.mobileLayout==='right'?'right':'left',mobileControlScale:Number.isFinite(Number(saved.mobileControlScale))?Math.max(.8,Math.min(1.2,Number(saved.mobileControlScale))):1,
+      mobileControlEdit:saved.mobileControlEdit===true,mobileControlPositions:validMobilePositions(saved.mobileControlPositions),holdAutoSwitch:typeof saved.holdAutoSwitch==='boolean'?saved.holdAutoSwitch:true,
       difficulty:['easy','normal','hard','insane'].includes(saved.difficulty)?saved.difficulty:'normal',
       duration:matchDuration(saved.duration),season:String(saved.season||'2026'),
       userTeam:saved.userTeam||'leeward-lions',cpuTeam:saved.cpuTeam||'em-haulers-fc',tournamentTeam:saved.tournamentTeam||'',seasonTeam:saved.seasonTeam||'',seasonMode:saved.seasonMode&&typeof saved.seasonMode==='object'?saved.seasonMode:null,seasonFeatures:{trades:saved.seasonFeatures?.trades!==false,injuries:saved.seasonFeatures?.injuries!==false,suspensions:saved.seasonFeatures?.suspensions!==false,fantasyDraft:saved.seasonFeatures?.fantasyDraft===true},formations:saved.formations&&typeof saved.formations==='object'?saved.formations:{},controlsVersion:2,keys:{...DEFAULT_KEYS}};
@@ -50,5 +51,9 @@ export class Settings {
   }
 }
 function volumeSetting(value,fallback){return Number.isFinite(Number(value))?Math.max(0,Math.min(1,Number(value))):fallback;}
+function validMobilePositions(value){
+  const point=v=>({x:Number.isFinite(Number(v?.x))?Math.max(0,Math.min(42,Number(v.x))):4,y:Number.isFinite(Number(v?.y))?Math.max(0,Math.min(38,Number(v.y))):4});
+  return {joystick:point(value?.joystick),actions:point(value?.actions)};
+}
 export const keyLabel=code=>code.replace('Key','').replace('Digit','').replace('Arrow','').replace('Left','').replace('Right','');
 

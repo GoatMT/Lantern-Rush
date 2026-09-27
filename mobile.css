@@ -73,3 +73,26 @@
   #touch-controls[data-layout="right"] .touch-movement { left:auto; right:max(12px,env(safe-area-inset-right)); }
   #touch-controls[data-layout="right"] .touch-actions { left:max(12px,env(safe-area-inset-left)); }
 }
+
+/* Browser zoom remains available on menus and information pages; gameplay owns only its field gestures. */
+body { touch-action:auto !important; -webkit-user-select:text; user-select:text; }
+.screen, dialog { touch-action:auto; }
+body[data-screen="match"] #game-canvas,
+#touch-controls,
+#touch-controls * { touch-action:none; }
+#touch-controls,
+#touch-controls * { -webkit-user-select:none; user-select:none; }
+#touch-controls .touch-actions { right:var(--touch-action-x,4%); bottom:var(--touch-action-y,4%); left:auto; zoom:var(--touch-scale,1); transform-origin:bottom right; }
+#touch-controls .touch-movement { left:var(--touch-pad-x,4%); bottom:var(--touch-pad-y,4%); zoom:var(--touch-scale,1); transform-origin:bottom left; }
+#touch-controls[data-layout="right"] .touch-actions { right:auto; left:var(--touch-action-x,4%); transform:scaleX(-1); transform-origin:bottom left; }
+#touch-controls[data-layout="right"] .touch-movement { left:auto; right:var(--touch-pad-x,4%); transform-origin:bottom right; }
+#touch-controls .touch-secondary { width:52px; height:52px; font-size:9px; }
+#touch-controls #touch-goalie { left:-58px; bottom:8px; top:auto; }
+#touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-58px; }
+#touch-controls[data-editing="true"] .touch-actions,
+#touch-controls[data-editing="true"] .touch-movement { outline:1px dashed #f4dc8a; outline-offset:7px; cursor:move; }
+@media (max-width:360px) and (orientation:portrait) {
+  #touch-controls .touch-secondary { width:48px; height:48px; }
+  #touch-controls #touch-goalie { left:-53px; }
+  #touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-53px; }
+}

@@ -13,6 +13,7 @@ test('injuries do not substitute human players, and queued substitutions cannot 
  m.queueSubstitution(p.id,m.benches[0][0].id);m.elapsed=250;m.applySubstitutions();m.autoSubstitute();
  assert.equal(p.id,id);assert.equal(m.subEvents.length,0);assert.equal(m.moment,undefined);
  m.beginRestart({type:'THROW-IN',team:0,x:0,z:20});assert.notEqual(p.id,id);assert.equal(m.stats[0].substitutions,1);assert.equal(m.phase,'restart');
+ const swap=events.find(e=>e.type==='notice'&&e.data?.title==='SUBSTITUTION');assert(swap);assert(swap.data.playerName.includes(p.name));assert(swap.data.playerName.includes(m.players[5].name));
 });
 test('CPU injury replacements wait for a stoppage; H2H injuries never auto-select a human substitute',()=>{
  const {m}=fixture();const p=m.players[12],id=p.id;m.minorInjury(p);assert.equal(m.pending.length,1);m.applySubstitutions();assert.equal(p.id,id);

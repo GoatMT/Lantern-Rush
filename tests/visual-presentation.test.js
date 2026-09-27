@@ -2,6 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from '../vendor/three.module.js';
 import {PLAYER_VISUAL_SCALE,FIELD} from '../src/config.js';
+import {appearanceFor} from '../src/engine/appearance.js';
+import {playerShapes} from '../src/engine/player-mesh-parts.js';
+import fs from 'node:fs';
+const profiles=JSON.parse(fs.readFileSync(new URL('../data/player-gameplay-2026.json',import.meta.url)));
 import {Settings} from '../src/settings.js';
 import {MatchLighting,MATCH_LIGHTING} from '../src/engine/lighting.js';
 import {BroadcastCamera} from '../src/engine/camera.js';
@@ -21,7 +25,7 @@ test('lighting transitions preserve a single bounded, moving shadow light',()=>{
     const p=rig.set(mode);powers.push(p.exposure);rig.update(1/60,{x:FIELD.halfLength,z:FIELD.halfWidth});
     assert(rig.sun.position.toArray().every(Number.isFinite));assert(rig.sun.target.position.x<=36);assert(rig.sun.target.position.z<=15);assert.equal(scene.children.filter(x=>x.isLight&&x.castShadow).length,1);
   }
-  assert.equal(new Set(powers).size,3);assert.equal(rig.set('invalid'),MATCH_LIGHTING.evening);
+  assert.equal(new Set(powers).size,3);assert.deepEqual(rig.set('invalid'),MATCH_LIGHTING.evening);
 });
 
 test('phone framing enlarges player silhouettes while keeping all pitch corners playable',()=>{
@@ -47,10 +51,19 @@ test('painted pitch geometry is finite, flat, and contains both penalty arcs',()
 });
 
 test('net ripples affect only the struck goal, keep the posts pinned and settle',()=>{
-  const stadium=Object.create(Stadium.prototype);Object.assign(stadium,{root:new T.Group(),nets:[],flags:[],level:'low',previousPhase:'playing'});stadium.goal(-1);stadium.goal(1);
+  const stadium=Object.create(Stadium.prototype);Object.assign(stadium,{root:new T.Group(),fieldFeatures:new T.Group(),nets:[],flags:[],level:'low',previousPhase:'playing'});stadium.goal(-1);stadium.goal(1);
   const match={phase:'goal',ball:{x:FIELD.halfLength+2,z:2,y:2,vx:20,vz:0}};stadium.update(1,match);stadium.update(1.12,match);
   const hit=stadium.nets[1],other=stadium.nets[0],positions=hit.geometry.attributes.position.array,base=hit.userData.base;
   assert(positions.some((v,i)=>Math.abs(v-base[i])>.001));assert.deepEqual(other.geometry.attributes.position.array,other.userData.base);
   for(let i=0;i<base.length;i+=3)if(base[i]===FIELD.halfLength)assert.equal(positions[i],base[i]);
   match.ball.vx=0;stadium.update(4.2,match);assert.deepEqual(positions,base);assert.equal(hit.userData.impact,null);
+});
+
+test('2026 model appearance honors player hair, build, and shared pitch scale',()=>{
+  const player=id=>({id,gameplayProfile:profiles.players[id]});
+  assert.equal(appearanceFor(player('ajmal-shakkari')).hairstyle,5,'Ajmal has a close short haircut');
+  assert.equal(appearanceFor(player('muhammad-teli')).hairstyle,'long','Teli has longer hair');
+  assert.equal(appearanceFor(player('abubakr-manjra')).bulk,1.65,'Abu keeps his visibly heavy build');
+  assert(playerShapes.sphere.parameters.widthSegments>=32);assert(playerShapes.limb.parameters.radialSegments>=28);
+  assert.equal(FIELD.halfLength,64);assert.equal(FIELD.halfWidth,42);
 });

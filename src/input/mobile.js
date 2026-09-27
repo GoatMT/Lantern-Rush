@@ -39,6 +39,21 @@ export class MobileControls {
     this.pad.addEventListener('pointermove',e=>{if(e.pointerId===this.pointer){e.preventDefault();this.move(e);}});
     const end=e=>{if(e.pointerId!==this.pointer)return;this.pointer=null;controls.joystick={x:0,z:0};this.renderKeyboardThumb();if(this.pad.hasPointerCapture(e.pointerId))this.pad.releasePointerCapture(e.pointerId);};
     this.pad.addEventListener('pointerup',end);this.pad.addEventListener('pointercancel',end);this.pad.addEventListener('lostpointercapture',end);
+    this.root.addEventListener('pointerdown',e=>{
+      if(!this.controls.settings.value.mobileControlEdit)return;
+      const group=e.target.closest('.touch-movement,.touch-actions');if(!group)return;
+      e.preventDefault();e.stopImmediatePropagation();const key=group.classList.contains('touch-movement')?'joystick':'actions';
+      this.positionDrag={group,key,id:e.pointerId,startX:e.clientX,startY:e.clientY,width:window.innerWidth,height:window.innerHeight,startPosition:{...this.controls.settings.value.mobileControlPositions[key]}};group.setPointerCapture(e.pointerId);
+    },true);
+    this.root.addEventListener('pointermove',e=>{
+      const drag=this.positionDrag;if(!drag||drag.id!==e.pointerId)return;e.preventDefault();
+      const point=this.controls.settings.value.mobileControlPositions[drag.key],horizontal=this.root.dataset.layout==='right'?-1:1;
+      point.x=Math.max(0,Math.min(42,drag.startPosition.x+(e.clientX-drag.startX)/drag.width*100*horizontal));
+      point.y=Math.max(0,Math.min(38,drag.startPosition.y+(drag.startY-e.clientY)/drag.height*100));
+      this.applyPosition(drag.key);this.controls.settings.save();
+    },true);
+    const stopPositionDrag=e=>{if(this.positionDrag?.id===e.pointerId){const {group}=this.positionDrag;this.positionDrag=null;if(group.hasPointerCapture(e.pointerId))group.releasePointerCapture(e.pointerId);}};
+    this.root.addEventListener('pointerup',stopPositionDrag,true);this.root.addEventListener('pointercancel',stopPositionDrag,true);
     document.addEventListener('controls-clear',()=>{
       const touches=[...this.touches.entries()],pointer=this.pointer;this.touches.clear();this.pointer=null;
       for(const [id,t] of touches){t.button.classList.remove('held','curve-armed');if(t.button.hasPointerCapture(id))t.button.releasePointerCapture(id);}
@@ -47,7 +62,11 @@ export class MobileControls {
     });
     this.applyLayout();
   }
-  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';}
+  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style.setProperty('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));this.applyPosition('joystick');this.applyPosition('actions');}
+  applyPosition(key){
+    const position=this.controls.settings.value.mobileControlPositions?.[key]||{x:4,y:4},prefix=key==='joystick'?'--touch-pad':'--touch-action';
+    this.root.style.setProperty(prefix+'-x',Math.max(0,Math.min(42,position.x))+'%');this.root.style.setProperty(prefix+'-y',Math.max(0,Math.min(38,position.y))+'%');
+  }
   armCurve(touch){
     if(!this.controls.held.has('shoot')||touch.curve)return;
     touch.curve=true;this.controls.down('curve',touch.source);touch.button.classList.add('curve-armed');

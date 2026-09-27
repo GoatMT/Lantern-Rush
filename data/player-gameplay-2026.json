@@ -545,7 +545,8 @@
         "dribbling": 1.02
       },
       "physical": {
-        "height": 0.93
+        "height": 0.93,
+        "hairStyle": "short"
       },
       "tendencies": {
         "shoot": 1.18
@@ -571,7 +572,8 @@
         "iq": 1.08
       },
       "physical": {
-        "height": 1.04
+        "height": 1.04,
+        "hairStyle": "long"
       },
       "tendencies": {
         "run": 1.1

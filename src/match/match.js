@@ -120,7 +120,7 @@ export class Match {
   }
   update(dt,input){
     if(this.paused)return;
-    if(advanceSideline(this,dt))return;
+    advanceSideline(this,dt);
     if(this.phase==='outro'){this.setPhase('fulltime');return;}
     this.phaseTime+=dt;this.switchCooldown=Math.max(0,this.switchCooldown-dt);
     this.players.forEach(p=>p.tick(dt));this.referee.tick(dt);
@@ -514,6 +514,7 @@ export class Match {
         inPlayer:{id:incoming.id,name:incoming.name,jersey:incoming.jersey,role:out.role}
       });
       this.event('substitution',{player:out,...event});
+      this.notify('SUBSTITUTION',playerLabel(out)+' OFF · '+playerLabel(incoming)+' ON',4.5,{team,playerName:playerLabel(out)+' → '+playerLabel(incoming),compact:true});
       out.animate('wave',3.5);this.moment={type:'substitution',player:out,time:PRESENTATION.substitution};
       if(this.phase==='restart'&&this.restart)this.restart.readyAt=Math.max(this.restart.readyAt,this.phaseTime+PRESENTATION.substitution);
     }this.pending=[];

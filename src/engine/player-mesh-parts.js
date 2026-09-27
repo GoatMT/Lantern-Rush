@@ -2,10 +2,10 @@ import * as T from '../../vendor/three.module.js';
 
 // Static pieces on each animated joint are merged into one draw call.
 export const playerShapes={
-  sphere:new T.SphereGeometry(1,20,16),limb:new T.CylinderGeometry(1,1,1,16),
-  taper:new T.CylinderGeometry(.88,1,1,16),box:new T.BoxGeometry(1,1,1),
-  cap:new T.SphereGeometry(1,18,12,0,Math.PI*2,0,Math.PI*.52),
-  collar:new T.TorusGeometry(1,.15,8,24)
+  sphere:new T.SphereGeometry(1,32,24),limb:new T.CylinderGeometry(1,1,1,28),
+  taper:new T.CylinderGeometry(.88,1,1,28),box:new T.BoxGeometry(1,1,1),
+  cap:new T.SphereGeometry(1,28,20,0,Math.PI*2,0,Math.PI*.52),
+  collar:new T.TorusGeometry(1,.15,12,32)
 };
 export const jointMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:.79,metalness:0});
 

@@ -6,7 +6,7 @@ import { PLAYER_VISUAL_SCALE } from '../config.js';
 import { playerShapes,jointMaterial,part,solid,tailoredTorso } from './player-mesh-parts.js';
 
 function curvedFace(){
-  const columns=16,rows=14,width=.27,height=.23,positions=[],uv=[],indices=[];
+  const columns=24,rows=20,width=.27,height=.23,positions=[],uv=[],indices=[];
   for(let y=0;y<=rows;y++)for(let x=0;x<=columns;x++){
     const u=x/columns,v=y/rows,px=(u-.5)*width,py=(.5-v)*height,inside=Math.max(.04,1-(px/.185)**2-(py/.221)**2);
     positions.push(px,py,.177*Math.sqrt(inside)+.002);uv.push(u,1-v);
@@ -69,7 +69,7 @@ export class PlayerModel{
     this.shirtMaterial=new T.MeshStandardMaterial({map:this.uniformTexture,normalMap:fabricNormalTexture(),normalScale:new T.Vector2(.20,.20),roughness:.89});
     this.torsoGeometry=tailoredTorso(a.bulk);this.body.add(mesh(this.torsoGeometry,this.shirtMaterial,0,1.06,0));
     this.waterBottle=new T.Group();this.waterBottle.visible=false;const bottle=new T.Mesh(shared.bottle,waterMaterial),cap=new T.Mesh(shared.bottleCap,waterCapMaterial);bottle.position.y=.11;cap.position.y=.235;this.waterBottle.add(bottle,cap);this.waterBottle.position.set(.31,1.36,.205);this.body.add(this.waterBottle);
-    const waist=[part('limb',kit.shorts,0,.985,0,.25,.23,.14),part('limb',skin,0,1.85,0,.084,.19,.078)];
+    const waist=[part('limb',kit.shorts,0,.985,0,.25*(1+a.bulk*.28),.23,.14*(1+a.bulk*.25)),part('limb',skin,0,1.85,0,.084,.19,.078)];
     this.body.add(solid(waist));
     const collar=solid([part('collar',trim,0,1.822,0,.12,.11,.105,Math.PI/2),part('box',trim,0,1.73,.157,.012,.115,.006)]);this.body.add(collar);this.details.push(collar);
     // Original league crest and a small kit seam. No copied real-world sponsor marks.
@@ -86,26 +86,28 @@ export class PlayerModel{
     if(a.hairstyle===1)for(let i=0;i<4;i++)hair.push(part('sphere',a.hair,(i-1.5)*.074,.385,.06-i*.014,.068,.053,.093));
     if(a.hairstyle===2)for(let i=0;i<12;i++)hair.push(part('sphere',a.hair,Math.sin(i*2.4)*.142,.37+(i%3)*.016,Math.cos(i*2.4)*.124,.060,.06,.060));
     if(a.hairstyle===3)hair.push(part('sphere',a.hair,0,.39,-.025,.165,.04,.137));
+    if(a.hairstyle===5){for(const sign of [-1,1])hair.push(part('sphere',a.hair,sign*.164,.22,.012,.031,.075,.052));}
+    if(a.hairstyle==='long'){for(const sign of [-1,1]){hair.push(part('sphere',a.hair,sign*.125,.16,-.105,.065,.19,.082,0,0,sign*-.08));hair.push(part('sphere',a.hair,sign*.157,.105,-.055,.047,.14,.062,0,0,sign*-.1));}} 
     if(hair.length){const detail=solid(hair);this.head.add(detail);this.details.push(detail);}
     this.arms=[];this.elbows=[];this.legs=[];this.knees=[];
     for(const sign of [-1,1]){
       const arm=new T.Group();arm.position.set(sign*(.345+a.bulk*.045),1.68,0);
-      const armWidth=1+a.bulk*.22,upper=[part('taper',sleeve,0,-.113,0,.125*armWidth,.254,.126*armWidth),part('limb',skin,0,-.287,0,.083*armWidth,.15,.08*armWidth),part('limb',trim,0,-.231,0,.113*armWidth,.020,.115*armWidth)];
+      const armWidth=1+a.bulk*.34,upper=[part('taper',sleeve,0,-.113,0,.125*armWidth,.254,.126*armWidth),part('limb',skin,0,-.287,0,.083*armWidth,.15,.08*armWidth),part('limb',trim,0,-.231,0,.113*armWidth,.020,.115*armWidth)];
       if(this.keeper)upper.push(part('limb',sleeve,0,-.286,0,.092,.17,.09));
       if(player.data?.leadershipRole==='captain'&&sign<0)upper.push(part('limb','#e7ca54',0,-.177,0,.131,.078,.131));
       arm.add(solid(upper));
       const elbow=new T.Group();elbow.position.y=-.36;
-      const forearm=[part('taper',this.keeper?sleeve:skin,0,-.136,0,.072,.274,.075)];
+      const forearm=[part('taper',this.keeper?sleeve:skin,0,-.136,0,.072*armWidth,.274,.075*armWidth)];
       if(this.keeper){
         forearm.push(part('sphere','#e5e4d9',0,-.322,.006,.099,.103,.061),part('box','#283c44',0,-.27,.013,.185,.051,.12),part('box','#83b8b0',0,-.322,-.049,.122,.097,.017),part('sphere','#e5e4d9',sign*.091,-.305,.006,.038,.063,.044));
         for(let finger=0;finger<4;finger++)forearm.push(part('sphere','#e5e4d9',(finger-1.5)*.040,-.409,.010,.022,.045,.030));
-      }else forearm.push(part('sphere',skin,0,-.312,0,.074,.095,.048));
+      }else forearm.push(part('sphere',skin,0,-.312,0,.074*armWidth,.095*armWidth,.048*armWidth));
       elbow.add(solid(forearm));arm.add(elbow);this.body.add(arm);this.arms.push(arm);this.elbows.push(elbow);
       const leg=new T.Group();leg.position.set(sign*(.147+a.bulk*.018),1.00,0);
-      leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151*(1+a.bulk*.24),.29,.154*(1+a.bulk*.2)),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104,.18,.104)]));
+      leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151*(1+a.bulk*.38),.29,.154*(1+a.bulk*.34)),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104*(1+a.bulk*.24),.18,.104*(1+a.bulk*.24))]));
       const knee=new T.Group();knee.position.y=-.437;
       const boot=player.data.staff?'#25333a':a.boots||'#25333a';
-      knee.add(solid([part('sphere',player.data.staff?kit.shorts:skin,0,-.004,0,.098,.108,.099),part('taper',kit.socks,0,-.213,0,.094,.389,.095),part('limb',player.data.staff?kit.shorts:trim,0,-.06,0,.097,.019,.099),part('sphere',boot,0,-.415,.078,.119,.087,.221),part('sphere','#30373a',0,-.468,.083,.12,.024,.218)]));
+      knee.add(solid([part('sphere',player.data.staff?kit.shorts:skin,0,-.004,0,.098,.108,.099),part('taper',kit.socks,0,-.213,0,.094*(1+a.bulk*.20),.389,.095*(1+a.bulk*.18)),part('limb',player.data.staff?kit.shorts:trim,0,-.06,0,.097,.019,.099),part('sphere',boot,0,-.415,.078,.119,.087,.221),part('sphere','#30373a',0,-.468,.083,.12,.024,.218)]));
       const details=[];
       for(let i=0;i<3;i++)details.push(part('box','#d4d7d1',0,-.356,.06+i*.028,.074,.006,.009));
       for(let i=0;i<6;i++)details.push(part('limb',trim,i%2?.07:-.07,-.495,-.04+Math.floor(i/2)*.12,.015,.027,.015));

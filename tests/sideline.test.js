@@ -16,6 +16,10 @@ test('substitution cutaway starts only after a confirmed change at a stoppage',(
  const ball={x:m.ball.x,z:m.ball.z},clock=m.elapsed;m.update(2,idle);assert.equal(m.elapsed,clock);assert.deepEqual({x:m.ball.x,z:m.ball.z},ball);assert.equal(m.stats[0].substitutions,1);
  m.skipSideline();assert(m.sideline);assert.equal(m.sideline.time,m.sideline.duration);m.update(SIDELINE_RETURN+.01,idle);assert.equal(m.sideline,null);assert.equal(m.phase,'restart');assert.equal(m.stats[0].substitutions,1);assert(m.restart.readyAt>m.phaseTime);
 });
+test('sideline presentation never freezes live match motion or its clock',()=>{
+ const m=fixture();m.phase='playing';m.elapsed=20;m.sideline={id:91,kind:'substitution',team:0,duration:5.4,time:0,changes:[]};
+ const start=m.elapsed;m.update(.2,idle);assert(m.elapsed>start);assert.equal(m.sideline,null);assert.equal(m.phase,'playing');
+});
 test('half-time changes wait for Continue and replace the extra half-time cutaway',()=>{
  const m=fixture();m.phase='halftime';m.elapsed=90;m.queueSubstitution(m.players[5].id,m.benches[0][0].id);m.update(20,idle);assert(!m.sideline);assert.equal(m.phase,'halftime');
  m.random=()=>0;m.continueHalf();m.update(1/60,idle);assert.equal(m.sideline.kind,'substitution');assert(m.sidelineQueue.some(c=>c.kind==='halftime'&&c.variant==='water'));assert(m.sidelineQueue.find(c=>c.kind==='halftime').after>=m.sideline.duration+SIDELINE_RETURN);assert.equal(m.direction(0),-1);assert.equal(m.elapsed,90);

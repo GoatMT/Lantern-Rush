@@ -23,15 +23,15 @@ export function advanceSideline(match,dt){
   if(!match.sideline){
     const next=match.sidelineQueue?.[0];if(!next||match.phaseTime<next.after)return false;
     match.sideline=match.sidelineQueue.shift();match.sideline.time=0;
-    match.players.forEach(p=>{p.vx=p.vz=0;});match.charge=0;
   }
-  const cue=match.sideline;cue.time+=dt;match.phaseTime+=dt;
+  const cue=match.sideline;cue.time+=dt;
   if(cue.time>=cue.duration+SIDELINE_RETURN){
     if(cue.kind==='substitution'&&match.moment?.type==='substitution')match.moment=null;
-    if(match.phase==='restart'&&match.restart)match.restart.readyAt=Math.max(match.restart.readyAt,match.phaseTime+.65);
     match.sideline=null;
   }
-  return true;
+  // Sideline scenes are presentation-only. Match.update continues below, so
+  // a cutaway can never freeze the clock, ball, AI, or controller input.
+  return false;
 }
 export function skipSideline(match){
   if(!match.sideline||match.paused)return;

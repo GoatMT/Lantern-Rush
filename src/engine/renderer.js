@@ -71,7 +71,7 @@ export class GameRenderer{
     this.time+=dt;this.broadcast.update(dt,this.time,match);this.lighting.update(dt,match?.ball);this.weather.update(dt,this.broadcast.target);
     this.sidelineCast.update(dt,this.time,match,this.quality,this.camera);
     for(const model of this.models){
-      model.update(this.time,match?.controlled===model.player&&!match?.sideline&&!['home','intro','goal','outro'].includes(match?.phase),dt,this.quality,this.camera.position.distanceTo(model.root.position));
+      model.update(this.time,match?.controlled===model.player&&!['home','intro','goal','outro'].includes(match?.phase),dt,this.quality,this.camera.position.distanceTo(model.root.position));
     }
     if(this.ref)this.ref.update(this.time,false,dt,this.quality,this.camera.position.distanceTo(this.ref.root.position));
     if(match){
