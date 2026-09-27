@@ -1,6 +1,7 @@
+import {weatherOption} from './engine/weather-options.js';
 const allowed=['easy','normal','hard','insane'],formations=['2-2-2','2-3-1','3-2-1','3-1-2','1-3-2'];
 function require(condition,message){if(!condition)throw Error(message);}
-export function validateOptions(options={},catalog){require([1,2,3,4,5,6].includes(Number(options.duration)),'Choose a match length from 1 to 6 minutes.');require(allowed.includes(options.difficulty),'Choose a supported AI difficulty.');require(catalog[String(options.season)]?.length>=2,'This LSL season is unavailable.');return {duration:Number(options.duration),difficulty:options.difficulty,season:String(options.season),lighting:['day','evening','night'].includes(options.lighting)?options.lighting:'evening',weather:'clear',minorInjuries:true};}
+export function validateOptions(options={},catalog){require([1,2,3,4,5,6].includes(Number(options.duration)),'Choose a match length from 1 to 6 minutes.');require(allowed.includes(options.difficulty),'Choose a supported AI difficulty.');require(catalog[String(options.season)]?.length>=2,'This LSL season is unavailable.');return {duration:Number(options.duration),difficulty:options.difficulty,season:String(options.season),lighting:['day','evening','night'].includes(options.lighting)?options.lighting:'evening',weather:weatherOption(options.weather),minorInjuries:true};}
 export function applyRoomAction(previous,uid,name,data,catalog,now){
  const r=structuredClone(previous),host=r.host===uid,member=r.members.includes(uid),lobby=['OPEN','LOCKED','FULL'].includes(r.status);
  require(r.expiresAt>now,'This room has expired. Create a new room.');

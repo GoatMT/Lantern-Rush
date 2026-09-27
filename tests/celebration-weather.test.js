@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Match} from '../src/match/match.js';
 import {createLineup} from '../src/data.js';
-import {CELEBRATIONS,chooseCelebration,preferredCelebration} from '../src/match/celebrations.js';
+import {CELEBRATIONS,chooseCelebration,preferredCelebration,updateCelebration} from '../src/match/celebrations.js';
 import {animationPose} from '../src/engine/animations.js';
 import {Settings} from '../src/settings.js';
 import {WEATHER_OPTIONS} from '../src/weather-options.js';
@@ -32,6 +32,13 @@ test('preferences are stable; captains, finals, equalizers and late goals get co
  m.tournament={round:'Semifinal'};assert(!chooseCelebration(m,p,0).final);
  m.elapsed=175;assert(chooseCelebration(m,p,0).lateWinner);
  m.previousCelebration=chooseCelebration(m,p,0).name;assert.notEqual(chooseCelebration(m,p,0).name,m.previousCelebration);
+});
+test('crossed arms have distinct shoulder rotation; double slides synchronize two actors',()=>{
+ const m=game(),p=m.players[5];p.animate('celebrate-crossed',8.5);p.action.time=4;
+ const crossed=animationPose(p,4);assert(crossed.laY>.5&&crossed.raY<-.5);
+ m.ball.lastTouch=p;m.goal(0);m.celebration.name=m.goalCelebration='celebrate-double-slide';
+ p.animate(m.goalCelebration,10.5);const mate=m.celebrationMates[0];mate.x=p.x+p.faceZ*2.1;mate.z=p.z-p.faceX*2.1;
+ updateCelebration(m,1/60);assert(m.doubleSlideStarted);assert.equal(mate.action.name,'celebrate-double-slide');assert.equal(mate.action.time,p.action.time);
 });
 test('full celebration precedes replay; goals freeze match time and return cleanly to kickoff',()=>{
  const m=game();m.resetFormation();m.phase='playing';m.elapsed=55;m.ball.lastTouch=m.players[5];m.goal(0);

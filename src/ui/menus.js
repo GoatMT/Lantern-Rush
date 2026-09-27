@@ -28,7 +28,7 @@ export class Menus {
     for(const side of ['user','cpu'])for(const direction of ['prev','next'])on(side+'-'+direction,()=>a.cycle(side,direction==='next'?1:-1));
     $('season-select').addEventListener('change',ev=>a.changeSeason(ev.target.value));
     $('setting-lighting').addEventListener('change',ev=>{a.settings.set('lighting',ev.target.value);a.renderer.setLighting(ev.target.value);this.renderSettings();});
-    $('setting-weather').addEventListener('change',ev=>{a.settings.set('weather',ev.target.value);this.renderSettings();});
+    $('setting-weather').addEventListener('change',ev=>{a.settings.set('weather',ev.target.value);a.renderer.setWeather(ev.target.value);if(a.match)a.match.settings.weather=ev.target.value;this.renderSettings();});
     $('setting-crowd-reactions').addEventListener('change',ev=>{a.settings.set('crowdReactions',ev.target.checked);a.renderer.stadium.setCrowdReactions(ev.target.checked);this.renderSettings();});
     $('setting-minor-injuries').addEventListener('change',ev=>{a.settings.set('minorInjuries',ev.target.checked);if(a.match)a.match.settings.minorInjuries=ev.target.checked;this.renderSettings();});
     $('setting-mobile-layout').addEventListener('change',ev=>{a.settings.set('mobileLayout',ev.target.checked?'right':'left');a.mobile.applyLayout();this.renderSettings();});
@@ -168,7 +168,7 @@ export class Menus {
     root.hidden=false;this.noticeTime=seconds;
   }
   updateNotice(dt){if(this.noticeTime>0){this.noticeTime-=dt;if(this.noticeTime<=0)$('notice').hidden=true;}if(this.replayTime>0){this.replayTime-=dt;const overlay=$('replay-overlay'),stage=this.app.match?.replayStage;if(overlay&&stage)overlay.dataset.stage=stage;if(this.replayTime<=0)this.skipReplay();}}
-  showReplay(){this.replayTime=PRESENTATION.replayLead+PRESENTATION.replayTransition+PRESENTATION.replay;const overlay=$('replay-overlay');if(!overlay)return;overlay.dataset.stage='celebrate';overlay.hidden=false;}
+  showReplay(){this.replayTime=(this.app.match?.celebration?.duration||PRESENTATION.replayLead)+PRESENTATION.replayTransition+PRESENTATION.replay;const overlay=$('replay-overlay');if(!overlay)return;overlay.dataset.stage='celebrate';overlay.hidden=false;}
   skipReplay(){this.replayTime=0;this.app.match?.skipReplay();const overlay=$('replay-overlay');if(overlay){overlay.dataset.stage='done';overlay.hidden=true;}}
   subs(){this.returnToPause=$('pause-dialog').open;if(this.returnToPause)$('pause-dialog').close();this.out=this.in=null;$('sub-feedback').textContent='';this.renderSubs();$('subs-dialog').showModal();}
   renderSubs(){

@@ -6,7 +6,7 @@ export class MatchWeather{
   constructor(scene){
     this.scene=scene;this.kind='clear';this.count=0;this.time=0;
     this.positions=new Float32Array(900*3);this.seeds=new Float32Array(900*3);
-    for(let i=0;i<this.seeds.length;i++)this.seeds[i]=((i*16807+49297)%233280)/233280;
+    let seed=21917;for(let i=0;i<this.seeds.length;i++){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;this.seeds[i]=(seed>>>0)/4294967296;}
     const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(this.positions,3).setUsage(T.DynamicDrawUsage));
     this.material=new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{snow:{value:0},alpha:{value:.5}},
       vertexShader:'uniform float snow; void main(){vec4 p=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*p;gl_PointSize=mix(5.,4.,snow)*clamp(30./max(5.,-p.z),.65,2.);}',
@@ -26,9 +26,9 @@ export class MatchWeather{
     const x=focus?.x||0,z=focus?.z||0,wrap=(n,w)=>((n%w)+w)%w;
     for(let i=0;i<this.count;i++){
       const k=i*3,s=this.seeds;
-      this.positions[k]=x+wrap(s[k]*112+this.time*(snow?.5:2)-x+56,112)-56+(snow?Math.sin(this.time+i)*.3:0);
-      this.positions[k+1]=wrap(s[k+1]*36-this.time*speed,36)+.2;
-      this.positions[k+2]=z+wrap(s[k+2]*88-z+44,88)-44;
+      this.positions[k]=x+wrap(s[k]*80+this.time*(snow?.5:2)-x+40,80)-40+(snow?Math.sin(this.time+i)*.3:0);
+      this.positions[k+1]=wrap(s[k+1]*26-this.time*speed,26)+.2;
+      this.positions[k+2]=z+wrap(s[k+2]*64-z+32,64)-32;
     }
     this.particles.geometry.attributes.position.needsUpdate=true;
   }

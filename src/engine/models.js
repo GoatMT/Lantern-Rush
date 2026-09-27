@@ -87,10 +87,10 @@ export class PlayerModel{
       }else forearm.push(part('sphere',skin,0,-.312,0,.074,.095,.048));
       elbow.add(solid(forearm));arm.add(elbow);this.body.add(arm);this.arms.push(arm);this.elbows.push(elbow);
       const leg=new T.Group();leg.position.set(sign*.147,1.00,0);
-      leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151,.29,.154),part('taper',skin,0,-.331,0,.104,.18,.104)]));
+      leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151,.29,.154),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104,.18,.104)]));
       const knee=new T.Group();knee.position.y=-.437;
-      const boot=a.boots||'#25333a';
-      knee.add(solid([part('sphere',skin,0,-.004,0,.098,.108,.099),part('taper',kit.socks,0,-.213,0,.094,.389,.095),part('limb',trim,0,-.06,0,.097,.019,.099),part('sphere',boot,0,-.415,.078,.119,.087,.221),part('sphere','#30373a',0,-.468,.083,.12,.024,.218)]));
+      const boot=player.data.staff?'#25333a':a.boots||'#25333a';
+      knee.add(solid([part('sphere',player.data.staff?kit.shorts:skin,0,-.004,0,.098,.108,.099),part('taper',kit.socks,0,-.213,0,.094,.389,.095),part('limb',player.data.staff?kit.shorts:trim,0,-.06,0,.097,.019,.099),part('sphere',boot,0,-.415,.078,.119,.087,.221),part('sphere','#30373a',0,-.468,.083,.12,.024,.218)]));
       const details=[];
       for(let i=0;i<3;i++)details.push(part('box','#d4d7d1',0,-.356,.06+i*.028,.074,.006,.009));
       for(let i=0;i<6;i++)details.push(part('limb',trim,i%2?.07:-.07,-.495,-.04+Math.floor(i/2)*.12,.015,.027,.015));
@@ -99,7 +99,7 @@ export class PlayerModel{
       leg.add(knee);this.body.add(leg);this.legs.push(leg);this.knees.push(knee);
     }
     this.identityTextures=[];
-    if(!referee){
+    if(!referee&&!player.data.staff){
       const color=numberColor(kit),back=identityTexture(player,color,true);this.identityTextures.push(back);
       const backNumber=mesh(shared.back,new T.MeshBasicMaterial({map:back,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}),0,1.45,-.184);backNumber.rotation.y=Math.PI;backNumber.castShadow=false;this.body.add(backNumber);
       // Missing source numbers remain blank. The data audit records them for development.
@@ -124,9 +124,9 @@ export class PlayerModel{
     this.details.forEach(detail=>detail.visible=near);this.fineDetails.forEach(detail=>detail.visible=close);
     if(this.lastQuality!==quality){this.shirtMaterial.normalMap=quality==='low'?null:fabricNormalTexture();this.shirtMaterial.needsUpdate=true;this.lastQuality=quality;}
     const target=animationPose(p,time),blend=1-Math.exp(-Math.min(dt,.1)*(p.striking?38:23));
-    if(!this.pose)this.pose={...target};else for(const key of Object.keys(target))this.pose[key]+=(target[key]-this.pose[key])*blend;
+    if(!this.pose)this.pose={...target};else for(const key of Object.keys(target))this.pose[key]+=(key==='yaw'?Math.atan2(Math.sin(target[key]-this.pose[key]),Math.cos(target[key]-this.pose[key])):target[key]-this.pose[key])*blend;
     const q=this.pose;this.body.position.set(q.x,q.y,0);this.body.rotation.set(q.pitch,q.yaw,q.roll);this.head.rotation.set(q.headPitch,q.headYaw,0);
-    this.arms[0].rotation.set(q.laX,0,q.laZ);this.arms[1].rotation.set(q.raX,0,q.raZ);this.elbows[0].rotation.x=-q.le;this.elbows[1].rotation.x=-q.re;
+    this.arms[0].rotation.set(q.laX,q.laY,q.laZ);this.arms[1].rotation.set(q.raX,q.raY,q.raZ);this.elbows[0].rotation.x=-q.le;this.elbows[1].rotation.x=-q.re;
     this.legs[0].rotation.set(q.llX,0,q.llZ);this.legs[1].rotation.set(q.rlX,0,q.rlZ);this.knees[0].rotation.x=q.lk;this.knees[1].rotation.x=q.rk;
     this.shadow.scale.setScalar(1+Math.max(0,q.y)*.24);this.shadow.material.opacity=Math.max(.2,1-Math.max(0,q.y)*.35);
     if(this.card){this.card.visible=p.action?.name==='card'&&!!p.cardColor;if(p.cardColor)this.card.material.color.set(p.cardColor);}

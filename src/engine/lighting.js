@@ -32,8 +32,16 @@ export class MatchLighting{
     this.offset=new T.Vector3();this.focus=new T.Vector3();this.destination=new T.Vector3();this.set('evening');
   }
   set(name){
-    this.name=Object.hasOwn(MATCH_LIGHTING,name)?name:'evening';const p=MATCH_LIGHTING[this.name],u=this.sky.material.uniforms;
-    u.top.value.set(p.top);u.horizon.value.set(p.horizon);u.sunColor.value.set(p.sun);u.sunDirection.value.set(...p.position).normalize();u.night.value=p.night;
+    this.name=Object.hasOwn(MATCH_LIGHTING,name)?name:'evening';const base=MATCH_LIGHTING[this.name],p={...base},u=this.sky.material.uniforms;
+    const weather=this.weather||'clear';
+    if(weather!=='clear'){
+      const night=this.name==='night';
+      p.top=night?'#101c2c':weather==='snow'?'#849ba8':'#586e7c';
+      p.horizon=night?'#304351':weather==='snow'?'#d0dde0':'#a4b4bb';p.fog=p.horizon;
+      p.sunPower*=weather==='rain'?.55:.66;p.ambient*=1.12;p.sun=night?'#e4f0ff':'#e4edf2';
+    }
+    this.scene.fog.near=weather==='snow'?135:weather==='rain'?155:185;this.scene.fog.far=weather==='clear'?370:320;
+    u.top.value.set(p.top);u.horizon.value.set(p.horizon);u.sunColor.value.set(p.sun);u.sunDirection.value.set(...p.position).normalize();u.night.value=this.weather&&this.weather!=='clear'?1:p.night;
     this.scene.fog.color.set(p.fog);this.hemisphere.color.set(p.night===1?'#becfee':'#dceafa');this.hemisphere.groundColor.set(p.ground);this.hemisphere.intensity=p.ambient;
     this.sun.color.set(p.sun);this.sun.intensity=p.sunPower;this.offset.set(...p.position);this.fill.intensity=p.fill;
     this.sun.position.copy(this.offset);return p;

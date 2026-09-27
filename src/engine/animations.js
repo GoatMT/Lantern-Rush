@@ -1,3 +1,5 @@
+import {staffPose} from './staff-poses.js';
+import {celebrationPose} from './celebration-poses.js';
 import { clamp } from '../config.js';
 import { angleDelta } from '../match/player.js';
 const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
@@ -6,7 +8,7 @@ export function animationPose(p,time){
   const face=Math.atan2(p.faceX,p.faceZ),look=Math.atan2(p.lookX,p.lookZ);
   const pose={y:0,x:0,pitch:clamp(speed*.018+p.acceleration*.003,-.10,.24),roll:clamp(-p.turn*speed*.018,-.22,.22),yaw:Math.sin(phase)*run*.045,
     headYaw:clamp(angleDelta(face,look),-.6,.6)+Math.sin(time*.65+p.slot)*.035,headPitch:-run*.035,
-    laX:-swing*.67,raX:swing*.67,laZ:-.08-run*.06,raZ:.08+run*.06,le:.20+run*.90,re:.20+run*.90,
+    laY:0,raY:0,laX:-swing*.67,raX:swing*.67,laZ:-.08-run*.06,raZ:.08+run*.06,le:.20+run*.90,re:.20+run*.90,
     llX:swing,rlX:-swing,llZ:-.015,rlZ:.015,lk:.06+Math.max(0,-Math.sin(phase))*(.39+run*.90),rk:.06+Math.max(0,Math.sin(phase))*(.39+run*.90)};
   if(speed<.15){pose.pitch=.018;pose.y=Math.sin(time*1.8+p.slot)*.008;pose.roll=Math.sin(time*.5+p.slot)*.012;pose.llX=pose.rlX=0;pose.lk=pose.rk=.025;}
   else pose.y=Math.abs(Math.sin(phase))*(.013+run*.035);
@@ -87,17 +89,12 @@ export function animationPose(p,time){
   else if(names==='card-reaction'){action.laZ=-.8;action.raZ=.8;action.le=action.re=.7;action.headPitch=-.12;}
   else if(names==='card'){action.laX=-2.8;action.le=.05;}
   else if(names==='applaud'){action.laX=action.raX=-1.1;action.le=action.re=1;action.laZ=-.2+Math.sin(time*16)*.1;action.raZ=.2-Math.sin(time*16)*.1;}
+  else if(names.startsWith('staff-')){staffPose(action,names,t,a.time);}
   else if(names.startsWith('celebrate')||names==='wave'){
-    action.pitch=0;
-    if(names==='celebrate-slide'){action.y=-.6;action.lk=action.rk=1.9;action.llX=action.rlX=-.25;action.laZ=-1.2;action.raZ=1.2;}
-    else if(names==='celebrate-jump'){action.y=Math.abs(Math.sin(t*Math.PI*3))*.55;action.laZ=-2.5;action.raZ=2.5;action.lk=action.rk=.35*f;}
-    else if(names==='celebrate-arms'){action.laZ=-1.65;action.raZ=1.65;action.le=action.re=.1;}
-    else if(names==='celebrate-calm'){action.laX=action.raX=-.5;action.headPitch=-.1;}
-    else if(names==='celebrate-point'||names==='wave'){action.raX=-2.2;action.re=.1;action.laZ=-.3;}
-    else{action.raX=-2.6;action.re=1.2+Math.sin(time*10)*.3;action.laZ=-.5;}
+    celebrationPose(action,names,t,a.time,c);
   }
   const keepDown=['fall','roll-fall','slide-tackle','keeper-dive','get-up','keeper-get-up'].includes(names);
-  const weight=keepDown?(names.includes('get-up')?1:smooth(a.time/.10)):smooth(a.time/.09)*smooth((a.duration-a.time)/.16);
+  const weight=keepDown?(names.includes('get-up')?1:smooth(a.time/.10)):smooth(a.time/(names.startsWith('celebrate')?.4:.09))*smooth((a.duration-a.time)/(names.startsWith('celebrate')?.6:.16));
   for(const key of Object.keys(pose))pose[key]+=(action[key]-pose[key])*weight;
   return pose;
 }

@@ -1,3 +1,4 @@
+import {sidelineCamera} from './sideline.js';
 import * as T from '../../vendor/three.module.js';
 import {FIELD,clamp,distance} from '../config.js';
 import { INTRO,PRESENTATION,introPlayer } from '../presentation.js';
@@ -45,7 +46,7 @@ export class BroadcastCamera{
       }
       if(match.phase==='goal'){
         const lead=match.celebratingPlayer||b,orbit=Math.sin(match.phaseTime*.32)*2;
-        this.replayCelebrationPosition.set(lead.x-Math.sign(b.x)*10+orbit,5.4,lead.z+13);this.replayCelebrationTarget.set(lead.x,2.0,lead.z);
+        this.replayCelebrationPosition.set(lead.x-Math.sign(b.x)*(match.celebration?.big?13:10)+orbit,match.celebration?.big?6.7:5.4,lead.z+(match.celebration?.big?16:13));this.replayCelebrationTarget.set(lead.x,2.0,lead.z);
         if(match.replayActive&&match.replayFocus&&match.replayStage!=='celebrate'){
           const focus=match.replayFocus,side=Math.sign(match.direction(match.scoringTeam)||1),progress=match.replayStage==='transition'?clamp(match.replayStageTime/Math.max(.001,PRESENTATION.replayTransition),0,1):1,ease=progress*progress*(3-2*progress);
           this.replayPosition.set(focus.x-side*12,7.2,focus.z+10);this.replayTarget.set(focus.x,1.1,focus.z);
@@ -70,6 +71,7 @@ export class BroadcastCamera{
         }
       }
     }
+    if(match?.sideline){const blend=sidelineCamera(this,match.sideline);fov+=(43-fov)*blend;}
     if(this.compact||match?.settings.camera==='mobile'){
       const lens=mobileLens(fov,aspect);
       // Pull back by the matching amount so teammates stay in view without a wide-angle lens.

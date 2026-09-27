@@ -1,3 +1,6 @@
+import {SidelineCast} from './sideline.js';
+import {SidelineOverlay} from '../ui/sideline.js';
+import {MatchWeather} from './weather.js';
 import * as T from '../../vendor/three.module.js';
 import { Stadium } from './stadium.js';
 import { canvasSize } from './viewport.js';
@@ -11,11 +14,11 @@ export class GameRenderer{
     this.renderer=new T.WebGLRenderer({canvas,antialias:settings.graphics!=='low',alpha:false,powerPreference:'high-performance'});
     this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.setClearColor(0x102f3a,1);this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.toneMapping=T.ACESFilmicToneMapping;
     this.camera=new T.PerspectiveCamera(49,innerWidth/innerHeight,.2,u(260));this.broadcast=new BroadcastCamera(this.camera);
-    this.lighting=new MatchLighting(this.scene);this.sun=this.lighting.sun;
-    this.stadium=new Stadium(this.scene);this.models=[];this.ballMesh=createBallMesh();this.scene.add(this.ballMesh);
+    this.weather=new MatchWeather(this.scene);this.lighting=new MatchLighting(this.scene);this.sun=this.lighting.sun;
+    this.sidelineCast=new SidelineCast(this.scene);this.sidelineOverlay=new SidelineOverlay(()=>this.onSkipSideline?this.onSkipSideline():this.match?.skipSideline());this.stadium=new Stadium(this.scene);this.models=[];this.ballMesh=createBallMesh();this.scene.add(this.ballMesh);
     const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=64;const shadowContext=shadowCanvas.getContext('2d'),gradient=shadowContext.createRadialGradient(32,32,3,32,32,32);gradient.addColorStop(0,'rgba(3,12,10,.7)');gradient.addColorStop(.35,'rgba(3,12,10,.35)');gradient.addColorStop(1,'rgba(3,12,10,0)');shadowContext.fillStyle=gradient;shadowContext.fillRect(0,0,64,64);
     this.ballShadow=new T.Mesh(new T.PlaneGeometry(1.35,1.35),new T.MeshBasicMaterial({map:new T.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));this.ballShadow.rotation.x=-Math.PI/2;this.scene.add(this.ballShadow);
-    this.time=0;this.quality=settings.graphics;this.applyGraphics(settings.graphics);this.setLighting(settings.lighting||'evening');this.resize();
+    this.time=0;this.quality=settings.graphics;this.applyGraphics(settings.graphics);this.setLighting(settings.lighting||'evening');this.setWeather(settings.weather);this.resize();
     this.onResize=()=>this.resize();addEventListener('resize',this.onResize);
     globalThis.visualViewport?.addEventListener('resize',this.onResize);
     if(typeof ResizeObserver!=='undefined'){this.resizeObserver=new ResizeObserver(this.onResize);this.resizeObserver.observe(canvas);}
@@ -26,15 +29,16 @@ export class GameRenderer{
     canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();document.dispatchEvent(new CustomEvent('game-context-lost'));});
     canvas.addEventListener('webglcontextrestored',()=>location.reload());
   }
-  applyGraphics(level){this.quality=level;this.adaptiveScale=1;this.renderer.shadowMap.enabled=level!=='low';this.sun.shadow.mapSize.set(level==='high'?2048:1024,level==='high'?2048:1024);if(this.sun.shadow.map){this.sun.shadow.map.dispose();this.sun.shadow.map=null;}this.stadium.quality(level,this.renderer.capabilities.getMaxAnisotropy());this.resize();}
+  applyGraphics(level){this.quality=level;this.weather.set(this.weather.kind,level);this.adaptiveScale=1;this.renderer.shadowMap.enabled=level!=='low';this.sun.shadow.mapSize.set(level==='high'?2048:1024,level==='high'?2048:1024);if(this.sun.shadow.map){this.sun.shadow.map.dispose();this.sun.shadow.map=null;}this.stadium.quality(level,this.renderer.capabilities.getMaxAnisotropy());this.resize();}
   setLighting(name){const preset=this.lighting.set(name);this.renderer.toneMappingExposure=preset.exposure;this.stadium.setLighting(this.lighting.name);}
+  setWeather(name){this.weather.set(name,this.quality);this.lighting.weather=this.weather.kind;this.setLighting(this.lighting.name);}
   resize(){
     const {width:w,height:h}=canvasSize(this.canvas,globalThis.innerWidth,globalThis.innerHeight);
     const ratio=Math.min(globalThis.devicePixelRatio||1,this.quality==='low'?1:this.quality==='medium'?1.35:1.75)*this.adaptiveScale;
     if(w===this.viewportWidth&&h===this.viewportHeight&&ratio===this.pixelRatio)return false;
     const rotated=this.viewportWidth&&((w>h)!==(this.viewportWidth>this.viewportHeight));
     this.viewportWidth=w;this.viewportHeight=h;this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
-    this.compact=w<1050||h<550;this.actorScale=this.compact?PLAYER_VISUAL_SCALE.compact:PLAYER_VISUAL_SCALE.desktop;this.broadcast.compact=this.compact;
+    this.compact=w<1050||h<550;this.actorScale=this.compact?PLAYER_VISUAL_SCALE.compact:PLAYER_VISUAL_SCALE.desktop;this.broadcast.compact=this.compact;this.sidelineCast?.setVisualScale(this.actorScale);
     for(const model of [...(this.models||[]),...(this.ref?[this.ref]:[])])model.setVisualScale(this.actorScale);
     if(ratio!==this.pixelRatio){this.renderer.setPixelRatio(ratio);this.pixelRatio=ratio;}
     this.renderer.setSize(w,h,false);
@@ -48,11 +52,12 @@ export class GameRenderer{
   }
   playerLabelHeight(){return 3.1*this.actorScale;}
   setMatch(match){
+    this.match=match;this.sidelineCast.setMatch(match,this.actorScale);
     for(const model of this.models){this.scene.remove(model.root);model.dispose();}this.models=[];
     for(const p of match.players){const m=new PlayerModel(p,match.teams[p.team].uniform||match.teams[p.team].kit);m.setVisualScale(this.actorScale);this.models.push(m);this.scene.add(m.root);}
     if(this.ref){this.scene.remove(this.ref.root);this.ref.dispose();}
     this.ref=new PlayerModel(match.referee,'#ffe554',true);this.ref.setVisualScale(this.actorScale);this.scene.add(this.ref.root);
-    this.stadium.score(0,0);
+    this.setWeather(match.settings.weather);this.stadium.score(0,0);
     this.stadium.setTeams(match.teams);
   }
   refreshPlayer(player,match){
@@ -61,10 +66,11 @@ export class GameRenderer{
     const model=new PlayerModel(player,match.teams[player.team].uniform||match.teams[player.team].kit);model.setVisualScale(this.actorScale);this.models[index]=model;this.scene.add(model.root);
   }
   render(dt,match){
-    this.resize();
-    this.time+=dt;this.broadcast.update(dt,this.time,match);this.lighting.update(dt,match?.ball);
+    this.resize();this.sidelineOverlay.update(match);
+    this.time+=dt;this.broadcast.update(dt,this.time,match);this.lighting.update(dt,match?.ball);this.weather.update(dt,this.broadcast.target);
+    this.sidelineCast.update(dt,this.time,match,this.quality,this.camera);
     for(const model of this.models){
-      model.update(this.time,match?.controlled===model.player&&!['home','intro','goal'].includes(match?.phase),dt,this.quality,this.camera.position.distanceTo(model.root.position));
+      model.update(this.time,match?.controlled===model.player&&!match?.sideline&&!['home','intro','goal','outro'].includes(match?.phase),dt,this.quality,this.camera.position.distanceTo(model.root.position));
     }
     if(this.ref)this.ref.update(this.time,false,dt,this.quality,this.camera.position.distanceTo(this.ref.root.position));
     if(match){

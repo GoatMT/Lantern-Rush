@@ -1,3 +1,4 @@
+import {weatherOption} from '../weather-options.js';
 import {Match} from '../match/match.js';
 import {FORMATION_PRESETS,presetSlots,formationToWorld} from '../formation.js';
 import {matchDuration} from '../match-options.js';
@@ -21,7 +22,7 @@ export function buildSquad(team,selection){
 }
 export class LiveSimulation{
  constructor(teams,settings,seed,event=()=>{}){
-  this.match=new Match(teams,{...settings,duration:matchDuration(settings.duration)},{random:seedRandom(seed),event}).enableH2H();
+  this.match=new Match(teams,{...settings,weather:weatherOption(settings.weather),duration:matchDuration(settings.duration)},{random:seedRandom(seed),event}).enableH2H();
   this.tick=0;this.inputs=[decodeInput(idlePacket()),decodeInput(idlePacket())];this.halfReady=[false,false];
  }
  input(team,packet){this.inputs[team]=decodeInput(packet);}

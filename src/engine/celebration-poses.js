@@ -28,8 +28,8 @@ export function celebrationPose(a,name,t,seconds,context={}){
     a.raX=-.9*stand*recover;a.raZ=-.35*stand;a.re=1.5*stand;a.headPitch=.15*stand;
     if(name==='celebrate-captain'){a.laZ=-.7*stand;a.le=1.1*stand;a.raX=-1.15*stand;a.headPitch=-.08;}
   }else if(name==='celebrate-crossed'){
-    a.laX=-.65*stand;a.raX=-.55*stand;a.laZ=.55*stand;a.raZ=-.55*stand;
-    a.laY=-.7*stand;a.raY=.7*stand;a.le=a.re=1.45*stand;a.headPitch=-.1;
+    a.laX=-1.5*stand;a.raX=-1.4*stand;a.laZ=.9*stand;a.raZ=-.9*stand;
+    a.laY=stand;a.raY=-stand;a.le=a.re=.9*stand;a.headPitch=-.1;
   }else if(name==='celebrate-spin'){
     a.yaw=t>=.54?0:Math.PI*2*ease((t-.16)/.38);a.laZ=-1.2*stand*recover;a.raZ=1.2*stand*recover;
     a.llX=Math.sin(t*26)*.16*recover;a.rlX=-a.llX;a.lk=a.rk=.14;

@@ -64,7 +64,7 @@ test('halftime is an explicit pause, allows substitutions and reverses ends',()=
   const out=m.players[5],incoming=m.benches[0][0],oldId=out.id;m.queueSubstitution(oldId,incoming.id);
   assert.equal(m.stats[0].substitutions,1);assert.equal(out.id,incoming.id);assert(m.archive.some(p=>p.id===oldId));
   m.continueHalf();assert.equal(m.half,2);assert.equal(m.direction(0),-1);assert.equal(m.restart.team,1);assert.equal(m.restart.type,'KICK OFF');
-  m.phase='playing';m.elapsed=179.999;m.update(1/120,idle);assert.equal(m.phase,'fulltime');assert.equal(m.elapsed,180);
+  m.phase='playing';m.elapsed=179.999;m.update(1/120,idle);assert.equal(m.phase,'outro');m.update(6,idle);m.update(1/120,idle);assert.equal(m.phase,'fulltime');assert.equal(m.elapsed,180);
 });
 test('fouls create penalties in the box and two yellows remove a player',()=>{
   const m=match(),victim=m.players[5],offender=m.players[8];
@@ -80,7 +80,7 @@ test('queued substitutions wait for a stoppage and prevent duplicated players',(
 test('goals count once, include assists and give the opponent kickoff',()=>{
   const m=match(),p=m.players[5],a=m.players[4];m.phase='playing';m.ball.previousTouch=a;m.ball.lastTouch=p;m.goal(0);
   assert.equal(m.stats[0].goals,1);assert.equal(p.goals,1);assert.equal(a.assists,1);assert.equal(m.goalEvents[0].assist,a.name);
-  m.update(8.6,idle);assert.equal(m.phase,'restart');assert.equal(m.restart.team,1);
+  for(let i=0;i<1500&&m.phase==='goal';i++)m.update(1/60,idle);assert.equal(m.phase,'restart');assert.equal(m.restart.team,1);
 });
 test('settings persist and conflicting keys swap instead of breaking controls',()=>{
   let json='{"graphics":"low"}';const storage={getItem:()=>json,setItem:(k,v)=>json=v};const s=new Settings(storage);
@@ -92,7 +92,7 @@ test('every match length has equal halves and keeps total elapsed time',()=>{
     m.phase='playing';m.elapsed=duration*30-.001;m.update(1/120,idle);
     assert.equal(m.phase,'halftime');assert.equal(m.elapsed,duration*30);
     m.continueHalf();m.phase='playing';m.elapsed=duration*60-.001;m.update(1/120,idle);
-    assert.equal(m.phase,'fulltime');assert.equal(m.elapsed,duration*60);
+    assert.equal(m.phase,'outro');m.update(6,idle);m.update(1/120,idle);assert.equal(m.phase,'fulltime');assert.equal(m.elapsed,duration*60);
   }
 });
 test('a deflected shot keeps its original goalscorer and assist',()=>{

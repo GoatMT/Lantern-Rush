@@ -1,3 +1,4 @@
+import {weatherOption} from './weather-options.js';
 import {matchDuration} from './match-options.js';
 export const DEFAULT_KEYS = {forward:'KeyW',left:'KeyA',back:'KeyS',right:'KeyD',sprint:'KeyP',pass:'KeyM',shoot:'KeyK',skill:'KeyO',curve:'ShiftLeft',goalie:'KeyG',pause:'Escape'};
 export const CONTROL_NAMES = {forward:'Move forward',left:'Move left',back:'Move back',right:'Move right',sprint:'Sprint (hold)',pass:'Pass / switch outfield player',shoot:'Shoot (hold)',skill:'Dribble / skill',curve:'Curved shot (hold with Shoot)',goalie:'Switch goalkeeper / outfield',pause:'Pause'};
@@ -13,7 +14,7 @@ export class Settings {
     let saved={};try{saved=JSON.parse(storage.getItem('lsl-lantern-rush-v1')||'{}')||{};}catch{}
     this.value={graphics:['low','medium','high'].includes(saved.graphics)?saved.graphics:startingGraphics(),
       camera:['low','medium','high','broadcast','mobile'].includes(saved.camera)?saved.camera:saved.camera?'medium':startingCamera(),
-      lighting:['day','evening','night'].includes(saved.lighting)?saved.lighting:'evening',weather:'clear',crowdReactions:saved.crowdReactions!==false,minorInjuries:saved.minorInjuries!==false,
+      lighting:['day','evening','night'].includes(saved.lighting)?saved.lighting:'evening',weather:weatherOption(saved.weather),crowdReactions:saved.crowdReactions!==false,minorInjuries:saved.minorInjuries!==false,
       mobileLayout:saved.mobileLayout==='right'?'right':'left',holdAutoSwitch:typeof saved.holdAutoSwitch==='boolean'?saved.holdAutoSwitch:true,
       difficulty:['easy','normal','hard','insane'].includes(saved.difficulty)?saved.difficulty:'normal',
       duration:matchDuration(saved.duration),season:String(saved.season||'2026'),
