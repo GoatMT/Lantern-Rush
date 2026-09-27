@@ -26,6 +26,7 @@ export class HUD{
     const savingPenalty=m.phase==='restart'&&m.restart?.type==='PENALTY'&&m.restart.team!==0&&p.role==='GK';
     $('touch-shoot').textContent=savingPenalty?'DIVE':m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT';
     const passLabel=m.possessionTeam()===0?'PASS':'SWITCH';$('touch-pass').textContent=passLabel;$('touch-pass').setAttribute('aria-label',passLabel);$('touch-pass').dataset.mode=passLabel.toLowerCase();
+    const skillLabel=m.possessionTeam()===0?'DRIBBLE':'TACKLE';$('touch-dribble').textContent=skillLabel;$('touch-dribble').setAttribute('aria-label',skillLabel);
     $('touch-goalie').disabled=m.phase!=='playing'&&!savingPenalty;$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
     $('touch-goalie').setAttribute('aria-label',p.role==='GK'?'Switch back to outfield player':'Switch to goalkeeper');
     $('set-piece-hint').hidden=m.phase!=='restart';

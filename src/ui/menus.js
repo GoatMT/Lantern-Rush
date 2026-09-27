@@ -153,7 +153,7 @@ export class Menus {
     if(signed){$('settings-account-name').textContent=profile.username;$('settings-account-status').textContent=service.available?'SYNCED WITH FIREBASE':'LOCAL CONNECTION';$('settings-pfp-preview').src=profile.avatarDataUrl||'./assets/lsl-logo.png';}
   }
   renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
-  keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT'],['skill','SKILL'],['sprint','SPRINT'],['goalie','GOALIE']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
+  keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT'],['skill','SKILL / TACKLE'],['sprint','SPRINT'],['goalie','GOALIE']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
   pause(){this.app.controls.clear();this.renderPause();$('pause-dialog').showModal();}
   renderPause(){
     const match=this.app.match,settings=this.app.settings.value;
