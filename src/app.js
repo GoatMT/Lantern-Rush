@@ -156,7 +156,7 @@ class App {
 }
 const app=new App();
 app.init().catch(error=>{
-  console.error(error);$('loading').hidden=false;$('load-message').textContent='Unable to start: '+error.message+' · Use a current browser with WebGL 2 enabled, then reload.';
+  console.error('LANTERN RUSH startup failed:',error);$('loading').hidden=false;const detail=error?.message||'Unknown startup error';const graphicsHint=/WebGL|context/i.test(detail)?' · Check WebGL 2 support, then reload.':'';$('load-message').textContent='Unable to start: '+detail+graphicsHint;
   $('load-progress').hidden=true;
 });
 
