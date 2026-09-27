@@ -34,8 +34,9 @@ export class Menus {
     $('setting-minor-injuries').addEventListener('change',ev=>{a.settings.set('minorInjuries',ev.target.checked);if(a.match)a.match.settings.minorInjuries=ev.target.checked;this.renderSettings();});
     $('setting-mobile-layout').addEventListener('change',ev=>{a.settings.set('mobileLayout',ev.target.checked?'right':'left');a.mobile.applyLayout();this.renderSettings();});
     $('setting-hold-switch').addEventListener('change',ev=>{a.settings.set('holdAutoSwitch',ev.target.checked);if(a.match)a.match.settings.holdAutoSwitch=ev.target.checked;});
-    on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
+    on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('pause-close',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
     on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
+    document.querySelectorAll('[data-pause-setting]').forEach(select=>select.addEventListener('change',ev=>this.changePauseSetting(ev.target.dataset.pauseSetting,ev.target.value)));
     on('restart-match',()=>this.confirm('RESTART MATCH?',()=>a.start()));on('quit-home',()=>this.confirm('QUIT TO HOME?',()=>a.home()));
     on('confirm-cancel',()=>{$('confirm-dialog').close();$('pause-dialog').showModal();});
     on('confirm-yes',()=>{$('confirm-dialog').close();this.confirmAction?.();});
@@ -139,7 +140,23 @@ export class Menus {
   }
   renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
   keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT'],['skill','SKILL'],['sprint','SPRINT'],['goalie','GOALIE']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
-  pause(){this.app.controls.clear();$('pause-dialog').showModal();}
+  pause(){this.app.controls.clear();this.renderPause();$('pause-dialog').showModal();}
+  renderPause(){
+    const match=this.app.match,settings=this.app.settings.value;
+    $('pause-team-home').textContent=match.teams[0].name;$('pause-team-away').textContent=match.teams[1].name;
+    $('pause-score-home').textContent=match.stats[0].goals;$('pause-score-away').textContent=match.stats[1].goals;
+    $('pause-clock').textContent=clockText(match.elapsed);$('pause-half').textContent=match.half===1?'FIRST HALF':'SECOND HALF';
+    for(const select of document.querySelectorAll('[data-pause-setting]'))select.value=String(settings[select.dataset.pauseSetting]??select.value);
+  }
+  changePauseSetting(key,value){
+    const a=this.app,match=a.match;a.settings.set(key,key==='duration'?Number(value):value);
+    if(key==='graphics')a.renderer.applyGraphics(value);
+    if(key==='camera'&&match)match.settings.camera=value;
+    if(key==='difficulty'&&match)match.settings.difficulty=value;
+    if(key==='lighting')a.renderer.setLighting(value);
+    if(key==='venue')a.renderer.setVenue(value);
+    if(key==='weather'){a.renderer.setWeather(value);if(match)match.settings.weather=value;}
+  }
   resume(){this.closeAll();this.app.controls.clear();this.app.match.pause(false);}
   confirm(title,action){$('pause-dialog').close();$('confirm-title').textContent=title;this.confirmAction=action;$('confirm-dialog').showModal();}
   enterMatch(){

@@ -5,8 +5,18 @@ import { animationPose } from './animations.js';
 import { PLAYER_VISUAL_SCALE } from '../config.js';
 import { playerShapes,jointMaterial,part,solid,tailoredTorso } from './player-mesh-parts.js';
 
-const shared={torso:tailoredTorso(),face:new T.PlaneGeometry(.30,.265),back:new T.PlaneGeometry(.37,.48),front:new T.PlaneGeometry(.145,.18),shadow:new T.PlaneGeometry(1.65,1.65),indicator:new T.ConeGeometry(.17,.30,3),ring:new T.RingGeometry(.61,.665,28)};
+function curvedFace(){
+  const columns=16,rows=14,width=.27,height=.23,positions=[],uv=[],indices=[];
+  for(let y=0;y<=rows;y++)for(let x=0;x<=columns;x++){
+    const u=x/columns,v=y/rows,px=(u-.5)*width,py=(.5-v)*height,inside=Math.max(.04,1-(px/.185)**2-(py/.221)**2);
+    positions.push(px,py,.177*Math.sqrt(inside)+.002);uv.push(u,1-v);
+  }
+  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const a=y*(columns+1)+x,b=a+columns+1;indices.push(a,a+1,b+1,a,b+1,b);}
+  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
+}
+const shared={face:curvedFace(),back:new T.PlaneGeometry(.37,.48),front:new T.PlaneGeometry(.145,.18),shadow:new T.PlaneGeometry(1.65,1.65),indicator:new T.ConeGeometry(.17,.30,3),ring:new T.RingGeometry(.61,.665,28),bottle:new T.CylinderGeometry(.042,.056,.22,10),bottleCap:new T.CylinderGeometry(.027,.027,.035,10)};
 const mat=(color,roughness=.75)=>new T.MeshStandardMaterial({color,roughness,metalness:0});
+const waterMaterial=mat('#9bd7db',.3),waterCapMaterial=mat('#f0e7c9',.55);
 function mesh(geometry,material,x=0,y=0,z=0,sx=1,sy=sx,sz=sx){const m=new T.Mesh(geometry,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=m.receiveShadow=true;return m;}
 let contactTexture;
 function softShadow(){
@@ -49,12 +59,16 @@ export class PlayerModel{
     this.player=player;this.appearance=appearanceFor(player.data);const a=this.appearance;
     this.root=new T.Group();this.orientation=new T.Group();this.body=new T.Group();this.root.add(this.orientation);this.orientation.add(this.body);
     this.details=[];this.fineDetails=[];this.keeper=player.role==='GK'&&!referee;
-    const kit=referee?{primary:'#e9d546',secondary:'#dfc831',shorts:'#18272c',socks:'#18272c',trim:'#243438',pattern:'solid'}:
+    const fallback={primary:player.team===1?'#428b7c':'#557b72',secondary:player.team===1?'#36796e':'#45695f',shorts:'#162a31',socks:player.team===1?'#428b7c':'#557b72',trim:'#eee7d2',pattern:'solid'};
+    const source=referee?{primary:'#e9d546',secondary:'#dfc831',shorts:'#18272c',socks:'#18272c',trim:'#243438',pattern:'solid'}:
       this.keeper?goalkeeperKit(player.team):typeof color==='string'?{primary:color,secondary:color,shorts:'#162a31',socks:color,trim:'#e7e8d6',pattern:'solid'}:color;
+    const kit={...fallback,...(source&&typeof source==='object'?source:{})};
+    kit.primary||=fallback.primary;kit.secondary||=kit.primary;kit.shorts||=fallback.shorts;kit.socks||=kit.primary;kit.trim||=fallback.trim;kit.pattern||='solid';
     const sleeve=kit.pattern==='sleeves'?kit.secondary:kit.primary,skin=a.skin,trim=kit.trim||'#e7e5dc';
     this.uniformTexture=shirtTexture(kit);
     this.shirtMaterial=new T.MeshStandardMaterial({map:this.uniformTexture,normalMap:fabricNormalTexture(),normalScale:new T.Vector2(.20,.20),roughness:.89});
-    this.body.add(mesh(shared.torso,this.shirtMaterial,0,1.06,0));
+    this.torsoGeometry=tailoredTorso(a.bulk);this.body.add(mesh(this.torsoGeometry,this.shirtMaterial,0,1.06,0));
+    this.waterBottle=new T.Group();this.waterBottle.visible=false;const bottle=new T.Mesh(shared.bottle,waterMaterial),cap=new T.Mesh(shared.bottleCap,waterCapMaterial);bottle.position.y=.11;cap.position.y=.235;this.waterBottle.add(bottle,cap);this.waterBottle.position.set(.31,1.36,.205);this.body.add(this.waterBottle);
     const waist=[part('limb',kit.shorts,0,.985,0,.25,.23,.14),part('limb',skin,0,1.85,0,.084,.19,.078)];
     this.body.add(solid(waist));
     const collar=solid([part('collar',trim,0,1.822,0,.12,.11,.105,Math.PI/2),part('box',trim,0,1.73,.157,.012,.115,.006)]);this.body.add(collar);this.details.push(collar);
@@ -75,8 +89,8 @@ export class PlayerModel{
     if(hair.length){const detail=solid(hair);this.head.add(detail);this.details.push(detail);}
     this.arms=[];this.elbows=[];this.legs=[];this.knees=[];
     for(const sign of [-1,1]){
-      const arm=new T.Group();arm.position.set(sign*.345,1.68,0);
-      const upper=[part('taper',sleeve,0,-.113,0,.125,.254,.126),part('limb',skin,0,-.287,0,.083,.15,.08),part('limb',trim,0,-.231,0,.113,.020,.115)];
+      const arm=new T.Group();arm.position.set(sign*(.345+a.bulk*.045),1.68,0);
+      const armWidth=1+a.bulk*.22,upper=[part('taper',sleeve,0,-.113,0,.125*armWidth,.254,.126*armWidth),part('limb',skin,0,-.287,0,.083*armWidth,.15,.08*armWidth),part('limb',trim,0,-.231,0,.113*armWidth,.020,.115*armWidth)];
       if(this.keeper)upper.push(part('limb',sleeve,0,-.286,0,.092,.17,.09));
       if(player.data?.leadershipRole==='captain'&&sign<0)upper.push(part('limb','#e7ca54',0,-.177,0,.131,.078,.131));
       arm.add(solid(upper));
@@ -87,8 +101,8 @@ export class PlayerModel{
         for(let finger=0;finger<4;finger++)forearm.push(part('sphere','#e5e4d9',(finger-1.5)*.040,-.409,.010,.022,.045,.030));
       }else forearm.push(part('sphere',skin,0,-.312,0,.074,.095,.048));
       elbow.add(solid(forearm));arm.add(elbow);this.body.add(arm);this.arms.push(arm);this.elbows.push(elbow);
-      const leg=new T.Group();leg.position.set(sign*.147,1.00,0);
-      leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151,.29,.154),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104,.18,.104)]));
+      const leg=new T.Group();leg.position.set(sign*(.147+a.bulk*.018),1.00,0);
+      leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151*(1+a.bulk*.24),.29,.154*(1+a.bulk*.2)),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104,.18,.104)]));
       const knee=new T.Group();knee.position.y=-.437;
       const boot=player.data.staff?'#25333a':a.boots||'#25333a';
       knee.add(solid([part('sphere',player.data.staff?kit.shorts:skin,0,-.004,0,.098,.108,.099),part('taper',kit.socks,0,-.213,0,.094,.389,.095),part('limb',player.data.staff?kit.shorts:trim,0,-.06,0,.097,.019,.099),part('sphere',boot,0,-.415,.078,.119,.087,.221),part('sphere','#30373a',0,-.468,.083,.12,.024,.218)]));
@@ -127,6 +141,7 @@ export class PlayerModel{
     const target=animationPose(p,time),blend=1-Math.exp(-Math.min(dt,.1)*(p.striking?38:23));
     if(!this.pose)this.pose={...target};else for(const key of Object.keys(target))this.pose[key]+=(key==='yaw'?Math.atan2(Math.sin(target[key]-this.pose[key]),Math.cos(target[key]-this.pose[key])):target[key]-this.pose[key])*blend;
     const q=this.pose;this.body.position.set(q.x,q.y,0);this.body.rotation.set(q.pitch,q.yaw,q.roll);this.head.rotation.set(q.headPitch,q.headYaw,0);
+    this.waterBottle.visible=['bench-drink','team-drink'].includes(p.action?.name);this.waterBottle.position.y=1.36+(this.waterBottle.visible?Math.sin(time*4+p.slot)*.012:0);this.waterBottle.rotation.z=this.waterBottle.visible?-.24:0;
     this.arms[0].rotation.set(q.laX,q.laY,q.laZ);this.arms[1].rotation.set(q.raX,q.raY,q.raZ);this.elbows[0].rotation.x=-q.le;this.elbows[1].rotation.x=-q.re;
     this.legs[0].rotation.set(q.llX,0,q.llZ);this.legs[1].rotation.set(q.rlX,0,q.rlZ);this.knees[0].rotation.x=q.lk;this.knees[1].rotation.x=q.rk;
     this.shadow.scale.setScalar(1+Math.max(0,q.y)*.24);this.shadow.material.opacity=Math.max(.2,1-Math.max(0,q.y)*.35);
@@ -134,7 +149,7 @@ export class PlayerModel{
   }
   dispose(){
     const materials=new Set(),geometries=new Set(),sharedGeometry=new Set([...Object.values(shared),...Object.values(playerShapes)]);
-    this.root.traverse(o=>{if(o.isMesh){if(!sharedGeometry.has(o.geometry))geometries.add(o.geometry);(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m!==jointMaterial)materials.add(m);});}});
+    this.root.traverse(o=>{if(o.isMesh){if(!sharedGeometry.has(o.geometry))geometries.add(o.geometry);(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m!==jointMaterial&&m!==waterMaterial&&m!==waterCapMaterial)materials.add(m);});}});
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());this.identityTextures.forEach(t=>t.dispose());releaseShirtTexture(this.uniformTexture);this.faceTexture.dispose();
   }
 }

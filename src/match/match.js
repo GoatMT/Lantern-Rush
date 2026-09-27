@@ -27,7 +27,7 @@ export class Match {
     this.benches=teams.map(t=>t.bench.map(p=>({...p})));this.used=[[],[]];this.archive=[];this.pending=[];
     this.stats=[teamStats(),teamStats()];this.goalEvents=[];this.subEvents=[];this.injuryEvents=[];this.lastReaction=null;
     this.ball=new Ball();this.controlled=this.players[5];this.phase='intro';this.phaseTime=0;this.elapsed=0;this.half=1;
-    this.paused=false;this.charge=0;this.aimZ=0;this.switchCooldown=0;this.receiverAssist=false;this.restart=null;this.message='';this.replayBuffer=[];this.replayFrames=[];this.replayActive=false;this.replayClock=0;this.replayFocus=null;this.replayStage='celebrate';this.replayStageTime=0;this.replayPlayback=0;
+    this.paused=false;this.charge=0;this.aimZ=0;this.switchCooldown=0;this.receiverAssist=false;this.restart=null;this.message='';this.timeouts=[false,false];this.replayBuffer=[];this.replayFrames=[];this.replayActive=false;this.replayClock=0;this.replayFocus=null;this.replayStage='celebrate';this.replayStageTime=0;this.replayPlayback=0;
     this.referee=new Player({id:'referee',name:'Referee',jersey:null},-1,3,1);this.referee.x=-u(8);this.referee.z=u(6);
     for(const team of [0,1]){const captain=this.players.filter(p=>p.team===team).find(p=>p.data.leadershipRole==='captain')||this.players.filter(p=>p.team===team&&p.role!=='GK').sort((a,b)=>(Number(b.data.overall)||0)-(Number(a.data.overall)||0))[0];if(captain)captain.data.leadershipRole='captain';}
     this.resetFormation();this.passHeldTime=0;this.holdSwitchTime=0;this.curveRequested=false;
@@ -78,11 +78,18 @@ export class Match {
   }
   skipReplay(){if(this.phase==='goal'&&this.replayActive)this.finishReplay();}
   skipIntro(){if(this.phase==='intro'){this.resetFormation();this.beginRestart({type:'KICK OFF',team:0,x:0,z:0});}}
+  callTimeoutAtStoppage(data){
+    if(!['THROW-IN','THROW IN','CORNER','GOAL KICK','FREE KICK','PENALTY'].includes(String(data.type).toUpperCase()))return false;
+    const scores=this.stats.map(s=>s.goals);if(scores[0]===scores[1])return false;
+    const trailing=scores[0]<scores[1]?0:1;if(this.timeouts[trailing])return false;
+    this.timeouts[trailing]=true;
+    return queueSideline(this,'timeout',trailing,{score:[...scores],restartType:data.type});
+  }
   pause(value=true){if(['intro','playing','restart','goal'].includes(this.phase)){this.paused=value;this.charge=0;this.curveRequested=false;this.event('pause',value);}}
   continueHalf(){
     if(this.phase!=='halftime')return;
-    this.applySubstitutions();this.half=2;
-    this.resetFormation();this.beginRestart({type:'KICK OFF',team:1,x:0,z:0});this.notify('SECOND HALF','Ends changed · '+this.teams[1].name+' kickoff');queueSideline(this,'halftime',this.localTeam||0);
+    this.applySubstitutions();queueSideline(this,'halftime',this.localTeam||0);this.half=2;
+    this.resetFormation();this.beginRestart({type:'KICK OFF',team:1,x:0,z:0});this.notify('SECOND HALF','Ends changed · '+this.teams[1].name+' kickoff');
   }
   possessionTeam(){return this.ball.owner?.team??this.ball.pass?.team??this.ball.lastTouch?.team;}
   bestOutfield(){
@@ -448,7 +455,7 @@ export class Match {
     this.ball.x=data.x;this.ball.z=data.z;this.ball.y=FIELD.ballRadius;
     this.ball.owner=taker;taker.hasBall=true;this.ball.lastTouch=taker;taker.holdTime=0;
     if(this.humanSeats){this.humanSeats[data.team].controlled=taker;this.humanSeats[data.team].aimZ=0;}else if(data.team===0)this.controlled=taker;
-    this.setPhase('restart');this.notify(data.type,this.teams[data.team].name,this.restart.readyAt,{team:data.team});
+    this.setPhase('restart');this.notify(data.type,this.teams[data.team].name,this.restart.readyAt,{team:data.team});this.callTimeoutAtStoppage(data);
   }
   updateRestart(dt,input){
     const r=this.restart;if(!r)return;

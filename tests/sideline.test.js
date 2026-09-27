@@ -18,8 +18,14 @@ test('substitution cutaway starts only after a confirmed change at a stoppage',(
 });
 test('half-time changes wait for Continue and replace the extra half-time cutaway',()=>{
  const m=fixture();m.phase='halftime';m.elapsed=90;m.queueSubstitution(m.players[5].id,m.benches[0][0].id);m.update(20,idle);assert(!m.sideline);assert.equal(m.phase,'halftime');
- m.continueHalf();m.update(1/60,idle);assert.equal(m.sideline.kind,'substitution');assert(!m.sidelineQueue.some(c=>c.kind==='halftime'));assert.equal(m.direction(0),-1);assert.equal(m.elapsed,90);
+ m.random=()=>0;m.continueHalf();m.update(1/60,idle);assert.equal(m.sideline.kind,'substitution');assert(m.sidelineQueue.some(c=>c.kind==='halftime'&&c.variant==='water'));assert(m.sidelineQueue.find(c=>c.kind==='halftime').after>=m.sideline.duration+SIDELINE_RETURN);assert.equal(m.direction(0),-1);assert.equal(m.elapsed,90);
+ for(let guard=0;!['halftime'].includes(m.sideline?.kind)&&guard<8;guard++)m.update(m.sideline?m.sideline.duration+SIDELINE_RETURN+.02:.02,idle);assert.equal(m.sideline.kind,'halftime');assert.equal(m.sideline.variant,'water');
  const noSub=fixture();noSub.phase='halftime';noSub.continueHalf();noSub.update(1/60,idle);assert.equal(noSub.sideline.kind,'halftime');
+});
+test('a coach calls one tactical timeout for the trailing team at a restart',()=>{
+ const m=fixture();m.random=()=>0;m.phase='playing';m.elapsed=70;m.stats[0].goals=0;m.stats[1].goals=1;
+ m.beginRestart({type:'CORNER',team:0,x:20,z:40});assert.equal(m.timeouts[0],true);m.update(.02,idle);assert.equal(m.sideline.kind,'timeout');assert.equal(m.sideline.team,0);assert.equal(m.sideline.variant,'tactical');assert.equal(m.elapsed,70);
+ m.skipSideline();m.update(m.sideline.duration+SIDELINE_RETURN+.02,idle);m.update(.02,idle);assert.equal(m.sideline,null);
 });
 test('major fouls show the referee first; ordinary fouls have no staff scene',()=>{
  const m=fixture();m.phase='playing';m.players[5].x=0;m.players[5].z=0;m.foul(m.players[9],m.players[5]);assert.equal(m.sidelineQueue?.length||0,0);
@@ -35,13 +41,14 @@ test('cutaways combine same-team substitutions and vary repeated reactions',()=>
  const m=fixture();m.phase='restart';queueSideline(m,'substitution',0,{outPlayer:{name:'A'},inPlayer:{name:'B'}});queueSideline(m,'substitution',0,{outPlayer:{name:'C'},inPlayer:{name:'D'}});assert.equal(m.sidelineQueue.length,1);assert.equal(m.sidelineQueue[0].changes.length,2);
  m.sidelineQueue=[];queueSideline(m,'foul',0);const first=m.sidelineQueue.pop().variant;queueSideline(m,'foul',0);assert.notEqual(m.sidelineQueue[0].variant,first);
 });
-test('H2H synchronizes staff scene metadata and both players can skip',()=>{
+test('H2H synchronizes staff scenes, timeout use and both players can skip',()=>{
  const host=new LiveSimulation(teams,{duration:1,difficulty:'normal'},23),guest=new LiveSimulation(teams,{duration:1,difficulty:'normal'},23);
- host.command(0,{type:'skipIntro'});host.match.queueSubstitution(host.match.players[5].id,host.match.benches[0][0].id);host.input(0,idlePacket());host.step();
- const view=new SnapshotView(guest.match,1);view.push(JSON.parse(JSON.stringify(snapshot(host.match,host.tick))));view.update();assert.deepEqual(guest.match.sideline,host.match.sideline);
+ host.command(0,{type:'skipIntro'});host.match.timeouts[0]=true;host.match.queueSubstitution(host.match.players[5].id,host.match.benches[0][0].id);host.input(0,idlePacket());host.step();
+ const view=new SnapshotView(guest.match,1);view.push(JSON.parse(JSON.stringify(snapshot(host.match,host.tick))));view.update();assert.deepEqual(guest.match.sideline,host.match.sideline);assert.deepEqual(guest.match.timeouts,host.match.timeouts);
  host.command(1,{type:'skipSideline'});assert.equal(host.match.sideline.time,host.match.sideline.duration);
 });
-test('all staff gestures produce bounded, finite poses',()=>{
+test('staff and seated bench gestures produce bounded, finite poses',()=>{
  const p=fixture().players[4];p.role='STAFF';p.vx=p.vz=0;
- for(const name of ['instructions','talk','listen','shout','argue','welcome','reflect','applaud','celebrate']){p.animate('staff-'+name,4.8);for(let i=0;i<=120;i++){p.action.time=i/25;const pose=animationPose(p,i/25);assert(Object.values(pose).every(Number.isFinite),name);assert(Math.abs(pose.y)<.2,name);}}
+ for(const name of ['instructions','talk','listen','shout','argue','welcome','reflect','applaud','celebrate','timeout']){p.animate('staff-'+name,4.8);for(let i=0;i<=120;i++){p.action.time=i/25;const pose=animationPose(p,i/25);assert(Object.values(pose).every(Number.isFinite),name);assert(Math.abs(pose.y)<.2,name);}}
+ p.role='SUB';for(const name of ['bench-sit','bench-talk','bench-drink','team-talk','team-drink']){p.animate(name,5.8);for(let i=0;i<=30;i++){p.action.time=i/6;const pose=animationPose(p,i/6);assert(Object.values(pose).every(Number.isFinite),name);}}
 });

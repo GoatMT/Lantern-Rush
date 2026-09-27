@@ -1,7 +1,7 @@
 import {PLAY} from '../config.js';
 const poseKeys=['x','z','vx','vz','faceX','faceZ','lookX','lookZ','gait','turn','acceleration','animationTime'];
 const ballKeys=['x','y','z','vx','vy','vz','rollX','rollZ','rotationY'];
-const scalarKeys=['sideline','phase','phaseTime','elapsed','half','scoringTeam','goalCelebration','celebration','replayActive','replayStage','replayClock','replayStageTime','replayPlayback','replayFocus','message','lastReaction'];
+const scalarKeys=['sideline','phase','phaseTime','elapsed','half','scoringTeam','goalCelebration','celebration','replayActive','replayStage','replayClock','replayStageTime','replayPlayback','replayFocus','message','lastReaction','timeouts'];
 export function snapshot(match,tick){
  const index=p=>p?match.players.indexOf(p):-1;
  return {v:1,tick,state:Object.fromEntries(scalarKeys.map(k=>[k,match[k]??null])),ball:ballKeys.map(k=>match.ball[k]||0),owner:index(match.ball.owner),mode:match.ball.controlMode,

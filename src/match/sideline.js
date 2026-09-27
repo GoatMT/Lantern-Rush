@@ -1,19 +1,19 @@
 import {FIELD} from '../config.js';
 export const SIDELINE_RETURN=.85;
-const durations={substitution:4.8,foul:3.4,'late-goal':3.6,halftime:3.8,fulltime:4.2};
-const variants={substitution:['instructions','welcome','discussion'],foul:['appeal','heated'],
-  'late-goal':['celebrate','urgent'],halftime:['discussion','instructions'],fulltime:['applaud','reflection']};
+const durations={substitution:5.4,timeout:5.2,foul:3.8,'late-goal':3.6,halftime:5.8,fulltime:4.6};
+const variants={substitution:['instructions','welcome','discussion'],timeout:['tactical','heated'],foul:['appeal','heated'],
+  'late-goal':['celebrate','urgent'],halftime:['water','discussion','instructions'],fulltime:['applaud','reflection']};
 export function queueSideline(match,kind,team,details={}){
   if(!durations[kind]||![0,1].includes(team)||['playing','intro','home','fulltime'].includes(match.phase))return false;
   match.sidelineQueue||=[];
-  if(kind==='halftime'&&match.sidelineQueue.some(c=>c.kind==='substitution'))return false;
   const existing=match.sidelineQueue.find(c=>c.kind===kind&&c.team===team);
   if(existing){if(kind==='substitution')existing.changes.push(details);return true;}
   match.sidelineSerial=(match.sidelineSerial||0)+1;
   const options=variants[kind],last=match.sidelineVariants?.[kind],available=options.filter(v=>v!==last);
-  const variant=available[Math.min(available.length-1,Math.floor((match.random?.()??.5)*available.length))];
+  const variant=kind==='halftime'?'water':available[Math.min(available.length-1,Math.floor((match.random?.()??.5)*available.length))];
   (match.sidelineVariants||={})[kind]=variant;
-  match.sidelineQueue.push({id:match.sidelineSerial,kind,team,variant,duration:durations[kind],time:0,after:0,...details,changes:kind==='substitution'?[details]:[]});
+  const after=kind==='halftime'?match.sidelineQueue.reduce((end,cue)=>Math.max(end,cue.after||0)+cue.duration+SIDELINE_RETURN,0):0;
+  match.sidelineQueue.push({id:match.sidelineSerial,kind,team,variant,duration:durations[kind],time:0,after,...details,changes:kind==='substitution'?[details]:[]});
   return true;
 }
 export function advanceSideline(match,dt){

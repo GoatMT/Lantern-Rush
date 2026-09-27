@@ -2,10 +2,10 @@ import * as T from '../../vendor/three.module.js';
 
 // Static pieces on each animated joint are merged into one draw call.
 export const playerShapes={
-  sphere:new T.SphereGeometry(1,12,10),limb:new T.CylinderGeometry(1,1,1,10),
-  taper:new T.CylinderGeometry(.88,1,1,10),box:new T.BoxGeometry(1,1,1),
-  cap:new T.SphereGeometry(1,12,7,0,Math.PI*2,0,Math.PI*.52),
-  collar:new T.TorusGeometry(1,.15,5,16)
+  sphere:new T.SphereGeometry(1,20,16),limb:new T.CylinderGeometry(1,1,1,16),
+  taper:new T.CylinderGeometry(.88,1,1,16),box:new T.BoxGeometry(1,1,1),
+  cap:new T.SphereGeometry(1,18,12,0,Math.PI*2,0,Math.PI*.52),
+  collar:new T.TorusGeometry(1,.15,8,24)
 };
 export const jointMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:.79,metalness:0});
 
@@ -30,9 +30,10 @@ export function mergeParts(parts){
 
 export function solid(parts){const m=new T.Mesh(mergeParts(parts),jointMaterial);m.castShadow=m.receiveShadow=true;return m;}
 
-export function tailoredTorso(){
-  const rings=[[0,.255,.15],[.12,.265,.165],[.42,.29,.18],[.64,.34,.155],[.76,.235,.13]],segments=16,positions=[],uv=[],indices=[];
-  for(const [y,rx,rz] of rings)for(let s=0;s<=segments;s++){const a=s/segments*Math.PI*2;positions.push(Math.sin(a)*rx,y,Math.cos(a)*rz);uv.push(s/segments,y/.76);}
-  for(let r=0;r<rings.length-1;r++)for(let s=0;s<segments;s++){const a=r*(segments+1)+s,b=a+segments+1;indices.push(a,a+1,b,b,a+1,b+1);}
+export function tailoredTorso(bulk=0){
+  const profile=[[0,.255,.15],[.08,.26,.158],[.18,.272,.17],[.32,.284,.178],[.44,.30,.18],[.56,.32,.17],[.66,.34,.155],[.72,.305,.145],[.76,.235,.13]],rings=36,segments=32,positions=[],uv=[],indices=[];
+  const radiusAt=(y,column)=>{let i=0;while(i<profile.length-2&&profile[i+1][0]<y)i++;const [y0,...a]=profile[i],[y1,...b]=profile[i+1],t=Math.max(0,Math.min(1,(y-y0)/(y1-y0))),smooth=t*t*(3-2*t);return a[column-1]+(b[column-1]-a[column-1])*smooth;};
+  for(let r=0;r<=rings;r++){const v=r/rings,y=v*.76,belly=Math.exp(-Math.pow((v-.34)/.25,2))*bulk,rx=radiusAt(y,1)*(1+belly*.53),rz=radiusAt(y,2)*(1+belly*.34);for(let s=0;s<=segments;s++){const u=s/segments,a=u*Math.PI*2;positions.push(Math.sin(a)*rx,y,Math.cos(a)*rz);uv.push(u,v);}}
+  for(let r=0;r<rings;r++)for(let s=0;s<segments;s++){const a=r*(segments+1)+s,b=a+segments+1;indices.push(a,a+1,b,b,a+1,b+1);}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();return g;
 }

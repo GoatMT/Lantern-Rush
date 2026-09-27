@@ -13,7 +13,12 @@ export function applyRoomAction(previous,uid,name,data,catalog,now){
  case 'choose':{
   require(member&&lobby,'Team selection is closed.');const team=catalog[r.options.season]?.find(t=>t.id===data.team);require(team,'Team unavailable for this season.');require(formations.includes(data.formation),'Choose a supported formation.');require(!Object.entries(r.choices).some(([id,s])=>id!==uid&&s.team===team.id),'Opponent already selected this team.');
   const lineup=data.lineup||team.lineup.map(p=>p.id);require(Array.isArray(lineup)&&lineup.length===7&&new Set(lineup).size===7&&lineup.every(id=>team.roster.some(p=>p.id===id)),'Choose seven players from this team.');
-  r.choices[uid]={team:team.id,name:team.name,formation:data.formation,lineup};r.ready={};break;
+  const next={team:team.id,name:team.name,formation:data.formation,lineup};
+  const previousChoice=r.choices[uid];
+  const changed=!previousChoice||previousChoice.team!==next.team||previousChoice.formation!==next.formation||JSON.stringify(previousChoice.lineup)!==JSON.stringify(next.lineup);
+  r.choices[uid]=next;
+  if(changed){r.ready||={};r.ready[uid]=false;}
+  break;
  }
  case 'ready':require(member&&r.status==='FULL'&&r.choices[uid],'Select your team first.');r.ready[uid]=data.ready===true;break;
  case 'start':require(host&&r.status==='FULL'&&r.members.every(id=>r.ready[id]&&r.choices[id]),'Both players must select teams and be ready.');r.status='STARTING';r.connected={};r.startedAt=now+3000;r.epoch=(r.epoch||0)+1;r.heartbeats=Object.fromEntries(r.members.map(id=>[id,now]));break;

@@ -84,7 +84,23 @@ export function animationPose(p,time){
     else if(names==='keeper-roll'){action.raX=Math.sin(t*Math.PI*2)*.9;action.re=.15;action.pitch=.6*f;action.y=-.15*f;}
     else if(names==='keeper-throw'){action.raX=t<.4?2.6*t:-2.6*f;action.re=.3;action.yaw=-f*.3;action.laX=-.4;}
   }else if(names==='sprint-start'){action.pitch=.35*f;action.le=action.re=1;}
-  else if(names==='miss'){action.laX=.12;action.le=.15;action.raX=-.95;action.raZ=.18;action.re=1.65;action.headPitch=.40;action.pitch=.09;}
+  else if(names==='bench-sit'){
+    action.y=-.42;action.pitch=.08;action.llX=-.72;action.rlX=-.72;action.lk=action.rk=1.16;
+    action.laX=-.48;action.raX=-.48;action.le=action.re=.88;action.laZ=-.12;action.raZ=.12;action.headPitch=.025*Math.sin(time*1.4+p.slot);
+  }else if(names==='bench-talk'){
+    action.y=-.42;action.pitch=.08;action.llX=-.72;action.rlX=-.72;action.lk=action.rk=1.16;
+    action.laX=-.22;action.raX=-.54-Math.sin(time*5+p.slot)*.12;action.le=.75;action.re=1.04;action.raZ=.28;action.headYaw=Math.sin(time*2+p.slot)*.23;
+  }else if(names==='bench-drink'){
+    action.y=-.42;action.pitch=.08+Math.sin(time*2.2)*.015;action.llX=-.72;action.rlX=-.72;action.lk=action.rk=1.16;
+    action.raX=-1.9;action.re=.42;action.raZ=-.14;action.laX=-.5;action.le=.9;action.headPitch=-.23+Math.sin(time*2.2)*.025;
+  }else if(names==='team-talk'){
+    action.raX=-.5-Math.sin(time*4+p.slot)*.10;action.re=.85;action.raZ=.20;action.laX=-.28;action.le=.85;action.headYaw=Math.sin(time*1.8+p.slot)*.18;action.pitch=.035;
+  }else if(names==='team-drink'){
+    action.raX=-1.72;action.re=.46;action.raZ=-.12;action.laX=-.28;action.le=.85;action.headPitch=-.19;action.pitch=.035;
+  }else if(names==='staff-timeout'){
+    const beat=Math.sin(time*4.2);action.pitch=.05+Math.max(0,beat)*.03;action.raX=-1.15+beat*.28;action.raZ=.55;action.re=.34;
+    action.laX=-.55;action.le=.85;action.headYaw=Math.sin(time*1.5)*.08;
+  }else if(names==='miss'){action.laX=.12;action.le=.15;action.raX=-.95;action.raZ=.18;action.re=1.65;action.headPitch=.40;action.pitch=.09;}
   else if(names==='concede'){action.laX=action.raX=.05;action.le=action.re=.2;action.headPitch=.45;action.pitch=.13;action.laZ=-.08;action.raZ=.08;}
   else if(names==='card-reaction'){action.laZ=-.8;action.raZ=.8;action.le=action.re=.7;action.headPitch=-.12;}
   else if(names==='card'){action.laX=-2.8;action.le=.05;}

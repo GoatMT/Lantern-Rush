@@ -19,6 +19,21 @@ test('room lock, independent lineups and both-ready start enforce their invarian
  for(const uid of ['host','guest'])r=action(r,uid,{action:'choose',...choices[uid]});
  assert.throws(()=>action(r,'host',{action:'start'}),/Both/);r=action(r,'host',{action:'ready',ready:true});assert.throws(()=>action(r,'host',{action:'start'}));r=action(r,'guest',{action:'ready',ready:true});r=action(r,'host',{action:'start'});assert.equal(r.status,'STARTING');assert.throws(()=>action(r,'guest',{action:'choose',...choices.guest}));
 });
+
+test('formation edits keep the other player ready and kickoff sides remain correct after halftime',()=>{
+ let r=room();r=action(r,'guest',{action:'request'});r=action(r,'host',{action:'accept',uid:'guest'});
+ for(const uid of ['host','guest'])r=action(r,uid,{action:'choose',...choices[uid]});
+ r=action(r,'host',{action:'ready',ready:true});r=action(r,'guest',{action:'ready',ready:true});
+ r=action(r,'host',{action:'choose',...choices.host,formation:'3-2-1'});assert.equal(r.ready.host,false);assert.equal(r.ready.guest,true);
+ r=action(r,'host',{action:'ready',ready:true});r=action(r,'host',{action:'choose',...choices.host,formation:'3-2-1'});assert.equal(r.ready.host,true);assert.equal(r.ready.guest,true);
+ const m=new LiveSimulation(teams(),{duration:1,difficulty:'normal'},19).match;
+ const keeper=team=>m.players.find(p=>p.team===team&&p.role==='GK');
+ const assertTeamsOnOwnHalf=()=>m.players.forEach(p=>assert.ok(p.x*m.direction(p.team)<=.1,`team ${p.team} ${p.name} must line up on its own half`));
+ assert.equal(m.direction(0),1);assert.equal(m.direction(1),-1);assert.ok(keeper(0).x<0&&keeper(1).x>0);assertTeamsOnOwnHalf();
+ m.skipIntro();assert.equal(m.restart.team,0);assert.ok(keeper(0).x<0&&keeper(1).x>0);assertTeamsOnOwnHalf();
+ m.phase='halftime';m.continueHalf();assert.equal(m.half,2);assert.equal(m.restart.team,1);assert.equal(m.direction(0),-1);assert.equal(m.direction(1),1);assert.ok(keeper(0).x>0&&keeper(1).x<0);assertTeamsOnOwnHalf();
+});
+
 test('two human teams move independently and guest can pass and take a restart',()=>{
  const sim=new LiveSimulation(teams(),{duration:1,difficulty:'normal'},55),m=sim.match;m.skipIntro();m.phaseTime=10;
  sim.input(0,{...idlePacket(),pressed:['pass']});sim.step();for(let n=0;n<120;n++)sim.step();
@@ -39,6 +54,11 @@ test('full match input replay produces identical stats and snapshots on the serv
 test('both history records name the actual opponent and mirror team-indexed fields',()=>{
  const m=new LiveSimulation(teams(),{duration:1},1).match,r={...room(),members:['host','guest'],names:{host:'MT',guest:'Ahmed'},startedAt:now};m.stats[0].goals=4;m.stats[1].goals=3;m.goalEvents=[{team:0,name:'Player',time:5}];
  const captured=captureMatch(m),a=personalReport(captured,r,0,now),b=personalReport(captured,r,1,now);assert.equal(a.opponent.accountName,'Ahmed');assert.equal(b.accountName,'Ahmed');assert.deepEqual(a.score,[4,3]);assert.deepEqual(b.score,[3,4]);assert.equal(b.goals[0].team,1);assert.equal(b.startingLineups[0][0].team,0);assert.equal(a.mode,'h2h');assert.equal(b.verified,true);
+});
+
+test('H2H supplies a safe kit when a season team has no kit metadata',()=>{
+ const team=structuredClone(raw[0]);team.kit=null;team.uniform=null;team.colors=null;
+ const squad=buildSquad(team,choices.host);assert.equal(typeof squad.kit,'string');assert.equal(typeof squad.uniform.primary,'string');assert.equal(typeof squad.uniform.pattern,'string');
 });
 
 test('wire snapshots survive JSON encoding and update the guest, including referee signals',()=>{
