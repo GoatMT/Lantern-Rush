@@ -9,7 +9,7 @@ export class VerifiedAccountStore{
   let endpoint;try{endpoint=new URL(FREE_BACKEND_URL);}catch{throw new Error('The free online backend URL has not been configured. Follow LIVE-H2H-SETUP.md.');}
   if(endpoint.protocol!=='https:'&&!(['localhost','127.0.0.1'].includes(endpoint.hostname)&&endpoint.protocol==='http:'))throw Error('Use an HTTPS URL for the free online service.');
   const headers={'Content-Type':'application/json'};
-  if(name!=='accountAuth'){if(!this.auth.currentUser)throw Error('Please sign in again.');headers.Authorization='Bearer '+await this.auth.currentUser.getIdToken();}
+  if(name!=='accountAuth'&&name!=='accountAdmin'){if(!this.auth.currentUser)throw Error('Please sign in again.');headers.Authorization='Bearer '+await this.auth.currentUser.getIdToken();}
   let response;
   try{response=await fetch(endpoint.href.replace(/\/$/,'')+'/api/'+encodeURIComponent(name),{method:'POST',headers,body:JSON.stringify(data||{}),signal:AbortSignal.timeout(name==='h2hFinalize'?90000:30000)});}catch{throw Object.assign(new Error('The free online service could not be reached. Check your connection and retry.'),{code:'functions/unavailable'});}
   const result=await response.json().catch(()=>null);
@@ -24,9 +24,9 @@ export class VerifiedAccountStore{
  create(username,pin){return this.sign('create',username,pin);}
  login(username,pin){return this.sign('login',username,pin);}
  async clearSession(){await this.ready;await this.authModule.signOut(this.auth);try{localStorage.removeItem(ACCOUNT_SESSION_KEY);}catch{}}
- async authorizeAdmin(){return this.call('accountAdmin',{action:'authorize'});}
- async rename(uid,username){return this.call('accountAdmin',{action:'rename',uid,username});}
- async resetPasscode(uid,passcode){return this.call('accountAdmin',{action:'reset',uid,passcode});}
- async remove(uid){return this.call('accountAdmin',{action:'remove',uid});}
- async merge(source,target){return this.call('accountAdmin',{action:'merge',source,target});}
+ async authorizeAdmin(adminPassword){return this.call('accountAdmin',{action:'authorize',adminPassword});}
+ async rename(uid,username,adminPassword){return this.call('accountAdmin',{action:'rename',uid,username,adminPassword});}
+ async resetPasscode(uid,passcode,adminPassword){return this.call('accountAdmin',{action:'reset',uid,passcode,adminPassword});}
+ async remove(uid,adminPassword){return this.call('accountAdmin',{action:'remove',uid,adminPassword});}
+ async merge(source,target,adminPassword){return this.call('accountAdmin',{action:'merge',source,target,adminPassword});}
 }

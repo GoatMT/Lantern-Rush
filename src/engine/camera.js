@@ -1,7 +1,8 @@
 import {sidelineCamera} from './sideline.js';
 import * as T from '../../vendor/three.module.js';
 import {FIELD,clamp,distance} from '../config.js';
-import { INTRO,PRESENTATION,introPlayer } from '../presentation.js';
+import { INTRO,introPlayer } from '../presentation.js';
+import {applyReplayCamera} from '../match/replay.js';
 import { mobileLens } from './viewport.js';
 export const CAMERA_MODES=Object.freeze({
   low:{height:31,back:29},medium:{height:49,back:44},high:{height:73,back:58},broadcast:{height:44,back:54},mobile:{height:32,back:30}
@@ -44,15 +45,7 @@ export class BroadcastCamera{
         // The broadcast reveals both formations, then blends into the saved view.
         if(t>INTRO.duration-2.5){const f=clamp((t-(INTRO.duration-2.5))/2.5,0,1);this.introDestination.set(0,mode.height*portrait*wide,mode.back*portrait*wide);this.position.lerp(this.introDestination,f);}
       }
-      if(match.phase==='goal'){
-        const lead=match.celebratingPlayer||b,orbit=Math.sin(match.phaseTime*.32)*2;
-        this.replayCelebrationPosition.set(lead.x-Math.sign(b.x)*(match.celebration?.big?13:10)+orbit,match.celebration?.big?6.7:5.4,lead.z+(match.celebration?.big?16:13));this.replayCelebrationTarget.set(lead.x,2.0,lead.z);
-        if(match.replayActive&&match.replayFocus&&match.replayStage!=='celebrate'){
-          const focus=match.replayFocus,side=Math.sign(match.direction(match.scoringTeam)||1),progress=match.replayStage==='transition'?clamp(match.replayStageTime/Math.max(.001,PRESENTATION.replayTransition),0,1):1,ease=progress*progress*(3-2*progress);
-          this.replayPosition.set(focus.x-side*12,7.2,focus.z+10);this.replayTarget.set(focus.x,1.1,focus.z);
-          this.position.copy(this.replayCelebrationPosition).lerp(this.replayPosition,ease);this.target.copy(this.replayCelebrationTarget).lerp(this.replayTarget,ease);fov=43+(48-43)*ease;
-        }else{this.position.copy(this.replayCelebrationPosition);this.target.copy(this.replayCelebrationTarget);fov=43;}
-      }
+      if(match.phase==='goal')fov=applyReplayCamera(match,this);
       if(['halftime','fulltime'].includes(match.phase)){
         this.position.set(Math.sin(time*.035)*12,43,77);this.target.set(0,0,-3);fov=53;
       }

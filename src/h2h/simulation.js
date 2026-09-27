@@ -1,6 +1,6 @@
 import {weatherOption} from '../weather-options.js';
 import {Match} from '../match/match.js';
-import {FORMATION_PRESETS,presetSlots,formationToWorld} from '../formation.js';
+import {FORMATION_PRESETS,presetSlots,formationToWorld} from '../formation-data.js';
 import {matchDuration} from '../match-options.js';
 import {teamKit} from '../kits.js';
 export const PROTOCOL=1, STEP=1/120, INPUT_HZ=30, SNAPSHOT_HZ=20, RECONNECT_SECONDS=25;

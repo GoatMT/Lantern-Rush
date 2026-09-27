@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {seasonRivalries,findRivalry,rivalryTeams,rivalryHistory} from '../src/modes.js';
+import {seasonRivalries,findRivalry,rivalryTeams,rivalryHistory} from '../src/rivalry-data.js';
 const rivalries=JSON.parse(fs.readFileSync(new URL('../data/rivalries.json',import.meta.url))).rivalries;
 const data=Object.fromEntries([2024,2025,2026].map(year=>[year,JSON.parse(fs.readFileSync(new URL('../data/'+year+'.json',import.meta.url)))]));
 test('every season exposes featured playoff rematches with two distinct complete teams',()=>{

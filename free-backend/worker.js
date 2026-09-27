@@ -64,7 +64,7 @@ export class LiveBackend {
    const bytes=new Uint8Array(size);let offset=0;for(const part of chunks){bytes.set(part,offset);offset+=part.length;}
    let data;try{data=JSON.parse(new TextDecoder().decode(bytes));}catch{throw error('invalid-argument','Invalid request JSON.');}
    if(!data||typeof data!=='object'||Array.isArray(data))throw error('invalid-argument','Invalid request.');
-   if(!this.db){this.db=new FirebaseRest(this.env);this.api=createApi({db:this.db,auth:this.db,adminUids:this.env.ADMIN_UIDS||''});}
+   if(!this.db){this.db=new FirebaseRest(this.env);this.api=createApi({db:this.db,auth:this.db});}
    const name=new URL(request.url).pathname.split('/').at(-1);
    if(!Object.hasOwn(this.api,name))throw error('not-found','Unknown online operation.');
    let auth=null;

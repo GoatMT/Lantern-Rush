@@ -1,5 +1,6 @@
 import {queueSideline,advanceSideline,skipSideline} from './sideline.js';
-import {startCelebration,updateCelebration} from './celebrations.js';
+import {startCelebration} from './celebrations.js';
+import {resetReplay as resetReplayState,captureReplayFrame as captureReplayState,recordReplayFrame as recordReplayState,startReplay as startReplayState,applyReplayFrame as applyReplayState,updateReplay as updateReplayState,finishReplay as finishReplayState} from './replay.js';
 import {matchDuration} from '../match-options.js';
 import { FIELD,PLAY,FORMATION,fieldUnits as u,DIFFICULTY,clamp,distance,normalize } from '../config.js';
 import { Player } from './player.js';
@@ -56,20 +57,13 @@ export class Match {
     this.phase=phase;this.phaseTime=0;this.charge=0;this.curveRequested=false;
     this.event('phase',phase);
   }
-  resetFormation(){this.players.forEach(p=>p.reset(this.direction(p.team)));this.ball.reset();this.replayBuffer=[];this.replayFrames=[];this.replayActive=false;this.replayFocus=null;this.replayStage='celebrate';this.replayStageTime=0;this.replayPlayback=0;}
-  captureReplayFrame(){return {time:this.elapsed,ball:{x:this.ball.x,y:this.ball.y,z:this.ball.z,vx:this.ball.vx,vy:this.ball.vy,vz:this.ball.vz,rotationY:this.ball.rotationY,rollX:this.ball.rollX,rollZ:this.ball.rollZ},players:this.players.map(p=>({x:p.x,z:p.z,vx:p.vx,vz:p.vz,faceX:p.faceX,faceZ:p.faceZ}))};}
-  recordReplayFrame(){if(this.phase!=='playing')return;this.replayBuffer.push(this.captureReplayFrame());while(this.replayBuffer.length>2&&this.replayBuffer[0].time<this.elapsed-4.5)this.replayBuffer.shift();}
-  startReplay(finalFrame){let frames=[...this.replayBuffer,finalFrame].filter((frame,index,array)=>index===0||frame.time>=array[index-1].time);if(frames.length<2){const rewind=.9;frames=[{time:finalFrame.time-rewind,ball:{...finalFrame.ball,x:finalFrame.ball.x-finalFrame.ball.vx*rewind,y:Math.max(0,finalFrame.ball.y-finalFrame.ball.vy*rewind),z:finalFrame.ball.z-finalFrame.ball.vz*rewind},players:finalFrame.players.map(p=>({...p,x:p.x-p.vx*rewind,z:p.z-p.vz*rewind}))},finalFrame];}const end=frames.at(-1).time,start=Math.max(frames[0].time,end-4.5);this.replayFrames=frames.filter(frame=>frame.time>=start);this.replayClock=0;this.replayStage='celebrate';this.replayStageTime=0;this.replayPlayback=Math.max(2.4,Math.min(PRESENTATION.replay,this.replayFrames.at(-1).time-this.replayFrames[0].time||2.4));this.replayActive=true;this.replayFocus={x:finalFrame.ball.x,z:finalFrame.ball.z};}
-  applyReplayFrame(frame,next,blend){const b=frame.ball,n=next?.ball||b;this.ball.owner=null;this.ball.controlMode='feet';for(const p of this.players)p.hasBall=false;this.ball.x=b.x+(n.x-b.x)*blend;this.ball.y=b.y+(n.y-b.y)*blend;this.ball.z=b.z+(n.z-b.z)*blend;this.ball.vx=b.vx+(n.vx-b.vx)*blend;this.ball.vy=b.vy+(n.vy-b.vy)*blend;this.ball.vz=b.vz+(n.vz-b.vz)*blend;this.ball.rotationY=b.rotationY+(n.rotationY-b.rotationY)*blend;this.ball.rollX=b.rollX+(n.rollX-b.rollX)*blend;this.ball.rollZ=b.rollZ+(n.rollZ-b.rollZ)*blend;this.replayFocus={x:this.ball.x,z:this.ball.z};this.players.forEach((p,index)=>{const a=frame.players[index],q=next?.players[index]||a;p.x=a.x+(q.x-a.x)*blend;p.z=a.z+(q.z-a.z)*blend;p.vx=a.vx+(q.vx-a.vx)*blend;p.vz=a.vz+(q.vz-a.vz)*blend;p.faceX=a.faceX+(q.faceX-a.faceX)*blend;p.faceZ=a.faceZ+(q.faceZ-a.faceZ)*blend;p.action=null;p.animation=Math.hypot(p.vx,p.vz)>.2?'run':'idle';p.locomotion=Math.hypot(p.vx,p.vz)>.2?'run':'idle';});}
-  updateReplay(dt){if(!this.replayFrames.length){this.finishReplay();return;}let remaining=Math.max(0,dt);while(remaining>0&&this.replayActive){if(this.replayStage==='celebrate'){const left=Math.max(0,(this.celebration?.duration||PRESENTATION.replayLead)-this.replayStageTime);if(remaining<left){this.replayStageTime+=remaining;return;}remaining-=left;this.celebrationEnd=this.captureReplayFrame();this.replayStage='transition';this.replayStageTime=0;continue;}if(this.replayStage==='transition'){const left=Math.max(0,PRESENTATION.replayTransition-this.replayStageTime);if(remaining<left){this.replayStageTime+=remaining;return;}remaining-=left;this.replayStage='playback';this.replayStageTime=0;continue;}const step=Math.min(remaining,Math.max(0,this.replayPlayback-this.replayClock));this.replayClock+=step;remaining-=step;const ratio=clamp(this.replayClock/this.replayPlayback,0,1),time=this.replayFrames[0].time+(this.replayFrames.at(-1).time-this.replayFrames[0].time)*ratio;let index=0;while(index<this.replayFrames.length-2&&this.replayFrames[index+1].time<time)index++;const frame=this.replayFrames[index],next=this.replayFrames[index+1]||frame,blend=clamp((time-frame.time)/Math.max(.001,next.time-frame.time),0,1);this.applyReplayFrame(frame,next,blend);if(this.replayClock>=this.replayPlayback)this.finishReplay();}}
-  finishReplay(){
-    if(!this.replayActive)return;
-    if(this.celebrationEnd)this.applyReplayFrame(this.celebrationEnd,null,0);
-    this.replayActive=false;this.replayStage='done';this.replayStageTime=0;this.replayFocus=null;this.goalReturnTime=1.4;
-    this.ball.settleInNet(this.direction(this.scoringTeam));
-    this.active(this.scoringTeam).forEach(p=>p.animate(p===this.celebratingPlayer?'celebrate-calm':'applaud',1.4));
-    if(this.elapsed>=this.settings.duration*48)queueSideline(this,'late-goal',this.scoringTeam,{variant:this.celebration?.lateWinner?'celebrate':'urgent'});
-  }
+  resetFormation(){this.players.forEach(p=>p.reset(this.direction(p.team)));this.ball.reset();resetReplayState(this);}
+  captureReplayFrame(){return captureReplayState(this);}
+  recordReplayFrame(){recordReplayState(this);}
+  startReplay(finalFrame){startReplayState(this,finalFrame);}
+  applyReplayFrame(frame,next,blend){applyReplayState(this,frame,next,blend);}
+  updateReplay(dt){updateReplayState(this,dt);}
+  finishReplay(){finishReplayState(this);}
   skipSideline(){skipSideline(this);}
   finishMatch(){
     if(['outro','fulltime'].includes(this.phase))return;
@@ -139,7 +133,6 @@ export class Match {
     }
     if(this.phase==='goal'){
       if(this.replayActive){
-        if(this.replayStage==='celebrate')updateCelebration(this,dt);
         this.updateReplay(dt);if(this.replayActive)return;
       }
       this.ball.integrate(dt);this.players.forEach(p=>p.move(0,0,0,dt));

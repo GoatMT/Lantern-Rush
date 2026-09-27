@@ -5,7 +5,7 @@ import { teamOverall } from '../ratings.js';
 import { goalkeeperKit } from '../engine/uniforms.js';
 import { playerLabel } from '../player-label.js';
 import { INTRO,introStage,introPlayer } from '../presentation.js';
-import { formationLabel } from '../formation.js';
+import { formationLabel } from '../formation-data.js';
 export { introStage } from '../presentation.js';
 const roles={GK:'GOALKEEPER',DEF:'DEFENDER',MID:'MIDFIELDER',FWD:'FORWARD'};
 const formationName=team=>formationLabel(team?.formationId||'2-2-2');

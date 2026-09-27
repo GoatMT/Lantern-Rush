@@ -14,7 +14,7 @@ Public profiles and completed match reports are readable. Only the owning verifi
 
 ## Administration
 
-Sign into a game account whose stable ID is configured in the Worker's `ADMIN_UIDS`, then unlock `admin.html` with the existing admin-page password. Only the server allowlist grants authority. Rename, passcode reset, removal and merging run through the authenticated Worker backend after activation.
+Unlock admin.html with the shared admin password. Any visitor who knows the password can use the account tools; a separate game-account sign-in and UID allowlist are not required. The Worker checks the password before each rename, passcode reset, removal or merge.
 
 Merging retains the destination's credentials and preserves attributed histories, including source account names in older reports. Resetting a PIN does not erase match history. Profile photos are resized to 512 × 512 and checked against the storage limit.
 

@@ -5,7 +5,7 @@ import {LivePeer} from './peer.js';
 import {LiveArena,traceDigest} from './arena.js';
 import {LeagueData} from '../data.js';
 import {MATCH_DURATIONS} from '../match-options.js';
-import {FORMATION_ORDER,presetSlots} from '../formation.js';
+import {FORMATION_ORDER,presetSlots} from '../formation-data.js';
 import {buildSquad} from './simulation.js';
 import {escapeHTML as e,clockText} from '../config.js';
 import {playerLabel} from '../player-label.js';

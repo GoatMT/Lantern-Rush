@@ -2,13 +2,12 @@
 import {randomInt,randomUUID,pbkdf2Sync,timingSafeEqual,createHash} from 'node:crypto';
 import {applyRoomAction,validateOptions,personalReport} from '../functions/policy.js';
 import {replayTrace,buildSquad} from '../functions/engine/h2h/simulation.js';
-import {mergeAccountProfiles} from '../functions/engine/account-store.js';
+import {mergeAccountProfiles,ADMIN_PASSWORD} from '../functions/engine/account-store.js';
 import {captureMatch} from '../functions/engine/match-history.js';
 import catalog from '../functions/catalog.json' with {type:'json'};
 class HttpsError extends Error {constructor(code,message){super(message);this.code=code;}}
 const onCall=(_options,handler)=>handler,base={};
-export function createApi({db,auth,adminUids=''}){
- const ADMIN_UIDS={value:()=>adminUids};
+export function createApi({db,auth}){
  const err=(code,message)=>{throw new HttpsError(code,message);};
 const enabled=async()=>{if((await db.doc('runtime/live').get()).data()?.enabled!==true)err('failed-precondition','Online services are not enabled yet.');};
 const signed=async request=>{await enabled();const uid=request.auth?.uid;if(!uid)err('unauthenticated','Sign in again to verify your Lantern Rush account.');const login=(await db.doc('gameLogins/'+uid).get()).data();if(!login||login.revision!==request.auth.token.revision)err('unauthenticated','Your session expired. Sign in again.');return uid;};
@@ -108,8 +107,7 @@ const h2hFinalize=onCall({...base,memory:'1GiB',timeoutSeconds:540,maxInstances:
   t.update(ref,{status:'FULL TIME',score:report.score,elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
 });
 const accountAdmin=onCall(base,async request=>{
- const actor=await signed(request);if(!ADMIN_UIDS.value().split(',').map(x=>x.trim()).includes(actor))err('permission-denied','Sign in with an account listed in the server ADMIN_UIDS setting.');
- const d=request.data||{};if(d.action==='authorize')return {allowed:true};
+ const d=request.data||{};await enabled();if(!equal(d.adminPassword,ADMIN_PASSWORD))err('permission-denied','Admin password is incorrect.');if(d.action==='authorize')return {allowed:true};
  if(d.action==='merge'){
   if(d.source===d.target)err('invalid-argument','Choose two accounts.');
   const profiles=await Promise.all([identity(d.source),identity(d.target)]);

@@ -38,7 +38,7 @@ The login command opens Cloudflare in your browser. Sign in to the free account 
 Open `free-backend/wrangler.jsonc`:
 
 - `ALLOWED_ORIGINS` must contain the website origin, for example `https://goatmt.github.io` (without `/Lantern-Rush/`). Local testing origins are already included.
-- Put your own existing `gameProfiles` document ID in `ADMIN_UIDS` if you want Account Admin. Use an account ID, not a username or the admin-page password. Leave it empty to disable administrative operations.
+- Account Admin uses the shared admin password configured in the game. The backend validates it for every account operation; no account UID allowlist or separate account sign-in is required.
 - Leave the SQLite Durable Object configuration intact. SQLite-backed Durable Objects are available on Workers Free.
 - Leave `MAX_DAILY_REQUESTS` at `6000` initially. This is a safety cap, not a promise of a particular number of matches.
 
@@ -79,7 +79,7 @@ Do these steps together so users do not get stuck between the old and new accoun
 1. Confirm the Worker is deployed, its secret is set, and GitHub Pages serves the updated `src/live-config.js`.
 2. In Firebase Console > Firestore > Rules, publish this repository's `firestore.rules`. These rules protect account credentials and restrict signaling to accepted match participants.
 3. In Firestore Data, create/update collection **runtime**, document **live**, with **enabled = true** (Boolean).
-4. Refresh the game and sign in again. Existing usernames, six-digit passcodes, profile IDs and histories are reused. Old hashed credentials migrate only after a correct sign-in. Accounts without usable credentials need an authorized admin reset.
+4. Refresh the game and sign in again. Existing usernames, six-digit passcodes, profile IDs and histories are reused. Old hashed credentials migrate only after a correct sign-in. Accounts without usable credentials can be repaired from Account Admin after entering the shared admin password.
 
 Do not publish the new rules early without finishing activation. Do not reopen public credential writes to work around a setup error.
 

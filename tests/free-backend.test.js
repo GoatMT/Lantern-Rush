@@ -39,7 +39,10 @@ test('free account API keeps username/PIN identity, rejects wrong PIN and revoke
  await assert.rejects(api.accountAuth({data:{action:'login',username:'Player',passcode:'000000'}}),/incorrect/);
  const old=session(db,created.profile.uid,{action:'avatar',value:'data:image/png;base64,AA=='});
  db.records.get('gameLogins/'+created.profile.uid).revision='reset';await assert.rejects(api.accountProfile(old),/expired/);
- await assert.rejects(api.accountAdmin(session(db,created.profile.uid,{action:'authorize'})),/ADMIN_UIDS/);
+ await assert.rejects(api.accountAdmin({data:{action:'authorize',adminPassword:'wrong'}}),/Admin password is incorrect/);
+ assert.deepEqual(await api.accountAdmin({data:{action:'authorize',adminPassword:'BlueM123'}}),{allowed:true});
+ await api.accountAdmin({data:{action:'rename',adminPassword:'BlueM123',uid:created.profile.uid,username:'Renamed'}});
+ assert.equal(db.records.get('gameProfiles/'+created.profile.uid).username,'Renamed');
 });
 
 test('free room API rejects unapproved players and only returns free STUN after both are ready',async()=>{

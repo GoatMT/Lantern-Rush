@@ -9,9 +9,10 @@ import { playerLabel } from '../player-label.js';
 import { playerRatings } from '../match/attributes.js';
 import { captainFor } from '../ratings.js';
 import { PRESENTATION } from '../presentation.js';
+import { FirstMatchTour } from './first-match-tour.js';
 export const $=id=>document.getElementById(id);
 export class Menus {
-  constructor(app){this.app=app;this.returnToPause=false;this.bind();}
+  constructor(app){this.app=app;this.returnToPause=false;this.firstMatchTour=new FirstMatchTour(app);this.bind();}
   bind(){
     document.querySelectorAll('[data-match-durations]').forEach(el=>el.innerHTML=durationButtons());
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);

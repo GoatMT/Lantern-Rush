@@ -3,14 +3,13 @@ import {initializeApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import {getFirestore,FieldValue} from 'firebase-admin/firestore';
 import {onCall,HttpsError} from 'firebase-functions/v2/https';
-import {defineString,defineSecret} from 'firebase-functions/params';
+import {defineSecret} from 'firebase-functions/params';
 import {readFileSync} from 'node:fs';
 import {applyRoomAction,validateOptions,personalReport} from './policy.js';
 import {replayTrace,buildSquad} from './engine/h2h/simulation.js';
-import {mergeAccountProfiles} from './engine/account-store.js';
+import {mergeAccountProfiles,ADMIN_PASSWORD} from './engine/account-store.js';
 import {captureMatch} from './engine/match-history.js';
 initializeApp();const db=getFirestore(),auth=getAuth();
-const ADMIN_UIDS=defineString('ADMIN_UIDS',{default:''});
 const TURN_CONFIG=defineSecret('H2H_TURN_CONFIG');
 const catalog=JSON.parse(readFileSync(new URL('./catalog.json',import.meta.url),'utf8'));
 const base={region:'us-central1',maxInstances:12};
@@ -119,8 +118,7 @@ export const h2hFinalize=onCall({...base,memory:'1GiB',timeoutSeconds:540,maxIns
   t.update(ref,{status:'FULL TIME',score:report.score,elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
 });
 export const accountAdmin=onCall(base,async request=>{
- const actor=await signed(request);if(!ADMIN_UIDS.value().split(',').map(x=>x.trim()).includes(actor))err('permission-denied','Sign in with an account listed in the server ADMIN_UIDS setting.');
- const d=request.data||{};if(d.action==='authorize')return {allowed:true};
+ const d=request.data||{};await enabled();if(!equal(d.adminPassword,ADMIN_PASSWORD))err('permission-denied','Admin password is incorrect.');if(d.action==='authorize')return {allowed:true};
  if(d.action==='merge'){
   if(d.source===d.target)err('invalid-argument','Choose two accounts.');
   const profiles=await Promise.all([identity(d.source),identity(d.target)]);

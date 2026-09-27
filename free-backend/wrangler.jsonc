@@ -12,7 +12,6 @@
     "FIREBASE_PROJECT_ID": "lsl-rivals",
     "FIREBASE_API_KEY": "AIzaSyCG2f2w4udv2jBw82Yt6J-z1JOlr7nJBjM",
     "ALLOWED_ORIGINS": "https://goatmt.github.io,http://localhost:4173,http://127.0.0.1:4173",
-    "ADMIN_UIDS": "",
     "MAX_DAILY_REQUESTS": "6000"
   },
   "observability": {"enabled": false}

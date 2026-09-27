@@ -58,7 +58,7 @@ async function avatarDataUrl(file){
 
 export class CloudAccount {
   constructor({onChange=()=>{}}={}) {
-    this.onChange=onChange;this.user=null;this.profile=null;this.adminUnlocked=false;this.available=false;this.error=null;
+    this.onChange=onChange;this.user=null;this.profile=null;this.adminUnlocked=false;this.adminPassword='';this.available=false;this.error=null;
     this.ready=this.init();
   }
   async init() {
@@ -86,7 +86,7 @@ export class CloudAccount {
   async loadProfile(id){const raw=await this.store.profile(id);return raw?sanitizeProfile(raw,id):null;}
   async create(username,pin){const store=await this.requireStore();return this.adopt(await store.create(username,pin,profileTemplate));}
   async login(username,pin){const store=await this.requireStore();const profile=this.adopt(await store.login(username,pin));this.flushHistory().catch(error=>{this.historyError=error;});return profile;}
-  async logout(){await this.store?.clearSession();this.user=null;this.profile=null;this.adminUnlocked=false;this.onChange(this);}
+  async logout(){await this.store?.clearSession();this.user=null;this.profile=null;this.adminUnlocked=false;this.adminPassword='';this.onChange(this);}
   async requireSession(){const store=await this.requireStore(),raw=await store.restore();if(!raw){await this.logout();throw new Error('Please sign in again. Your account may have been reset or removed.');}return this.adopt(raw);}
   async updateAvatar(file){const profile=await this.requireSession(),data=typeof file==='string'?file:await avatarDataUrl(file);if(!data)throw new Error('Choose an image first.');if(data.length>400000)throw new Error('That image is too detailed. Please choose a simpler image.');if(this.store.call)await this.store.call('accountProfile',{action:'avatar',value:data});else await this.modules.firestore.updateDoc(this.store.profileRef(profile.uid),{avatarDataUrl:data,updatedAtMs:Date.now()});return this.adopt(await this.store.profile(profile.uid)).avatarDataUrl;}
   async recordMatch(match){
@@ -131,15 +131,15 @@ export class CloudAccount {
   }
   async getProfiles(){await this.requireStore();const snapshot=await this.modules.firestore.getDocs(this.modules.firestore.collection(this.db,PROFILE_COLLECTION));return snapshot.docs.map(item=>sanitizeProfile(item.data(),item.id));}
   async getProfile(id){await this.requireStore();if(!id)return null;return this.loadProfile(id);}
-  async adminLogin(password){if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');await this.requireStore();await this.store.authorizeAdmin?.();this.adminUnlocked=true;return true;}
+  async adminLogin(password){if(password!==ADMIN_PASSWORD)throw new Error('Incorrect admin password.');await this.requireStore();await this.store.authorizeAdmin?.(password);this.adminPassword=password;this.adminUnlocked=true;return true;}
   isAdmin(){return this.adminUnlocked;}
-  adminLogout(){this.adminUnlocked=false;}
+  adminLogout(){this.adminUnlocked=false;this.adminPassword='';}
   async requireAdmin(){await this.requireStore();if(!this.isAdmin())throw new Error('Unlock the admin page first.');}
-  async adminUpdateProfile(id,patch){await this.requireAdmin();if(patch.username)await this.store.rename(id,patch.username);else await this.modules.firestore.updateDoc(this.store.profileRef(id),{...patch,updatedAtMs:Date.now()});return this.getProfile(id);}
-  async adminResetPasscode(id,pin){await this.requireAdmin();return this.store.resetPasscode(id,pin);}
-  async adminDeleteProfile(id){await this.requireAdmin();return this.store.remove(id);}
+  async adminUpdateProfile(id,patch){await this.requireAdmin();if(patch.username)await this.store.rename(id,patch.username,this.adminPassword);else await this.modules.firestore.updateDoc(this.store.profileRef(id),{...patch,updatedAtMs:Date.now()});return this.getProfile(id);}
+  async adminResetPasscode(id,pin){await this.requireAdmin();return this.store.resetPasscode(id,pin,this.adminPassword);}
+  async adminDeleteProfile(id){await this.requireAdmin();return this.store.remove(id,this.adminPassword);}
   async adminMergeProfiles(source,target,combine){
-    await this.requireAdmin();if(this.store.call)return this.store.merge(source,target);if(source===target)throw new Error('Choose two different accounts.');
+    await this.requireAdmin();if(this.store.call)return this.store.merge(source,target,this.adminPassword);if(source===target)throw new Error('Choose two different accounts.');
     const fs=this.modules.firestore;
     let stage='preserve match history';
     try{

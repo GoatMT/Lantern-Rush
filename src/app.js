@@ -1,7 +1,7 @@
 import {Settings} from './settings.js';
-import {ModeMenu} from './ui/modes.js';
-import {findRivalry} from './modes.js';
-import {TournamentMenu} from './ui/tournament.js';
+import {ModeMenu} from './ui/mode-menu.js';
+import {findRivalry} from './rivalry-data.js';
+import {TournamentMenu} from './ui/tournament-mode.js';
 import {LeagueData} from './data.js';
 import {GameRenderer} from './engine/renderer.js';
 import {GameLoop} from './engine/loop.js';
@@ -15,8 +15,8 @@ import {HUD} from './ui/hud.js';
 import { playerLabel } from './player-label.js';
 import { PRESENTATION } from './presentation.js';
 import { SEASON_KITS,teamKit } from './kits.js';
-import { FormationBuilder } from './ui/formation.js';
-import { SeasonMenu } from './ui/season.js';
+import { FormationBuilder } from './ui/formation-editor.js';
+import { SeasonMenu } from './ui/season-mode.js';
 import { DreamMenu } from './dream.js';
 import { CloudAccount } from './cloud-account.js';
 
@@ -114,8 +114,10 @@ class App {
     this.selected[side]=teams[i];this.saveSelection();this.menus.renderTeams();
   }
   saveSelection(){this.settings.value.userTeam=this.selected.user.id;this.settings.value.cpuTeam=this.selected.cpu.id;this.settings.save();}
-  async start(){
-    if(this.loadingMatch)return;this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
+  async start({fromFirstMatchTour=false}={}){
+    if(this.loadingMatch)return;
+    if(!fromFirstMatchTour&&this.menus?.firstMatchTour?.show())return;
+    this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);
     this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Preparing '+(this.match.settings.venue==='grenoble-ps'?'Grenoble Public School':'Stadium One')+'…';
