@@ -27,9 +27,16 @@ export class Menus {
     }
     for(const side of ['user','cpu'])for(const direction of ['prev','next'])on(side+'-'+direction,()=>a.cycle(side,direction==='next'?1:-1));
     $('season-select').addEventListener('change',ev=>a.changeSeason(ev.target.value));
-    $('setting-lighting').addEventListener('change',ev=>{a.settings.set('lighting',ev.target.value);a.renderer.setLighting(ev.target.value);this.renderSettings();});
-    $('setting-venue').addEventListener('change',ev=>{a.settings.set('venue',ev.target.value);a.renderer.setVenue(ev.target.value);this.renderSettings();});
+    $('setting-lighting').addEventListener('change',ev=>{a.settings.set('lighting',ev.target.value);a.renderer.setLighting(ev.target.value);if(a.match)a.match.settings.lighting=ev.target.value;this.renderSettings();});
+    $('setting-venue').addEventListener('change',ev=>{a.settings.set('venue',ev.target.value);a.renderer.setVenue(ev.target.value);if(a.match)a.match.settings.venue=ev.target.value;this.renderSettings();});
     $('setting-weather').addEventListener('change',ev=>{a.settings.set('weather',ev.target.value);a.renderer.setWeather(ev.target.value);if(a.match)a.match.settings.weather=ev.target.value;this.renderSettings();});
+    $('setting-random-conditions').addEventListener('change',ev=>{a.settings.set('randomConditions',ev.target.checked);this.renderSettings();});
+    for(const [id,key] of [['setting-audio-master','audioMaster'],['setting-audio-sfx','audioSfx'],['setting-audio-crowd','audioCrowd']]){
+      const slider=$(id),output=$(id+'-value');
+      slider.addEventListener('input',ev=>{const value=Number(ev.target.value)/100;a.settings.value[key]=value;output.value=Math.round(value*100)+'%';output.textContent=output.value;a.audio?.setVolumes();});
+      slider.addEventListener('change',()=>a.settings.save());
+    }
+    $('setting-audio-muted').addEventListener('change',ev=>{a.settings.set('audioMuted',ev.target.checked);a.audio?.setVolumes();});
     $('setting-crowd-reactions').addEventListener('change',ev=>{a.settings.set('crowdReactions',ev.target.checked);a.renderer.stadium.setCrowdReactions(ev.target.checked);this.renderSettings();});
     $('setting-minor-injuries').addEventListener('change',ev=>{a.settings.set('minorInjuries',ev.target.checked);if(a.match)a.match.settings.minorInjuries=ev.target.checked;this.renderSettings();});
     $('setting-mobile-layout').addEventListener('change',ev=>{a.settings.set('mobileLayout',ev.target.checked?'right':'left');a.mobile.applyLayout();this.renderSettings();});
@@ -124,13 +131,16 @@ export class Menus {
   tab(tab){document.querySelectorAll('[data-settings-panel]').forEach(el=>el.hidden=el.dataset.settingsPanel!==tab);document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));}
   renderSettings(){
     for(const kind of ['graphics','difficulty','duration','camera'])document.querySelectorAll('[data-'+kind+']').forEach(b=>b.classList.toggle('active',String(this.app.settings.value[kind])===b.dataset[kind]));
-    $('setting-lighting').value=this.app.settings.value.lighting||'evening';$('setting-venue').value=this.app.settings.value.venue||'stadium-one';
-    $('setting-weather').value=this.app.settings.value.weather||'clear';$('setting-crowd-reactions').checked=this.app.settings.value.crowdReactions!==false;$('setting-minor-injuries').checked=this.app.settings.value.minorInjuries!==false;
+    const conditions=this.screen==='match'&&this.app.match?.settings||this.app.settings.value;
+    $('setting-lighting').value=conditions.lighting||'evening';$('setting-venue').value=conditions.venue||'stadium-one';
+    $('setting-weather').value=conditions.weather||'clear';$('setting-random-conditions').checked=this.app.settings.value.randomConditions!==false;$('setting-crowd-reactions').checked=this.app.settings.value.crowdReactions!==false;$('setting-minor-injuries').checked=this.app.settings.value.minorInjuries!==false;
+    for(const [id,key] of [['setting-audio-master','audioMaster'],['setting-audio-sfx','audioSfx'],['setting-audio-crowd','audioCrowd']]){const value=Math.round(this.app.settings.value[key]*100),slider=$(id),output=$(id+'-value');slider.value=value;output.value=value+'%';output.textContent=value+'%';}
+    $('setting-audio-muted').checked=this.app.settings.value.audioMuted===true;
     $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
     $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
-    $('home-venue').textContent=(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE')+' · '+$('setting-lighting').value.toUpperCase()+' MATCH';
-    $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · WEATHER: CLEAR · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
+    $('home-venue').textContent=this.app.settings.value.randomConditions!==false?'RANDOM MATCHDAY · WEATHER · STADIUM · TIME':(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE')+' · '+this.app.settings.value.lighting.toUpperCase()+' MATCH';
+    $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · MATCH CONDITIONS: '+(this.app.settings.value.randomConditions!==false?'RANDOM EACH GAME':'MANUAL')+' · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
   }
   renderAccount(){
     const service=this.app.cloudAccount,profile=service?.profile,signed=Boolean(service?.isSignedIn());
@@ -146,15 +156,15 @@ export class Menus {
     $('pause-team-home').textContent=match.teams[0].name;$('pause-team-away').textContent=match.teams[1].name;
     $('pause-score-home').textContent=match.stats[0].goals;$('pause-score-away').textContent=match.stats[1].goals;
     $('pause-clock').textContent=clockText(match.elapsed);$('pause-half').textContent=match.half===1?'FIRST HALF':'SECOND HALF';
-    for(const select of document.querySelectorAll('[data-pause-setting]'))select.value=String(settings[select.dataset.pauseSetting]??select.value);
+    for(const select of document.querySelectorAll('[data-pause-setting]'))select.value=String(match.settings[select.dataset.pauseSetting]??settings[select.dataset.pauseSetting]??select.value);
   }
   changePauseSetting(key,value){
     const a=this.app,match=a.match;a.settings.set(key,key==='duration'?Number(value):value);
     if(key==='graphics')a.renderer.applyGraphics(value);
     if(key==='camera'&&match)match.settings.camera=value;
     if(key==='difficulty'&&match)match.settings.difficulty=value;
-    if(key==='lighting')a.renderer.setLighting(value);
-    if(key==='venue')a.renderer.setVenue(value);
+    if(key==='lighting'){a.renderer.setLighting(value);if(match)match.settings.lighting=value;}
+    if(key==='venue'){a.renderer.setVenue(value);if(match)match.settings.venue=value;}
     if(key==='weather'){a.renderer.setWeather(value);if(match)match.settings.weather=value;}
   }
   resume(){this.closeAll();this.app.controls.clear();this.app.match.pause(false);}

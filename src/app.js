@@ -6,6 +6,8 @@ import {LeagueData} from './data.js';
 import {GameRenderer} from './engine/renderer.js';
 import {GameLoop} from './engine/loop.js';
 import {Match} from './match/match.js';
+import {randomizeMatchConditions} from './match/conditions.js';
+import {GameAudio} from './audio.js';
 import {Controls} from './input/controls.js';
 import {MobileControls} from './input/mobile.js';
 import {Menus,$} from './ui/menus.js';
@@ -41,7 +43,7 @@ class App {
       if(!image.closest('.badge-wrap,.team-choice-mark,.tournament-inline-logo,.intro-card,.intro-versus,.rivalry-crests,.hud-team,.notice-score,.result-score,.potm'))return;
       image.dataset.logoFallback='1';image.src='assets/lsl-logo.png';
     },true);
-    this.settings=new Settings();this.cloudAccount=new CloudAccount({onChange:()=>this.menus?.renderAccount?.()});this.controls=new Controls(this.settings);this.data=new LeagueData();
+    this.settings=new Settings();this.audio=new GameAudio(this.settings);this.cloudAccount=new CloudAccount({onChange:()=>this.menus?.renderAccount?.()});this.controls=new Controls(this.settings);this.data=new LeagueData();
     $('load-progress').value=12;this.renderer=new GameRenderer($('game-canvas'),this.settings.value);this.renderer.stadium.setCrowdReactions(this.settings.value.crowdReactions);
     await Promise.all([this.data.load(progress=>{$('load-progress').value=15+progress*45;}),this.renderer.stadium.advertising.ready]);
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
@@ -83,7 +85,8 @@ class App {
     const color=this.cpuKit(),cpu={...this.selected.cpu,kit:color};
     if(color!==this.selected.cpu.kit)cpu.uniform=teamKit('',cpu.id,color);
     const user=this.formation?.teamForMatch(this.selected.user)||{...this.selected.user};
-    const match=new Match([user,cpu],this.settings.value,{event:(type,data)=>this.handleEvent(type,data)});
+    const matchSettings=randomizeMatchConditions(this.settings.value);
+    const match=new Match([user,cpu],matchSettings,{event:(type,data)=>this.handleEvent(type,data)});
     match.rivalry=this.mode==='rivalry'?findRivalry(this.data.rivalries,this.settings.value.season,this.selected.user.id,cpu.id):null;
     match.tournament=this.mode==='tournament'?this.tournament.selectedMatch():null;
     match.seasonMatch=this.mode==='season'?this.seasonMode.selectedMatch():null;
@@ -93,6 +96,7 @@ class App {
   }
   handleEvent(type,data){
     if(!this.menus||!this.match)return;
+    this.audio?.matchEvent(type,data,this.match);
     if(type==='phase'){if(data==='fulltime'){this.cloudAccount?.recordMatch(this.match).catch(()=>{this.menus.notice({title:'HISTORY SYNC PENDING',subtitle:this.match.historySavedLocally?'Saved on this device. Open History to retry cloud sync.':'Could not save the report. Keep this page open and check device storage.',seconds:6});});}this.menus.phase(data);}
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
@@ -114,7 +118,7 @@ class App {
     if(this.loadingMatch)return;this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);
-    this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Lighting up '+(this.settings.value.venue==='grenoble-ps'?'Grenoble Public School':'Stadium One')+'…';
+    this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Preparing '+(this.match.settings.venue==='grenoble-ps'?'Grenoble Public School':'Stadium One')+'…';
     this.renderer.setMatch(this.match);this.hud.reset();this.renderer.render(0,this.match);await new Promise(requestAnimationFrame);
     this.menus.enterMatch();$('loading').hidden=true;this.loadingMatch=false;
   }
@@ -130,6 +134,7 @@ class App {
   }
   render(dt){
     this.renderer.render(dt,this.match);this.hud.update(dt);this.menus.updateNotice(dt);
+    this.audio.update(dt,this.match,this.menus.screen==='match',this.renderer.camera);
     if(this.menus.screen==='match'&&!this.match.paused&&this.match.phase==='playing')this.renderer.adaptPerformance(this.loop.fps,dt);
     if(this.menus.screen==='match'&&this.match.phase==='playing'&&matchMedia('(pointer:coarse)').matches){
       this.slowTime=this.loop.fps<32?(this.slowTime||0)+dt:Math.max(0,(this.slowTime||0)-dt);

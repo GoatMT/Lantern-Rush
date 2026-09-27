@@ -14,7 +14,8 @@ export class Settings {
     let saved={};try{saved=JSON.parse(storage.getItem('lsl-lantern-rush-v1')||'{}')||{};}catch{}
     this.value={graphics:['low','medium','high'].includes(saved.graphics)?saved.graphics:startingGraphics(),
       camera:['low','medium','high','broadcast','mobile'].includes(saved.camera)?saved.camera:saved.camera?'medium':startingCamera(),
-      lighting:['day','evening','night'].includes(saved.lighting)?saved.lighting:'evening',venue:['stadium-one','grenoble-ps'].includes(saved.venue)?saved.venue:'stadium-one',weather:weatherOption(saved.weather),crowdReactions:saved.crowdReactions!==false,minorInjuries:saved.minorInjuries!==false,
+      lighting:['day','evening','night'].includes(saved.lighting)?saved.lighting:'evening',venue:['stadium-one','grenoble-ps'].includes(saved.venue)?saved.venue:'stadium-one',weather:weatherOption(saved.weather),randomConditions:saved.randomConditions!==false,crowdReactions:saved.crowdReactions!==false,minorInjuries:saved.minorInjuries!==false,
+      audioMaster:volumeSetting(saved.audioMaster,.8),audioSfx:volumeSetting(saved.audioSfx,.75),audioCrowd:volumeSetting(saved.audioCrowd,.45),audioMuted:saved.audioMuted===true,
       mobileLayout:saved.mobileLayout==='right'?'right':'left',holdAutoSwitch:typeof saved.holdAutoSwitch==='boolean'?saved.holdAutoSwitch:true,
       difficulty:['easy','normal','hard','insane'].includes(saved.difficulty)?saved.difficulty:'normal',
       duration:matchDuration(saved.duration),season:String(saved.season||'2026'),
@@ -48,5 +49,6 @@ export class Settings {
     this.value.keys[action]=code;this.save();
   }
 }
+function volumeSetting(value,fallback){return Number.isFinite(Number(value))?Math.max(0,Math.min(1,Number(value))):fallback;}
 export const keyLabel=code=>code.replace('Key','').replace('Digit','').replace('Arrow','').replace('Left','').replace('Right','');
 

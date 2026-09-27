@@ -58,7 +58,7 @@ export class GameRenderer{
     for(const p of match.players){const m=new PlayerModel(p,match.teams[p.team].uniform||match.teams[p.team].kit);m.setVisualScale(this.actorScale);this.models.push(m);this.scene.add(m.root);}
     if(this.ref){this.scene.remove(this.ref.root);this.ref.dispose();}
     this.ref=new PlayerModel(match.referee,'#ffe554',true);this.ref.setVisualScale(this.actorScale);this.scene.add(this.ref.root);
-    this.setWeather(match.settings.weather);this.stadium.score(0,0);
+    this.setVenue(match.settings.venue);this.setLighting(match.settings.lighting);this.setWeather(match.settings.weather);this.stadium.score(0,0);
     this.stadium.setTeams(match.teams);
   }
   refreshPlayer(player,match){

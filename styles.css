@@ -13,3 +13,12 @@ dialog{color:var(--cream);border:1px solid #7e9c8973;border-radius:12px;backgrou
 .match-story{max-height:440px;overflow:auto;touch-action:pan-y;padding-right:10px;scrollbar-color:#608575 transparent;scrollbar-width:thin}.badge-wrap img{border-radius:7px}@media(max-width:600px) and (orientation:portrait){.match-story{max-height:300px}}
 @media(max-width:600px) and (orientation:portrait){#touch-controls{display:block}.keyboard-hint{display:none}#rotate-hint:not(.dismissed){display:flex}}
 @media(max-width:600px) and (orientation:portrait){.selected-player{bottom:auto;left:16px;min-width:150px;padding:7px 10px}.selected-player strong{font-size:11px}.selected-player .eyebrow{font-size:7px}.selected-player small{display:none}}
+/* Matchday audio controls */
+.settings-tabs{overflow-x:auto;scrollbar-width:thin;overscroll-behavior-inline:contain}
+.settings-tabs button{flex:0 0 auto}
+.audio-slider{display:grid;gap:10px;margin:16px 0 22px;padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:#ffffff08}
+.audio-slider>span{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.audio-slider strong{font-size:13px;letter-spacing:.25px}
+.audio-slider output{min-width:42px;color:var(--gold);font-size:12px;font-variant-numeric:tabular-nums;text-align:right}
+.audio-slider input[type=range]{width:100%;accent-color:var(--gold);touch-action:pan-x}
+@media(max-width:560px){.settings-tabs{gap:16px}.audio-slider{padding:13px}}
