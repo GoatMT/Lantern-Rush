@@ -84,3 +84,47 @@ body[data-screen="match"] #live-canvas,
   #touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-70px; }
 }
 #touch-controls #touch-goalie[hidden] { display:none !important; }
+
+/* Compact upper-left match score for touch play across CPU modes and Live H2H. */
+@media (pointer:coarse), (max-width:700px) {
+  #match-hud .scoreboard {
+    top:max(8px,env(safe-area-inset-top));
+    left:max(8px,env(safe-area-inset-left));
+    right:auto;
+    transform:none;
+    width:min(286px,calc(100vw - 70px));
+    min-width:0;
+    grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);
+    border-radius:7px;
+    box-shadow:0 3px 12px #00132145;
+  }
+  #match-hud .scoreboard>.hud-team {padding:5px 7px;gap:5px;}
+  #match-hud .hud-team img {width:18px;height:18px;}
+  #match-hud .hud-team-copy {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;letter-spacing:0;}
+  #match-hud .hud-team-ovr {display:none;}
+  #match-hud .scoreboard>strong {gap:4px;font-size:16px;padding:4px 5px;}
+  #match-hud .scoreboard>strong i {font-size:11px;}
+  #match-hud .clock {gap:8px;padding:3px 7px;font-size:7px;letter-spacing:.6px;}
+  #match-hud .broadcast-mark {display:none;}
+  #match-hud .clock time {font-size:8px;}
+
+  #live-arena .live-score {
+    top:max(8px,env(safe-area-inset-top));
+    left:max(8px,env(safe-area-inset-left));
+    right:64px;
+    transform:none;
+    width:auto;
+    min-width:0;
+    max-width:none;
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    gap:2px 7px;
+    padding:6px 9px;
+    border-radius:7px;
+    font-size:8px;
+    text-align:center;
+    box-shadow:0 3px 12px #00132145;
+  }
+  #live-arena .live-score>span {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-line-clamp:unset;font-size:8px;}
+  #live-arena .live-score strong {font-size:17px;}
+  #live-arena .live-score small {font-size:7px;letter-spacing:.08em;}
+}

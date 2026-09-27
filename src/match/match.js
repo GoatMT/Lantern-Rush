@@ -35,7 +35,7 @@ export class Match {
     for(const p of this.players){p.x-=this.direction(p.team)*5;p.z+=2;}
   }
   enableH2H(){
-    this.humanKeys=['controlled','charge','aimZ','switchCooldown','receiverAssist','manualKeeper','keeperReturn','passHeldTime','holdSwitchTime','curveRequested','cancelShotUntilRelease'];
+    this.humanKeys=['controlled','charge','aimZ','switchCooldown','receiverAssist','manualKeeper','keeperReturn','passHeldTime','curveRequested','cancelShotUntilRelease'];
     this.humanSeats=[0,1].map(team=>({...Object.fromEntries(this.humanKeys.map(key=>[key,this[key]])),controlled:this.players.find(p=>p.team===team&&p.slot===5)}));
     return this;
   }
@@ -111,7 +111,7 @@ export class Match {
     if(!manual&&this.receiverAssist&&this.ball.pass?.team===this.inputTeam&&!this.ball.pass.target?.sentOff&&this.ball.pass.target){this.controlled=this.ball.pass.target;return;}
     const candidates=this.active(this.inputTeam).filter(p=>p.role!=='GK').sort((a,b)=>distance(a,this.ball)-distance(b,this.ball));
     if(!candidates.length)return;
-    if(manual){this.controlled=this.bestOutfield()||candidates[0];this.switchCooldown=2.3;}
+    if(manual){this.controlled=candidates[0];this.switchCooldown=2.3;}
     else if(this.controlled?.role==='GK'||this.switchCooldown<=0&&(!this.controlled||this.controlled.sentOff||distance(this.controlled,this.ball)>distance(candidates[0],this.ball)+5)){this.controlled=candidates[0];this.switchCooldown=.8;}
   }
   update(dt,input){
@@ -185,10 +185,6 @@ export class Match {
     if(input?.pressed.has('switch'))this.selectPlayer(true);
     if(input?.pressed.has('goalie'))this.toggleGoalkeeper();
     if(input?.pressed.has('pass')){if(owner?.team===this.inputTeam){this.manualKeeper=false;this.keeperReturn=false;this.controlled=owner;}else this.selectPlayer(true);}
-    if(touchPass&&!this.manualKeeper&&this.possessionTeam()!==this.inputTeam&&(this.humanSeats?input.holdAutoSwitch!==false:this.settings.holdAutoSwitch!==false)){
-      this.holdSwitchTime+=dt;
-      if(this.holdSwitchTime>=.22){this.selectPlayer(true);this.holdSwitchTime=0;}
-    }else this.holdSwitchTime=0;
     if(this.controlled&&!this.controlled.sentOff){
       if(input?.held.has('pass')&&!touchPass&&owner&&owner.team!==this.inputTeam&&move.intensity<.1){
         const n=normalize(owner.x-this.controlled.x,owner.z-this.controlled.z);this.controlled.move(n.x,n.z,1,dt,input.held.has('sprint'));

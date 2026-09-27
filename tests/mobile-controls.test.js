@@ -41,6 +41,18 @@ test('joystick, sprint and charge work simultaneously with proportional 360 degr
   buttons.shoot.pointer('pointerup',3);assert(controls.released.has('shoot')&&controls.held.has('sprint'));assert(controls.movement().intensity>.99);
   pad.pointer('pointerup',1);assert.equal(controls.movement().intensity,0);
 });
+test('touch buttons and joystick still work when pointer capture is unavailable',()=>{
+  const {controls,buttons,pad}=setup();
+  for(const element of [...Object.values(buttons),pad]){element.setPointerCapture=undefined;element.hasPointerCapture=undefined;element.releasePointerCapture=undefined;}
+  buttons.shoot.pointer('pointerdown',41);assert(controls.held.has('shoot'));
+  const release=new Event('pointerup',{cancelable:true});Object.assign(release,{pointerId:41});document.dispatchEvent(release);
+  assert(controls.released.has('shoot'));assert.equal(controls.held.has('shoot'),false);
+  pad.pointer('pointerdown',42,56,56);
+  const move=new Event('pointermove',{cancelable:true});Object.assign(move,{pointerId:42,clientX:90,clientY:56});document.dispatchEvent(move);
+  assert(controls.movement().x>.7);
+  const stop=new Event('pointerup',{cancelable:true});Object.assign(stop,{pointerId:42});document.dispatchEvent(stop);
+  assert.equal(controls.movement().intensity,0);
+});
 test('two fingers and a keyboard can own the same action without early release',()=>{
   const {controls,buttons}=setup();controls.down('shoot','keyboard:KeyK');buttons.shoot.pointer('pointerdown',1);buttons.shoot.pointer('pointerdown',2);
   buttons.shoot.pointer('pointerup',1);assert(controls.held.has('shoot'));assert(!controls.released.has('shoot'));assert(buttons.shoot.classes.has('held'));
@@ -66,16 +78,16 @@ test('a single shooting thumb can swipe up; tiny drifts do not request a curve',
   buttons.shoot.pointer('pointermove',1,28,-10);assert(controls.held.has('curve'));buttons.shoot.pointer('pointerup',1);assert(controls.released.has('shoot'));assert.equal(controls.held.size,0);
   controls.frame();buttons.sprint.pointer('pointerdown',2);buttons.sprint.pointer('pointermove',2,28,0);assert(controls.pressed.has('skill'));assert(!controls.held.has('curve'));
 });
-test('held mobile Switch follows nearest player only when enabled; a tap always works',()=>{
-  for(const enabled of [true,false]){
-    const {controls,buttons}=setup(),m=new Match(teams,{duration:3,difficulty:'normal',holdAutoSwitch:enabled},{random:()=>.5});
-    m.phase='playing';m.restart=null;m.ball.reset(0,0);const [first,second]=m.active(0).filter(p=>p.role!=='GK');
-    m.players.forEach((p,i)=>{p.x=35+i;p.z=28;});first.x=-5;first.z=0;second.x=10;second.z=0;
-    buttons.pass.pointer('pointerdown',1);m.update(1/120,controls);controls.frame();assert.equal(m.controlled,first);
-    m.ball.reset(10,2);first.x=-10;second.x=10;second.z=0;m.update(.24,controls);
-    assert.equal(m.controlled,enabled?second:first);assert.equal(m.passHeldTime,0,'Touch switching must not arm a first-time pass');
-    buttons.pass.pointer('pointerup',1);controls.frame();buttons.pass.pointer('pointerdown',2);m.update(.01,controls);assert.equal(m.controlled,second);
-  }
+test('a SWITCH tap immediately picks the closest outfielder and holding never cycles',()=>{
+  const {controls,buttons}=setup(),m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>.5});
+  m.phase='playing';m.restart=null;m.ball.reset(0,0);const [first,second]=m.active(0).filter(p=>p.role!=='GK');
+  m.players.forEach((p,i)=>{p.x=35+i;p.z=28;});first.x=-5;first.z=0;second.x=10;second.z=0;m.controlled=second;
+  buttons.pass.dataset.mode='switch';buttons.pass.pointer('pointerdown',1);m.update(1/120,controls);
+  assert.equal(m.controlled,first,'the tap immediately selects the player closest to the ball');
+  controls.frame();m.ball.reset(11,0);m.update(.5,controls);
+  assert.equal(m.controlled,first,'holding SWITCH does not repeat or cycle to another player');
+  buttons.pass.pointer('pointerup',1);controls.frame();buttons.pass.pointer('pointerdown',2);m.update(1/120,controls);
+  assert.equal(m.controlled,second,'a second tap immediately selects the new closest player');
 });
 test('holding mobile Switch while receiving keeps possession instead of auto-passing',()=>{
   const {controls,buttons}=setup(),m=new Match(teams,{duration:3,difficulty:'normal'},{random:()=>.5});m.phase='playing';m.restart=null;

@@ -45,7 +45,6 @@ export class Menus {
     $('setting-mobile-control-edit').addEventListener('change',ev=>{a.settings.set('mobileControlEdit',ev.target.checked);a.mobile.applyLayout();});
     $('setting-mobile-goalie-visible').addEventListener('change',ev=>{a.settings.set('mobileGoalieVisible',ev.target.checked);a.mobile.applyLayout();});
     on('reset-mobile-controls',()=>{a.mobile.resetPositions();this.renderSettings();});
-    $('setting-hold-switch').addEventListener('change',ev=>{a.settings.set('holdAutoSwitch',ev.target.checked);if(a.match)a.match.settings.holdAutoSwitch=ev.target.checked;});
     on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('pause-close',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
     on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
     document.querySelectorAll('[data-pause-setting]').forEach(select=>select.addEventListener('change',ev=>this.changePauseSetting(ev.target.dataset.pauseSetting,ev.target.value)));
@@ -144,7 +143,6 @@ export class Menus {
     $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
     const scale=Math.round(this.app.settings.value.mobileControlScale*100);$('setting-mobile-control-scale').value=scale;$('setting-mobile-control-scale-value').value=scale+'%';$('setting-mobile-control-scale-value').textContent=scale+'%';$('setting-mobile-control-edit').checked=this.app.settings.value.mobileControlEdit===true;$('setting-mobile-goalie-visible').checked=this.app.settings.value.mobileGoalieVisible!==false;
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
-    $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
     $('home-venue').textContent=this.app.settings.value.randomConditions!==false?'RANDOM MATCHDAY · WEATHER · STADIUM · TIME':(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE')+' · '+this.app.settings.value.lighting.toUpperCase()+' MATCH';
     $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · MATCH CONDITIONS: '+(this.app.settings.value.randomConditions!==false?'RANDOM EACH GAME':'MANUAL')+' · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
   }
