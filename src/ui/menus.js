@@ -28,6 +28,7 @@ export class Menus {
     for(const side of ['user','cpu'])for(const direction of ['prev','next'])on(side+'-'+direction,()=>a.cycle(side,direction==='next'?1:-1));
     $('season-select').addEventListener('change',ev=>a.changeSeason(ev.target.value));
     $('setting-lighting').addEventListener('change',ev=>{a.settings.set('lighting',ev.target.value);a.renderer.setLighting(ev.target.value);this.renderSettings();});
+    $('setting-venue').addEventListener('change',ev=>{a.settings.set('venue',ev.target.value);a.renderer.setVenue(ev.target.value);this.renderSettings();});
     $('setting-weather').addEventListener('change',ev=>{a.settings.set('weather',ev.target.value);a.renderer.setWeather(ev.target.value);if(a.match)a.match.settings.weather=ev.target.value;this.renderSettings();});
     $('setting-crowd-reactions').addEventListener('change',ev=>{a.settings.set('crowdReactions',ev.target.checked);a.renderer.stadium.setCrowdReactions(ev.target.checked);this.renderSettings();});
     $('setting-minor-injuries').addEventListener('change',ev=>{a.settings.set('minorInjuries',ev.target.checked);if(a.match)a.match.settings.minorInjuries=ev.target.checked;this.renderSettings();});
@@ -122,12 +123,12 @@ export class Menus {
   tab(tab){document.querySelectorAll('[data-settings-panel]').forEach(el=>el.hidden=el.dataset.settingsPanel!==tab);document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));}
   renderSettings(){
     for(const kind of ['graphics','difficulty','duration','camera'])document.querySelectorAll('[data-'+kind+']').forEach(b=>b.classList.toggle('active',String(this.app.settings.value[kind])===b.dataset[kind]));
-    $('setting-lighting').value=this.app.settings.value.lighting||'evening';
+    $('setting-lighting').value=this.app.settings.value.lighting||'evening';$('setting-venue').value=this.app.settings.value.venue||'stadium-one';
     $('setting-weather').value=this.app.settings.value.weather||'clear';$('setting-crowd-reactions').checked=this.app.settings.value.crowdReactions!==false;$('setting-minor-injuries').checked=this.app.settings.value.minorInjuries!==false;
     $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
     $('setting-hold-switch').checked=this.app.settings.value.holdAutoSwitch;
-    $('home-venue').textContent='STADIUM ONE · '+$('setting-lighting').value.toUpperCase()+' MATCH';
+    $('home-venue').textContent=(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE')+' · '+$('setting-lighting').value.toUpperCase()+' MATCH';
     $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · WEATHER: CLEAR · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
   }
   renderAccount(){

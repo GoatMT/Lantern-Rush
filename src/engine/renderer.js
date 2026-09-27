@@ -15,7 +15,7 @@ export class GameRenderer{
     this.renderer.outputColorSpace=T.SRGBColorSpace;this.renderer.setClearColor(0x102f3a,1);this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.toneMapping=T.ACESFilmicToneMapping;
     this.camera=new T.PerspectiveCamera(49,innerWidth/innerHeight,.2,u(260));this.broadcast=new BroadcastCamera(this.camera);
     this.weather=new MatchWeather(this.scene);this.lighting=new MatchLighting(this.scene);this.sun=this.lighting.sun;
-    this.sidelineCast=new SidelineCast(this.scene);this.sidelineOverlay=new SidelineOverlay(()=>this.onSkipSideline?this.onSkipSideline():this.match?.skipSideline());this.stadium=new Stadium(this.scene);this.models=[];this.ballMesh=createBallMesh();this.scene.add(this.ballMesh);
+    this.sidelineCast=new SidelineCast(this.scene);this.sidelineOverlay=new SidelineOverlay(()=>this.onSkipSideline?this.onSkipSideline():this.match?.skipSideline());this.stadium=new Stadium(this.scene,settings.venue);this.models=[];this.ballMesh=createBallMesh();this.scene.add(this.ballMesh);
     const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=64;const shadowContext=shadowCanvas.getContext('2d'),gradient=shadowContext.createRadialGradient(32,32,3,32,32,32);gradient.addColorStop(0,'rgba(3,12,10,.7)');gradient.addColorStop(.35,'rgba(3,12,10,.35)');gradient.addColorStop(1,'rgba(3,12,10,0)');shadowContext.fillStyle=gradient;shadowContext.fillRect(0,0,64,64);
     this.ballShadow=new T.Mesh(new T.PlaneGeometry(1.35,1.35),new T.MeshBasicMaterial({map:new T.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));this.ballShadow.rotation.x=-Math.PI/2;this.scene.add(this.ballShadow);
     this.time=0;this.quality=settings.graphics;this.applyGraphics(settings.graphics);this.setLighting(settings.lighting||'evening');this.setWeather(settings.weather);this.resize();
@@ -31,6 +31,7 @@ export class GameRenderer{
   }
   applyGraphics(level){this.quality=level;this.weather.set(this.weather.kind,level);this.adaptiveScale=1;this.renderer.shadowMap.enabled=level!=='low';this.sun.shadow.mapSize.set(level==='high'?2048:1024,level==='high'?2048:1024);if(this.sun.shadow.map){this.sun.shadow.map.dispose();this.sun.shadow.map=null;}this.stadium.quality(level,this.renderer.capabilities.getMaxAnisotropy());this.resize();}
   setLighting(name){const preset=this.lighting.set(name);this.renderer.toneMappingExposure=preset.exposure;this.stadium.setLighting(this.lighting.name);}
+  setVenue(name){this.stadium.setVenue(name);}
   setWeather(name){this.weather.set(name,this.quality);this.lighting.weather=this.weather.kind;this.setLighting(this.lighting.name);}
   resize(){
     const {width:w,height:h}=canvasSize(this.canvas,globalThis.innerWidth,globalThis.innerHeight);

@@ -19,17 +19,18 @@ export class MatchIntro{
     if(match.phase!=='intro')return;
     if(this.match!==match){this.match=match;this.stage='';}
     const stage=introStage(match.phaseTime),teams=match.teams;
+    const venue=match.settings?.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE';
     document.getElementById('intro-progress').style.width=(match.phaseTime/INTRO.duration*100)+'%';
     document.getElementById('intro-overlay').dataset.stage=stage;
     document.getElementById('intro-overlay').dataset.rivalry=String(!!match.rivalry);document.getElementById('intro-overlay').dataset.tournament=String(!!match.tournament);
     if(stage!==this.stage){
       this.stage=stage;
-      if(stage==='stadium')this.root.innerHTML='<div class="intro-establish"><span class="eyebrow">'+(match.tournament?'INTER-MADRASAH TOURNAMENT · ':'LANTERN SOCCER LEAGUE · ')+e(teams[0].season)+'</span><h1>THIS IS<br>MATCHDAY.</h1><p>STADIUM ONE <i>•</i> LANTERN RUSH</p></div>';
+      if(stage==='stadium')this.root.innerHTML='<div class="intro-establish"><span class="eyebrow">'+(match.tournament?'INTER-MADRASAH TOURNAMENT · ':'LANTERN SOCCER LEAGUE · ')+e(teams[0].season)+'</span><h1>THIS IS<br>MATCHDAY.</h1><p>'+venue+' <i>•</i> LANTERN RUSH</p></div>';
       if(stage==='versus')this.root.innerHTML='<div class="intro-versus">'+teams.map((t,i)=>'<article><span class="tag">'+(i?'CPU':'YOU')+'</span><img src="'+e(t.logo)+'" alt="'+e(t.logoFallback?'Lantern Soccer League':t.name+' badge')+'"><h2>'+e(t.name)+'</h2><span>'+e(formationName(t))+' · '+(teamOverall(match.teams[i])??'—')+' TEAM OVR</span></article>'+(i?'':'<strong>VS</strong>')).join('')+'</div>';
       if(match.rivalry&&(stage==='stadium'||stage==='versus'))this.root.innerHTML=rivalryIntro(match);
       if(stage==='user'||stage==='cpu')this.playerId=null;
       if(stage==='watch')this.root.innerHTML='<div class="intro-watch"><header><span class="eyebrow">MAKE THE DIFFERENCE</span><h2>PLAYERS TO WATCH</h2></header><div>'+teams.map((team,i)=>{const p=match.active(i).filter(p=>p.role!=='GK').sort((a,b)=>(b.data.overall||0)-(a.data.overall||0))[0];return '<section><span class="tag">'+(i?'CPU':'YOU')+'</span>'+card(p,team,0,true)+'</section>';}).join('')+'</div></div>';
-      if(stage==='walk')this.root.innerHTML='<div class="intro-walk"><span class="eyebrow">STADIUM ONE · 7v7</span><h2>READY FOR KICKOFF.</h2><p>'+e(teams[0].name)+' <b>VS</b> '+e(teams[1].name)+'</p></div>';
+      if(stage==='walk')this.root.innerHTML='<div class="intro-walk"><span class="eyebrow">'+venue+' · 7v7</span><h2>READY FOR KICKOFF.</h2><p>'+e(teams[0].name)+' <b>VS</b> '+e(teams[1].name)+'</p></div>';
     }
     if(stage==='user'||stage==='cpu'){
       const p=introPlayer(match);if(p&&this.playerId!==p.id){

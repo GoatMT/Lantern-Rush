@@ -47,7 +47,7 @@ class App {
     await Promise.all(Object.values(this.data.teams).flat().map(badgeColor));
     Object.values(this.data.teams).flat().forEach(t=>t.uniform||=teamKit(t.season,t.id,t.kit));$('load-progress').value=80;
     this.menus=new Menus(this);this.hud=new HUD(this);this.mobile=new MobileControls(this.controls);
-    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.seasonMode=new SeasonMenu(this);this.dream=new DreamMenu(this);await this.dream.load();this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);$('load-progress').value=100;
+    this.mode='quick';this.modes=new ModeMenu(this);this.tournament=new TournamentMenu(this);this.seasonMode=new SeasonMenu(this);this.dream=new DreamMenu(this);await this.dream.load();this.formation=new FormationBuilder(this);this.chooseDefaults();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.menus.renderSettings();$('load-progress').value=100;
     this.menus.show('home');$('loading').hidden=true;
     this.bindHomeModePanel();
     const pageMode=document.body.dataset.modePage;
@@ -114,7 +114,7 @@ class App {
     if(this.loadingMatch)return;this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);
-    this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Lighting up STADIUM ONE…';
+    this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Lighting up '+(this.settings.value.venue==='grenoble-ps'?'Grenoble Public School':'Stadium One')+'…';
     this.renderer.setMatch(this.match);this.hud.reset();this.renderer.render(0,this.match);await new Promise(requestAnimationFrame);
     this.menus.enterMatch();$('loading').hidden=true;this.loadingMatch=false;
   }
