@@ -32,9 +32,6 @@ export function audioCueForEvent(type,data){
     const title=String(data?.title||'').toUpperCase();
     if(title==='SAVE')return 'save';
     if(title==='FOUL')return 'foul';
-    if(title==='MINOR INJURY')return 'injury';
-    if(title.includes('CARD'))return 'card';
-    if(title==='SUBSTITUTION')return 'substitution';
     if(['KICK OFF','SECOND HALF','GOAL KICK','CORNER','FREE KICK','PENALTY'].includes(title))return 'restart';
     if(title==='MISS')return 'miss';
   }
@@ -57,6 +54,7 @@ export class GameAudio{
     if(!this.context)return;const values=this.settings.value;
     this.master.gain.setTargetAtTime(values.audioMuted?0:values.audioMaster,this.context.currentTime,.035);
     this.sfx.gain.setTargetAtTime(values.audioSfx,this.context.currentTime,.035);this.crowd.gain.setTargetAtTime(values.audioCrowd,this.context.currentTime,.09);
+    if(this.wasMatchActive)this.setCrowdActive(true);
   }
   async buffer(path){
     if(!this.context)return null;if(this.buffers.has(path))return this.buffers.get(path);
@@ -77,10 +75,10 @@ export class GameAudio{
     source.playbackRate.value=rate*(.96+Math.random()*.08);let spatial=1;
     if(hasPosition(position)){
       const camera=this.cameraPosition||{x:0,z:0},dx=position.x-camera.x,dz=position.z-camera.z,dist=Math.hypot(dx,dz);
-      spatial=1/(1+dist*.018);if(panner)panner.pan.value=clamp(dx/Math.max(12,dist),-.92,.92);
+      spatial=1/(1+dist*.018);
     }
-    gain.gain.value=clamp(volume,0,1.5)*spatial;source.connect(gain);if(panner){gain.connect(panner);const right=this.cameraRight||{x:1,z:0},camera=this.cameraPosition||{x:0,z:0},lateral=(position.x-camera.x)*right.x+(position.z-camera.z)*right.z;panner.pan.value=clamp(lateral/Math.max(12,Math.hypot(position.x-camera.x,position.z-camera.z)),-.92,.92);panner.connect(group==='crowd'?this.crowd:this.sfx);}else gain.connect(group==='crowd'?this.crowd:this.sfx);
-    if(this.voices.size>=28){const oldest=this.voices.values().next().value;try{oldest.gain.gain.setTargetAtTime(0,ctx.currentTime,.012);oldest.source.stop(ctx.currentTime+.06);}catch{}this.voices.delete(oldest);}
+    gain.gain.value=clamp(volume,0,1.5)*spatial;source.connect(gain);if(panner){gain.connect(panner);let pan=0;if(hasPosition(position)){const right=this.cameraRight||{x:1,z:0},camera=this.cameraPosition||{x:0,z:0},lateral=(position.x-camera.x)*right.x+(position.z-camera.z)*right.z;pan=lateral/Math.max(12,Math.hypot(position.x-camera.x,position.z-camera.z));}panner.pan.value=clamp(pan,-.92,.92);panner.connect(group==='crowd'?this.crowd:this.sfx);}else gain.connect(group==='crowd'?this.crowd:this.sfx);
+    if(this.voices.size>=28){const oldest=[...this.voices].find(voice=>!voice.source.loop)||this.voices.values().next().value;try{oldest.gain.gain.setTargetAtTime(0,ctx.currentTime,.012);oldest.source.stop(ctx.currentTime+.06);}catch{}this.voices.delete(oldest);}
     const voice={source,gain};this.voices.add(voice);source.onended=()=>this.voices.delete(voice);
     try{source.start();}catch{this.voices.delete(voice);return null;}return voice;
   }
@@ -111,9 +109,9 @@ export class GameAudio{
   }
   reaction(name,position,volume){if(this.settings.value.crowdReactions!==false)this.play(name,{position,volume,group:'crowd'});}
   setCrowdActive(active){
-    if(active===this.wasMatchActive){if(active&&this.context&&!this.ambient&&!this.ambientLoading)this.startAmbient();return;}
+    if(active===this.wasMatchActive){if(active&&this.context&&!this.ambient&&!this.ambientLoading&&this.settings.value.audioCrowd>0&&!this.settings.value.audioMuted)this.startAmbient();return;}
     this.wasMatchActive=active;if(!this.context)return;
-    if(active)this.startAmbient();
+    if(active&&this.settings.value.audioCrowd>0&&!this.settings.value.audioMuted)this.startAmbient();
     else if(this.ambient){const voice=this.ambient;this.ambient=null;try{voice.gain.gain.setTargetAtTime(0,this.context.currentTime,.28);voice.source.stop(this.context.currentTime+1.2);}catch{}}
   }
   startAmbient(){this.ambientLoading=true;this.play('crowdAmbience',{group:'crowd',volume:.36,loop:true}).then(voice=>{this.ambientLoading=false;if(!voice)return;if(!this.wasMatchActive){try{voice.source.stop();}catch{}return;}this.ambient=voice;});}
@@ -129,4 +127,5 @@ export class GameAudio{
     const owner=match.ball.owner;this.dribbleTimer-=dt;
     if(owner&&Math.hypot(owner.vx||0,owner.vz||0)>2&&this.dribbleTimer<=0){this.play('ballTouch',{position:match.ball,volume:.27,rate:.92+Math.random()*.1});this.dribbleTimer=.52;}
   }
+  dispose(){document.removeEventListener('pointerdown',this.onPointerDown,true);document.removeEventListener('keydown',this.onPointerDown,true);document.removeEventListener('click',this.onClick,true);for(const voice of this.voices){try{voice.source.stop();}catch{}}this.voices.clear();this.context?.close().catch(()=>{});this.context=null;}
 }

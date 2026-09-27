@@ -1,6 +1,6 @@
 # LANTERN RUSH
 
-An original, silent 3D 7v7 arcade soccer game for desktop and mobile browsers. Built with Three.js and plain JavaScript modules. This folder is the complete standalone website; it does not depend on the adjacent LSL Website folder at runtime.
+An original 3D 7v7 arcade soccer game for desktop and mobile browsers. Built with Three.js and plain JavaScript modules. This folder is the complete standalone website; it does not depend on the adjacent LSL Website folder at runtime.
 
 ## Play locally
 
@@ -35,7 +35,7 @@ Run `npm run sync-mode-pages` after changing the shared `index.html` shell to re
 4. Under **Build and deployment**, choose **Deploy from a branch**, then **main** and **/(root)**. Save.
 5. When deployment finishes, use the URL GitHub displays, usually **https://YOUR-USERNAME.github.io/YOUR-REPOSITORY/**.
 
-The gameplay engine uses relative asset paths and includes its pinned Three.js dependency locally. Account, charts, profile-picture sync and the locked admin console use the supplied Firebase project from `src/firebase-config.js`; Only Firebase App and Firestore load for accounts; no email or Firebase Authentication provider is required. A project Pages URL with a repository-name prefix works without changing asset paths. There is no gameplay backend, audio or permanent game server. The temporary username/passcode system and browser admin lock match the other LSL sites. Deploy the narrowly scoped Firestore rules in `ACCOUNT-RULES.md`. This client-side model is intended to be replaced with verified authentication later.
+The gameplay engine uses relative asset paths and includes its pinned Three.js dependency locally. Account, charts, profile-picture sync and the locked admin console use the supplied Firebase project from `src/firebase-config.js`; Only Firebase App and Firestore load for accounts; no email or Firebase Authentication provider is required. A project Pages URL with a repository-name prefix works without changing asset paths. Audio is bundled locally and works without a backend; settings provide separate Master, SFX and Crowd volumes plus mute. Sound starts after the first user interaction to meet browser autoplay rules. Audio credits and license details are in `assets/audio/ATTRIBUTION.md`. The temporary username/passcode system and browser admin lock match the other LSL sites. Deploy the narrowly scoped Firestore rules in `ACCOUNT-RULES.md`. This client-side model is intended to be replaced with verified authentication later.
 
 To update: replace the changed files, commit/push to the selected branch, and let Pages redeploy. Reload an already-open game to receive the update.
 
