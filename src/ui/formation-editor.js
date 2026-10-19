@@ -6,7 +6,7 @@ const roleLabel={GK:'GOALKEEPER',DEF:'DEFENDER',MID:'MIDFIELDER',FWD:'FORWARD'};
 
 export class FormationBuilder{
   constructor(app){
-    this.app=app;this.dialog=$('formation-dialog');this.drag=null;this.selectedPlayerId=null;
+    this.app=app;this.dialog=$('formation-dialog');this.drag=null;this.selectedPlayerId=null;this.renderKeys={roster:'',markers:'',tokens:''};
     document.addEventListener('click',event=>{const button=event.target.closest?.('[data-open-formation]');if(!button)return;event.preventDefault();this.open(this.targetTeam());});
     this.dialog.querySelector('[data-formation-close]')?.addEventListener('click',()=>this.dialog.close());
     this.dialog.querySelector('#formation-preset')?.addEventListener('change',event=>{this.applyPreset(event.target.value);});
@@ -80,7 +80,7 @@ export class FormationBuilder{
   labelFor(team){return formationLabel(this.readSaved(team)?.formationId||DEFAULT_FORMATION_ID);}
   open(team=this.targetTeam()){
     if(!team||!this.dialog)return;
-    this.team=team;this.state=this.stateFor(team);this.selectedPlayerId=null;this.render();this.dialog.showModal();
+    this.team=team;this.state=this.stateFor(team);this.selectedPlayerId=null;this.renderKeys={roster:'',markers:'',tokens:''};this.render();this.dialog.showModal();
   }
   applyPreset(id){
     const next=id==='custom'?'custom':FORMATION_PRESETS[id]?id:DEFAULT_FORMATION_ID;
@@ -112,13 +112,13 @@ export class FormationBuilder{
   }
   endDrag(event,cancelled=false){
     if(!this.drag||event.pointerId!==this.drag.pointerId)return;const drag=this.drag;this.drag=null;this.ghost?.remove();this.ghost=null;
-    if(cancelled){if(drag.type==='token')this.render();else this.dialog.querySelectorAll('.dragging').forEach(element=>element.classList.remove('dragging'));return;}
+    if(cancelled){if(drag.type==='token'){this.renderKeys.tokens='';this.render();}else this.dialog.querySelectorAll('.dragging').forEach(element=>element.classList.remove('dragging'));return;}
     if(!drag.moved){if(drag.type==='card')this.handlePlayerTap(drag.playerId);else this.handleSlotTap(drag.slot);return;}
     const rect=this.field?.getBoundingClientRect(),inside=rect&&event.clientX>=rect.left&&event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;
     const point=inside?this.fieldPoint(event):null;
     if(drag.type==='token'&&point){this.selectedPlayerId=null;this.state.slots[drag.slot].x=point.x;this.state.slots[drag.slot].z=point.z;this.state.formationId='custom';this.preset.value='custom';this.render();return;}
     if(drag.type==='card'&&point){this.assignPlayerToSlot(drag.playerId,this.nearestSlot(point));return;}
-    this.render();
+    if(drag.type==='token')this.renderKeys.tokens='';this.render();
   }
   handlePlayerTap(playerId){
     if(!this.selectedPlayerId){this.selectedPlayerId=playerId;this.render();return;}
@@ -139,18 +139,25 @@ export class FormationBuilder{
     if(sourceIndex>=0){this.state.slots[sourceIndex].x=point.x;this.state.slots[sourceIndex].z=point.z;this.state.formationId='custom';this.preset.value='custom';this.selectedPlayerId=null;this.render();return;}
     this.assignPlayerToSlot(this.selectedPlayerId,this.nearestSlot(point));
   }
-  card(player,active){const selected=this.selectedPlayerId===player.id,position=player.position||player.designation||player.role||'PLAYER';return '<button type="button" class="formation-player-card '+(active?'active ':'')+(selected?'selected':'')+'" data-player="'+e(player.id)+'" aria-pressed="'+selected+'"><span class="formation-card-number">'+e(player.jersey?'#'+player.jersey:'—')+'</span><span class="formation-card-copy"><strong>'+e(player.name)+'</strong><small>'+e(position)+'</small></span><em>'+(selected?'SELECTED':active?'STARTER':'BENCH')+'</em></button>';}
+  card(player,active,index=0){const selected=this.selectedPlayerId===player.id,position=player.position||player.designation||player.role||'PLAYER';return '<button type="button" class="formation-player-card '+(active?'active ':'')+(selected?'selected':'')+'" style="--formation-index:'+index+'" data-player="'+e(player.id)+'" aria-pressed="'+selected+'"><span class="formation-card-number">'+e(player.jersey?'#'+player.jersey:'—')+'</span><span class="formation-card-copy"><strong>'+e(player.name)+'</strong><small>'+e(position)+'</small></span><em>'+(selected?'SELECTED':active?'STARTER':'BENCH')+'</em></button>';}
   render(){
     if(!this.dialog||!this.team)return;
     this.dialog.querySelector('#formation-team-name').textContent=this.team.name;
     this.dialog.querySelector('#formation-team-season').textContent=(this.team.season||this.app.settings.value.season)+' · '+this.labelForState()+' · ATTACK →';
     this.preset=this.dialog.querySelector('#formation-preset');this.preset.value=this.state.formationId;this.field=this.dialog.querySelector('#formation-pitch');this.tokens=this.dialog.querySelector('#formation-tokens');
     const all=this.roster(this.team),activeIds=new Set(this.state.slots.map(slot=>slot.playerId));
-    this.dialog.querySelector('#formation-players').innerHTML=all.map(player=>this.card(player,activeIds.has(player.id))).join('');
-    this.dialog.querySelector('#formation-slots').innerHTML=this.state.slots.map((slot,index)=>'<span class="formation-slot-marker" data-slot="'+index+'" style="left:'+(slot.x+1)*50+'%;top:'+(slot.z+1)*50+'%"><b>'+e(this.positionLabel(slot,index))+'</b></span>').join('');
-    this.tokens.innerHTML=this.state.slots.map((slot,index)=>{const player=all.find(candidate=>candidate.id===slot.playerId),selected=this.selectedPlayerId===slot.playerId,position=this.positionLabel(slot,index);return '<button type="button" class="formation-player-token '+(selected?'selected':'')+'" data-slot="'+index+'" style="left:'+(slot.x+1)*50+'%;top:'+(slot.z+1)*50+'%" aria-label="'+e(position)+' · '+e(player?.name||'Player')+' · '+e(player?.jersey?'number '+player.jersey:'no number')+' · tap to select or move"><small>'+e(position)+'</small><b>'+e(player?.jersey?'#'+player.jersey:'—')+'</b><span>'+e(player?.name||'Player'+(index+1))+'</span></button>';}).join('');
-    this.dialog.querySelectorAll('.formation-player-card').forEach(card=>{card.addEventListener('pointerdown',event=>this.startDrag(event,'card',{playerId:card.dataset.player}));card.addEventListener('click',event=>{if(event.detail===0)this.handlePlayerTap(card.dataset.player);});});
-    this.tokens.querySelectorAll('.formation-player-token').forEach(token=>{token.addEventListener('pointerdown',event=>this.startDrag(event,'token',{slot:Number(token.dataset.slot)}));token.addEventListener('click',event=>{if(event.detail===0)this.handleSlotTap(Number(token.dataset.slot));});});
+    const rosterKey=all.map(player=>player.id).join('|');
+    const markerKey=this.state.slots.map(slot=>[slot.role,Number(slot.x).toFixed(3),Number(slot.z).toFixed(3)].join(':')).join('|');
+    const tokenKey=rosterKey+'|'+this.state.slots.map(slot=>slot.playerId).join('|')+'|'+markerKey;
+    const players=this.dialog.querySelector('#formation-players'),slots=this.dialog.querySelector('#formation-slots');
+    const rebuildRoster=this.renderKeys.roster!==rosterKey,rebuildMarkers=this.renderKeys.markers!==markerKey,rebuildTokens=this.renderKeys.tokens!==tokenKey;
+    if(rebuildRoster){players.innerHTML=all.map((player,index)=>this.card(player,activeIds.has(player.id),index)).join('');this.renderKeys.roster=rosterKey;}
+    if(rebuildMarkers){slots.innerHTML=this.state.slots.map((slot,index)=>'<span class="formation-slot-marker" data-slot="'+index+'" style="left:'+(slot.x+1)*50+'%;top:'+(slot.z+1)*50+'%"><b>'+e(this.positionLabel(slot,index))+'</b></span>').join('');this.renderKeys.markers=markerKey;}
+    if(rebuildTokens){this.tokens.innerHTML=this.state.slots.map((slot,index)=>{const player=all.find(candidate=>candidate.id===slot.playerId),selected=this.selectedPlayerId===slot.playerId,position=this.positionLabel(slot,index);return '<button type="button" class="formation-player-token '+(selected?'selected':'')+'" data-slot="'+index+'" style="left:'+(slot.x+1)*50+'%;top:'+(slot.z+1)*50+'%" aria-label="'+e(position)+' · '+e(player?.name||'Player')+' · '+e(player?.jersey?'number '+player.jersey:'no number')+' · tap to select or move"><small>'+e(position)+'</small><b>'+e(player?.jersey?'#'+player.jersey:'—')+'</b><span>'+e(player?.name||'Player'+(index+1))+'</span></button>';}).join('');this.renderKeys.tokens=tokenKey;}
+    if(rebuildRoster)this.dialog.querySelectorAll('.formation-player-card').forEach(card=>{card.addEventListener('pointerdown',event=>this.startDrag(event,'card',{playerId:card.dataset.player}));card.addEventListener('click',event=>{if(event.detail===0)this.handlePlayerTap(card.dataset.player);});});
+    if(rebuildTokens)this.tokens.querySelectorAll('.formation-player-token').forEach(token=>{token.addEventListener('pointerdown',event=>this.startDrag(event,'token',{slot:Number(token.dataset.slot)}));token.addEventListener('click',event=>{if(event.detail===0)this.handleSlotTap(Number(token.dataset.slot));});});
+    this.dialog.querySelectorAll('.formation-player-card').forEach(card=>{const active=activeIds.has(card.dataset.player),selected=this.selectedPlayerId===card.dataset.player;card.classList.toggle('active',active);card.classList.toggle('selected',selected);card.setAttribute('aria-pressed',String(selected));const state=card.querySelector('em');if(state)state.textContent=selected?'SELECTED':active?'STARTER':'BENCH';});
+    this.tokens.querySelectorAll('.formation-player-token').forEach(token=>token.classList.toggle('selected',this.selectedPlayerId===this.state.slots[Number(token.dataset.slot)]?.playerId));
     const summary=this.dialog.querySelector('#formation-summary'),selectedPlayer=all.find(player=>player.id===this.selectedPlayerId);summary.textContent=selectedPlayer?'Selected '+selectedPlayer.name+' · tap a field spot to place, or another player to swap.':this.state.formationId==='custom'?'Custom shape · drag a player or tap a player, then tap the field.':'Preset '+formationLabel(this.state.formationId)+' · positions are matched to each player’s role. Drag or tap to adjust.';
   }
   labelForState(){return formationLabel(this.state?.formationId||DEFAULT_FORMATION_ID);}

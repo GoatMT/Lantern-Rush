@@ -1,5 +1,5 @@
 import * as T from '../../vendor/three.module.js';
-import { shirtTexture,releaseShirtTexture,fabricNormalTexture,numberColor,goalkeeperKit } from './uniforms.js';
+import { shirtTexture,releaseShirtTexture,fabricNormalTexture,numberColor,goalkeeperKit,frontKitBadge } from './uniforms.js';
 import { appearanceFor } from './appearance.js';
 import { animationPose } from './animations.js';
 import { PLAYER_VISUAL_SCALE } from '../config.js';
@@ -14,8 +14,19 @@ function curvedFace(){
   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const a=y*(columns+1)+x,b=a+columns+1;indices.push(a,a+1,b+1,a,b+1,b);}
   const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
 }
+function curvedBadge(width){
+  const columns=20,rows=8,positions=[],uv=[],indices=[];
+  for(let y=0;y<=rows;y++)for(let x=0;x<=columns;x++){
+    const u=x/columns,v=y/rows,px=u-.5;
+    positions.push(px,v-.5,.18*Math.sqrt(Math.max(.04,1-((px*width)/.27)**2)));
+    uv.push(u,1-v);
+  }
+  for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){const a=y*(columns+1)+x,b=a+columns+1;indices.push(a,a+1,b+1,a,b+1,b);}
+  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
+}
 const shared={face:curvedFace(),back:new T.PlaneGeometry(.37,.48),front:new T.PlaneGeometry(.145,.18),shadow:new T.PlaneGeometry(1.65,1.65),indicator:new T.ConeGeometry(.17,.30,3),ring:new T.RingGeometry(.61,.665,28),bottle:new T.CylinderGeometry(.042,.056,.22,10),bottleCap:new T.CylinderGeometry(.027,.027,.035,10)};
 const mat=(color,roughness=.75)=>new T.MeshStandardMaterial({color,roughness,metalness:0});
+const CANVAS_FONT='"Segoe UI",system-ui,sans-serif';
 const waterMaterial=mat('#9bd7db',.3),waterCapMaterial=mat('#f0e7c9',.55);
 function mesh(geometry,material,x=0,y=0,z=0,sx=1,sy=sx,sz=sx){const m=new T.Mesh(geometry,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=m.receiveShadow=true;return m;}
 let contactTexture;
@@ -26,7 +37,7 @@ function softShadow(){
 }
 export function textTexture(text,{color='#fff',background='#0a302b',width=512,height=128,font=50}={}){
   const c=document.createElement('canvas');c.width=width;c.height=height;const ctx=c.getContext('2d');
-  if(background){ctx.fillStyle=background;ctx.fillRect(0,0,width,height);}ctx.fillStyle=color;ctx.font='900 '+font+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,width/2,height/2,width-20);
+  if(background){ctx.fillStyle=background;ctx.fillRect(0,0,width,height);}ctx.fillStyle=color;ctx.font='900 '+font+'px '+CANVAS_FONT;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,width/2,height/2,width-20);
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
 function faceTexture(a){
@@ -48,13 +59,30 @@ function faceTexture(a){
   if(a.glasses){ctx.strokeStyle='#242424';ctx.lineWidth=3.5;ctx.strokeRect(22,32,30,22);ctx.strokeRect(76,32,30,22);ctx.beginPath();ctx.moveTo(52,40);ctx.lineTo(76,40);ctx.moveTo(20,37);ctx.lineTo(13,33);ctx.moveTo(106,37);ctx.lineTo(114,33);ctx.stroke();}
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
-function identityTexture(player,color,back){
+function identityTexture(player,color,back,kit){
   const c=document.createElement('canvas');c.width=256;c.height=back?320:256;const ctx=c.getContext('2d');
   const number=player.jersey;
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.fillStyle=color;ctx.strokeStyle=color==='#172b42'?'#ffffffaa':'#17232caa';
-  if(back){ctx.font='700 27px Arial';ctx.lineWidth=1.3;const name=String(player.name||'').toUpperCase();ctx.strokeText(name,128,35,242);ctx.fillText(name,128,35,242);}
+  if(back&&kit?.pattern==='jogiat-palace-2024'){
+    ctx.fillStyle='#f7f6f1';ctx.font='800 18px '+CANVAS_FONT;ctx.fillText('LANTERN SOCCERS',128,26,242);ctx.fillText('LEAGUE',128,46,242);
+  }else if(back&&kit?.backName!==false){
+    let nameY=35;
+    if(kit?.pattern==='lantern-2026'){
+      ctx.strokeStyle='#c5a95d';ctx.fillStyle='#07563b';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(119,23);ctx.lineTo(121,10);ctx.lineTo(128,3);ctx.lineTo(135,10);ctx.lineTo(137,23);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(119,23);ctx.lineTo(137,23);ctx.lineTo(128,31);ctx.closePath();ctx.stroke();nameY=51;
+    }
+    ctx.font='700 27px '+CANVAS_FONT;ctx.lineWidth=1.3;const name=String(player.kitName||player.name||'').toUpperCase();ctx.strokeText(name,128,nameY,242);ctx.fillText(name,128,nameY,242);
+  }
   if(number!==null&&number!==undefined&&number!==''){
-    ctx.font='900 '+(back?213:210)+'px Arial';ctx.lineWidth=4;const y=back?187:133;ctx.strokeText(String(number),128,y,245);ctx.fillText(String(number),128,y,245);
+    ctx.font='900 '+(back?213:210)+'px '+CANVAS_FONT;ctx.lineWidth=4;const y=back?187:133;ctx.strokeText(String(number),128,y,245);ctx.fillText(String(number),128,y,245);
+  }
+  if(back&&kit?.pattern==='lantern-2025'){
+    ctx.fillStyle='#18191d';ctx.strokeStyle='#eee7d8';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(49,267,158,32,8);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#f2ede1';ctx.font='italic 700 17px Georgia,serif';ctx.fillText('The Honest Butcher',128,279,148);
+    ctx.font='600 7px '+CANVAS_FONT;ctx.fillText('BEST QUALITY · FRESH MEAT',128,292,145);
+    const badges=[['#f0eee5','#8b6650'],['#f5f1e8','#292c31'],['#e3c747','#d4618e']];
+    badges.forEach(([paper,ink],i)=>{const x=60+i*68;ctx.fillStyle=paper;ctx.strokeStyle='#cbb176';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,301,62,17,4);ctx.fill();ctx.stroke();ctx.fillStyle=ink;ctx.font='800 5px '+CANVAS_FONT;ctx.fillText(i===0?'REVENT CREW':i===1?'SILVER HILLS':'SCOTT FAMILY',x+31,310,57);});
   }
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.anisotropy=4;return tex;
 }
@@ -76,6 +104,7 @@ export class PlayerModel{
     this.waterBottle=new T.Group();this.waterBottle.visible=false;const bottle=new T.Mesh(shared.bottle,waterMaterial),cap=new T.Mesh(shared.bottleCap,waterCapMaterial);bottle.position.y=.11;cap.position.y=.235;this.waterBottle.add(bottle,cap);this.waterBottle.position.set(.31,1.36,.205);this.body.add(this.waterBottle);
     const waist=[part('limb',kit.shorts,0,.985,0,.25*(1+a.bulk*.28),.23,.14*(1+a.bulk*.25)),part('limb',skin,0,1.85,0,.084,.19,.078)];
     this.body.add(solid(waist));
+    if(kit.pattern==='jogiat-palace-2024')this.body.add(solid([part('box','#f3f2ec',0,.87,.145,.012,.1,.008)]));
     const collar=solid([part('collar',trim,0,1.822,0,.12,.11,.105,Math.PI/2),part('box',trim,0,1.73,.157,.012,.115,.006)]);this.body.add(collar);this.details.push(collar);
     // Original league crest and a small kit seam. No copied real-world sponsor marks.
     const crest=solid([part('box',trim,.15,1.61,.181,.065,.088,.008),part('box',kit.primary,.15,1.615,.187,.040,.056,.006)]);this.body.add(crest);this.fineDetails.push(crest);
@@ -115,6 +144,10 @@ export class PlayerModel{
       elbow.add(solid(forearm));arm.add(elbow);this.body.add(arm);this.arms.push(arm);this.elbows.push(elbow);
       const leg=new T.Group();leg.position.set(sign*(.147+a.bulk*.018),1.00,0);
       leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151*(1+a.bulk*.38),.29,.154*(1+a.bulk*.34)),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104*(1+a.bulk*.24),.18,.104*(1+a.bulk*.24))]));
+      if(kit.pattern==='lantern-2025')leg.add(solid([part('box',trim,sign*.13,-.145,.079,.012,.22,.009)]));
+      if(kit.pattern==='lantern-2026')leg.add(solid([part('box','#f7f6ed',sign*.135,-.145,.079,.03,.25,.012)]));
+      if(kit.pattern==='umer-memon')leg.add(solid([part('box','#f5f4ef',sign*.135,-.145,.079,.038,.25,.012)]));
+      if(kit.pattern==='jogiat-palace-2024')leg.add(solid([part('box','#46554d',sign*.135,-.145,.079,.04,.25,.012),part('box','#202824',sign*.135,-.145,.088,.018,.25,.008)]));
       const knee=new T.Group();knee.position.y=-.437;
       const boot=player.data.staff?'#25333a':a.boots||'#25333a';
       knee.add(solid([part('sphere',player.data.staff?kit.shorts:skin,0,-.004,0,.098,.108,.099),part('taper',kit.socks,0,-.213,0,.094*(1+a.bulk*.20),.389,.095*(1+a.bulk*.18)),part('limb',player.data.staff?kit.shorts:trim,0,-.06,0,.097,.019,.099),part('sphere',boot,0,-.415,.078,.119,.087,.221),part('sphere','#30373a',0,-.468,.083,.12,.024,.218)]));
@@ -126,12 +159,14 @@ export class PlayerModel{
       leg.add(knee);this.body.add(leg);this.legs.push(leg);this.knees.push(knee);
     }
     this.identityTextures=[];
+    const badge=frontKitBadge(typeof color==='object'?color:kit);
+    if(badge){this.identityTextures.push(badge.texture);const chest=mesh(curvedBadge(badge.width),new T.MeshBasicMaterial({map:badge.texture,transparent:true,depthWrite:false,toneMapped:false}),badge.x,badge.y,.012,badge.width,badge.height,1);chest.castShadow=false;this.body.add(chest);}
     if(!referee&&!player.data.staff){
-      const color=numberColor(kit),back=identityTexture(player,color,true);this.identityTextures.push(back);
+      const color=numberColor(kit),back=identityTexture(player,color,true,kit);this.identityTextures.push(back);
       const backNumber=mesh(shared.back,new T.MeshBasicMaterial({map:back,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}),0,1.45,-.184);backNumber.rotation.y=Math.PI;backNumber.castShadow=false;this.body.add(backNumber);
       // Missing source numbers remain blank. The data audit records them for development.
-      if(player.jersey!==null&&player.jersey!==undefined&&player.jersey!==''){
-        const front=identityTexture(player,color,false);this.identityTextures.push(front);
+      if(player.jersey!==null&&player.jersey!==undefined&&player.jersey!==''&&kit.frontNumber!==false){
+        const front=identityTexture(player,color,false,kit);this.identityTextures.push(front);
         const frontNumber=mesh(shared.front,new T.MeshBasicMaterial({map:front,transparent:true,depthWrite:false}),-.116,1.49,.188);frontNumber.castShadow=false;this.body.add(frontNumber);
       }
     }

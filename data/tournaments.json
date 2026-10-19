@@ -209,7 +209,9 @@
               },
               {
                 "id": "player-8",
-                "name": "Muhummud Teli"
+                "name": "Muhummud Teli",
+                "kitName": "Teli",
+                "jersey": 88
               },
               {
                 "id": "player-9",
@@ -840,6 +842,7 @@
               {
                 "id": "muhammad-teli",
                 "name": "Muhummud Teli",
+                "kitName": "Teli",
                 "jersey": 34,
                 "role": "Defender"
               },

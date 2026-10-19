@@ -1,7 +1,7 @@
 import {WEATHER_OPTIONS} from '../weather-options.js';
 
 export const MATCH_CONDITION_OPTIONS=Object.freeze({
-  venue:['stadium-one','grenoble-ps'],
+  venue:['stadium-one','grenoble-ps','gpt-stadium'],
   lighting:['day','evening','night'],
   weather:WEATHER_OPTIONS
 });

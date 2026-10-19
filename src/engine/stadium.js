@@ -8,6 +8,14 @@ const PALETTE=['#20343f','#345267','#9caaa7','#c49d71','#d9d3bd','#795045','#4b6
 const physical=color=>new T.MeshStandardMaterial({color,roughness:.83,metalness:.06});
 const unitBox=new T.BoxGeometry(1,1,1);
 
+function gptMarkTexture(){
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;const c=canvas.getContext('2d');
+  c.clearRect(0,0,512,256);c.fillStyle='#102a21dd';c.beginPath();c.roundRect(9,9,494,238,56);c.fill();
+  c.strokeStyle='#d6c878';c.lineWidth=7;c.beginPath();c.roundRect(12,12,488,232,52);c.stroke();
+  c.fillStyle='#f5f1e5';c.font='900 128px "Segoe UI",system-ui,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('GPT',256,110);
+  c.fillStyle='#b8dbbe';c.font='800 25px "Segoe UI",system-ui,sans-serif';c.fillText('OFFICIAL MATCHDAY PARTNER',256,193);return new T.CanvasTexture(canvas);
+}
+
 // Thousands of seats and repeated architectural pieces share instanced draws.
 class VenueBatch{
   constructor(parent){this.parent=parent;this.parts=new Map();}
@@ -26,13 +34,14 @@ export class Stadium{
   constructor(scene,venue='stadium-one'){
     this.root=new T.Group();this.root.name='Lantern Rush venue';scene.add(this.root);
     this.professional=new T.Group();this.professional.name='Stadium One';this.root.add(this.professional);
+    this.gptBranding=new T.Group();this.gptBranding.name='GPT Stadium sponsor presentation';this.professional.add(this.gptBranding);
     this.detail=new T.Group();this.crowdGroup=new T.Group();this.professional.add(this.detail,this.crowdGroup);
     this.fieldFeatures=new T.Group();this.fieldFeatures.name='White goals and corner flags';this.root.add(this.fieldFeatures);
     this.school=new T.Group();this.school.name='Grenoble Public School';this.root.add(this.school);
     this.nets=[];this.flags=[];this.banners=[];this.lamps=[];this.previousPhase='home';this.crowdReactions=true;this.reactionUntil=0;this.reactionKind='';this.lastReaction=null;
     const L=FIELD.halfLength,W=FIELD.halfWidth;
     this.turf=createTurf();this.pitch=this.turf.pitch;this.markings=createMarkings('#ffffff');this.root.add(this.pitch,this.markings);
-    this.buildStadiumOne();this.buildGoalsAndFlags();this.buildSchoolMap();this.setVenue(venue);
+    this.buildStadiumOne();this.buildGptBranding();this.buildGoalsAndFlags();this.buildSchoolMap();this.setVenue(venue);
   }
   buildStadiumOne(){
     const L=FIELD.halfLength,W=FIELD.halfWidth;
@@ -42,6 +51,21 @@ export class Stadium{
     for(const side of [-1,1]){this.structure.box(L*2+17,.035,.22,0,.004,side*(W+3.6),'#69716b');this.structure.box(.22,.035,W*2+7.2,side*(L+8.4),.004,0,'#69716b');this.structure.box(L*2+24,.06,5.5,0,-.015,side*(W+8),'#48524f');this.structure.box(5.5,.06,W*2+25,side*(L+13),-.015,0,'#48524f');this.buildStand(side,false);this.buildStand(side,true);this.buildBoards(side);this.screen(side);}
     this.advertising=new PitchAdvertising(this.professional);this.buildTunnel();this.buildBenches();this.buildLights();this.buildCrowd();this.buildSurroundings();
     this.structure.build();this.extras.build();this.seatBatch.build();this.quality('medium');this.score(0,0);
+  }
+  buildGptBranding(){
+    const L=FIELD.halfLength,W=FIELD.halfWidth,logo=gptMarkTexture(),logoMaterial=new T.MeshBasicMaterial({map:logo,transparent:true,side:T.DoubleSide,depthWrite:false,toneMapped:false});
+    const pitchMark=new T.Mesh(new T.PlaneGeometry(12.3,1.05),new T.MeshBasicMaterial({map:logo,transparent:true,side:T.DoubleSide,toneMapped:false}));
+    for(const side of [-1,1])for(let i=0;i<10;i++){
+      const x=(i-4.5)*12.7,board=pitchMark.clone();board.position.set(x,.77,side*(W+6.4));if(side>0)board.rotation.y=Math.PI;this.gptBranding.add(board);
+    }
+    const endBoard=new T.Mesh(new T.PlaneGeometry(10.5,1.05),logoMaterial);
+    for(const side of [-1,1])for(let i=-3;i<=3;i++){const board=endBoard.clone();board.position.set(side*(L+9.9),.77,i*11.2);board.rotation.y=-side*Math.PI/2;this.gptBranding.add(board);}
+    const decalMaterial=new T.MeshBasicMaterial({map:logo,transparent:true,side:T.DoubleSide,depthWrite:false,toneMapped:false});
+    for(let i=-4;i<=4;i++)for(const side of [-1,1]){const decal=new T.Mesh(new T.PlaneGeometry(2.25,1.12),decalMaterial);decal.rotation.x=-Math.PI/2;decal.position.set(i*13,.018,side*(W+5.2));this.gptBranding.add(decal);}
+    for(const side of [-1,1])for(let i=-2;i<=2;i++){const decal=new T.Mesh(new T.PlaneGeometry(2.25,1.12),decalMaterial);decal.rotation.set(-Math.PI/2,0,side*Math.PI/2);decal.position.set(side*(L+5.2),.018,i*10);this.gptBranding.add(decal);}
+    const titleMaterial=new T.MeshBasicMaterial({map:new T.CanvasTexture((()=>{const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=220;const c=canvas.getContext('2d'),g=c.createLinearGradient(0,0,1200,220);g.addColorStop(0,'#10271e');g.addColorStop(.52,'#31553b');g.addColorStop(1,'#10271e');c.fillStyle=g;c.fillRect(0,0,1200,220);c.fillStyle='#e5d68a';c.fillRect(0,0,1200,9);c.fillStyle='#f3efe2';c.textAlign='center';c.textBaseline='middle';c.font='900 100px "Segoe UI",system-ui,sans-serif';c.fillText('GPT STADIUM',600,115);return canvas;})()),toneMapped:false});
+    for(const side of [-1,1]){const title=new T.Mesh(new T.PlaneGeometry(29,5.3),titleMaterial);title.position.set(0,13,side*(L+15.8));if(side<0)title.rotation.y=Math.PI;this.gptBranding.add(title);}
+    logo.colorSpace=T.SRGBColorSpace;logo.anisotropy=4;
   }
   buildGoalsAndFlags(){const L=FIELD.halfLength,W=FIELD.halfWidth;for(const side of [-1,1]){this.goal(side);for(const zSide of [-1,1])this.cornerFlag(side*L,zSide*W);}}
   buildSchoolMap(){
@@ -67,7 +91,7 @@ export class Stadium{
     const trunk=new T.InstancedMesh(new T.CylinderGeometry(.32,.48,3.6,6),physical('#55483b'),treePositions.length),canopy=new T.InstancedMesh(new T.IcosahedronGeometry(2.8,0),physical('#31553a'),treePositions.length),dummy=new T.Object3D();
     treePositions.forEach((item,i)=>{dummy.position.set(item.x,1.8,item.z);dummy.updateMatrix();trunk.setMatrixAt(i,dummy.matrix);dummy.position.set(item.x,5,item.z);dummy.scale.set(1,1.05+(i%3)*.13,1);dummy.updateMatrix();canopy.setMatrixAt(i,dummy.matrix);});trunk.computeBoundingSphere();canopy.computeBoundingSphere();trunk.castShadow=true;canopy.castShadow=true;this.school.add(trunk,canopy);
   }
-  setVenue(venue){this.venue=venue==='grenoble-ps'?'grenoble-ps':'stadium-one';this.professional.visible=this.venue==='stadium-one';this.school.visible=this.venue==='grenoble-ps';this.markings.material.color.set('#ffffff');}
+  setVenue(venue){this.venue=['grenoble-ps','gpt-stadium'].includes(venue)?venue:'stadium-one';const school=this.venue==='grenoble-ps',gpt=this.venue==='gpt-stadium';this.professional.visible=!school;this.gptBranding.visible=gpt;this.school.visible=school;this.banners.forEach(banner=>banner.visible=!gpt);this.advertising?.setBranding(gpt);this.professional.name=gpt?'GPT Stadium · Sponsored by GPT':'Stadium One';this.markings.material.color.set('#ffffff');}
   buildStand(side,end){
     const L=FIELD.halfLength,W=FIELD.halfWidth,span=end?W*2+10:L*2+22,edge=end?L+14:W+12;
     const place=(along,out,height,w,h,d,color,batch=this.structure)=>end?batch.box(d,h,w,side*out,height,along,color):batch.box(w,h,d,along,height,side*out,color);
@@ -168,8 +192,8 @@ export class Stadium{
   }
   score(a,b){
     const c=this.scoreTexture.image.getContext('2d');c.fillStyle='#0b1e2b';c.fillRect(0,0,1024,320);c.fillStyle='#d8c78e';c.fillRect(32,31,960,4);
-    c.textAlign='center';c.textBaseline='middle';c.font='700 30px Arial';c.fillText('LANTERN RUSH  /  STADIUM ONE',512,65);c.fillStyle='#f0f1e8';c.font='800 110px Arial';c.fillText(a+'  :  '+b,512,173);
-    c.font='700 22px Arial';c.fillStyle='#aebfc0';c.fillText((this.teamNames||['LANTERN SOCCER LEAGUE']).join('   /   '),512,268,940);this.scoreTexture.needsUpdate=true;
+    c.textAlign='center';c.textBaseline='middle';c.font='700 30px "Segoe UI",system-ui,sans-serif';c.fillText('LANTERN RUSH  /  STADIUM ONE',512,65);c.fillStyle='#f0f1e8';c.font='800 110px "Segoe UI",system-ui,sans-serif';c.fillText(a+'  :  '+b,512,173);
+    c.font='700 22px "Segoe UI",system-ui,sans-serif';c.fillStyle='#aebfc0';c.fillText((this.teamNames||['LANTERN SOCCER LEAGUE']).join('   /   '),512,268,940);this.scoreTexture.needsUpdate=true;
   }
   update(t,match){
     const ball=match?.ball,phase=match?.phase;

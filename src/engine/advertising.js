@@ -3,6 +3,7 @@ import { FIELD } from '../config.js';
 import { ADVERTISEMENTS } from '../advertisements.js';
 
 export const AD_BOARD=Object.freeze({width:9.6,height:2.5,depth:.32,centerY:1.46,faceZ:.185,footDepth:1.1,footZ:-.18});
+const CANVAS_FONT='"Segoe UI",system-ui,sans-serif';
 
 // Local +Z is the printed face. All faces point toward the pitch.
 export function advertisingLayout(field=FIELD){
@@ -27,10 +28,21 @@ function artwork(ad,image){
     c.drawImage(image,20+(216-w)/2,20+(216-h)/2,w,h);
   }
   c.fillStyle='#ffffff20';c.fillRect(255,34,1,188);
-  c.textBaseline='middle';c.textAlign='left';c.fillStyle=ad.accent;c.font='800 60px Arial';c.fillText(ad.headline,291,79,690);
-  c.fillStyle='#f4f1e6';c.font='900 62px Arial';c.fillText(ad.subline,290,146,690);
-  c.fillStyle='#b6c6cb';c.font='600 19px Arial';c.fillText(ad.footer,293,211,680);
+  c.textBaseline='middle';c.textAlign='left';c.fillStyle=ad.accent;c.font=`800 60px ${CANVAS_FONT}`;c.fillText(ad.headline,291,79,690);
+  c.fillStyle='#f4f1e6';c.font=`900 62px ${CANVAS_FONT}`;c.fillText(ad.subline,290,146,690);
+  c.fillStyle='#b6c6cb';c.font=`600 19px ${CANVAS_FONT}`;c.fillText(ad.footer,293,211,680);
   return canvas;
+}
+
+function gptArtwork(slot=0){
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;const c=canvas.getContext('2d');
+  const backgrounds=[['#101c24','#172f3d'],['#0c211e','#193d31'],['#16231c','#3a3520']],palette=backgrounds[slot%backgrounds.length],gradient=c.createLinearGradient(0,0,1024,256);
+  gradient.addColorStop(0,palette[0]);gradient.addColorStop(1,palette[1]);c.fillStyle=gradient;c.fillRect(0,0,1024,256);
+  c.fillStyle='#f2eee2';c.beginPath();c.arc(124,128,78,0,Math.PI*2);c.fill();c.fillStyle=palette[0];c.beginPath();c.arc(124,128,67,0,Math.PI*2);c.fill();
+  c.strokeStyle='#bfe4cc';c.lineWidth=8;for(let i=0;i<3;i++){c.beginPath();c.arc(124,128,47-i*12,i*.46,Math.PI*1.38+i*.46);c.stroke();}
+  c.fillStyle='#f3f0e8';c.textBaseline='middle';c.textAlign='left';c.font=`900 92px ${CANVAS_FONT}`;c.fillText('GPT',258,103);
+  c.fillStyle='#a9d7b8';c.font=`800 34px ${CANVAS_FONT}`;c.fillText(slot===1?'OFFICIAL MATCHDAY PARTNER':'POWERED BY GPT',264,177);
+  c.fillStyle='#ffffff25';c.fillRect(255,28,2,200);c.fillStyle='#d4c47d';c.fillRect(0,0,1024,7);return canvas;
 }
 
 function loadImage(url){
@@ -40,7 +52,7 @@ function loadImage(url){
 export class PitchAdvertising{
   constructor(parent){
     this.root=new T.Group();this.root.name='Grass-side advertising';parent.add(this.root);
-    this.layout=advertisingLayout();this.textures=ADVERTISEMENTS.map(ad=>{
+    this.gptBranding=false;this.layout=advertisingLayout();this.baseImages=ADVERTISEMENTS.map(ad=>artwork(ad));this.textures=ADVERTISEMENTS.map(ad=>{
       const texture=new T.CanvasTexture(artwork(ad));texture.colorSpace=T.SRGBColorSpace;return texture;
     });
     const board=AD_BOARD,frameGeometry=new T.BoxGeometry(1,1,1),frameMaterial=new T.MeshStandardMaterial({color:'#182831',roughness:.79,metalness:.22});
@@ -65,10 +77,11 @@ export class PitchAdvertising{
     this.ready=Promise.all(ADVERTISEMENTS.map(async(ad,index)=>{
       try{
         const image=await loadImage(new URL('../../'+ad.asset,import.meta.url).href);
-        this.textures[index].image=artwork(ad,image);this.textures[index].needsUpdate=true;
+        this.baseImages[index]=artwork(ad,image);this.textures[index].image=this.gptBranding?gptArtwork(index):this.baseImages[index];this.textures[index].needsUpdate=true;
       }catch(error){console.warn('Advertising artwork unavailable: '+ad.label,error);}
     }));
   }
+  setBranding(enabled){this.gptBranding=Boolean(enabled);this.textures.forEach((texture,index)=>{texture.image=this.gptBranding?gptArtwork(index):this.baseImages[index];texture.needsUpdate=true;});}
   quality(level,maxAnisotropy){
     const anisotropy=Math.min(maxAnisotropy,level==='low'?2:level==='medium'?4:8);
     this.textures.forEach(texture=>{if(texture.anisotropy!==anisotropy){texture.anisotropy=anisotropy;texture.needsUpdate=true;}});

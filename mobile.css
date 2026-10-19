@@ -85,6 +85,23 @@ body[data-screen="match"] #live-canvas,
 }
 #touch-controls #touch-goalie[hidden] { display:none !important; }
 
+/* DLS 2026 preset: three clear A/B/C targets while retaining the shared sprint and keeper actions. */
+#touch-controls[data-preset="dls-2026"] .touch-actions { width:calc(var(--button)*2.7); height:calc(var(--button)*3.2); }
+#touch-controls[data-preset="dls-2026"] #touch-shoot { right:0; left:auto; top:auto; bottom:0; --accent:#e8915b; }
+#touch-controls[data-preset="dls-2026"] #touch-pass { left:0; right:auto; top:auto; bottom:0; --accent:#81b9dc; }
+#touch-controls[data-preset="dls-2026"] #touch-dribble { left:auto; right:0; top:0; --accent:#d6c75e; }
+#touch-controls[data-preset="dls-2026"] #touch-sprint { left:0; right:auto; top:calc(var(--button)*.88); bottom:auto; width:calc(var(--button)*.9); height:calc(var(--button)*.9); --accent:#80c98b; font-size:9px; }
+#touch-controls[data-preset="dls-2026"] #touch-goalie { left:calc(var(--button)*-.92); right:auto; }
+#touch-controls[data-preset="dls-2026"] .touch-action { letter-spacing:.15px; }
+
+/* Settings previews use the same compact visual language as the live controls. */
+.mobile-preset-picker{margin:4px 0 18px;padding:12px;border:1px solid #a9bbaa38;border-radius:10px;background:#ffffff05}
+.mobile-preset-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.mobile-preset-heading>span{display:grid;gap:4px}.mobile-preset-heading strong{font-size:13px}.mobile-preset-heading small{font-size:10px;color:var(--muted);line-height:1.4}
+.mobile-preset-heading .text-button{padding:6px 8px;font-size:9px;white-space:nowrap}
+.mobile-preset-options{display:grid;grid-template-columns:1fr 1fr;gap:9px}.mobile-preset-option{display:grid;grid-template-columns:70px minmax(0,1fr);align-items:center;gap:10px;min-height:82px;padding:9px;text-align:left;border:1px solid #a9bbaa40;border-radius:8px;background:#0b2928;color:var(--cream);transition:border-color .16s,background .16s,transform .16s}.mobile-preset-option:hover{transform:translateY(-1px);border-color:#e4c77999}.mobile-preset-option.active{border-color:var(--gold);background:linear-gradient(135deg,#54462570,#104039)}.mobile-preset-option>span:last-child{display:grid;gap:4px;min-width:0}.mobile-preset-option>span>b{font-size:10px;letter-spacing:.7px}.mobile-preset-option small{color:var(--muted);font-size:9px;line-height:1.35}.mobile-preview{position:relative;display:block;width:64px;height:64px;border:1px solid #dbead044;border-radius:6px;background:radial-gradient(circle at 50% 38%,#5f8b6340 0 20%,transparent 21%),#15352f;overflow:hidden;font:800 7px/1 system-ui,sans-serif}.mobile-preview i,.mobile-preview b,.mobile-preview em,.mobile-preview strong{position:absolute;display:grid;place-items:center;width:20px;height:20px;border:1px solid #f4e7bd88;border-radius:50%;font-style:normal;color:#fff;background:#183d3988}.fc-preview i{left:5px;bottom:7px;width:23px;height:23px;border-color:#9ad4b3}.fc-preview b{right:4px;top:8px;border-color:#e8915b}.fc-preview em{left:10px;top:22px;border-color:#81b9dc}.fc-preview strong{right:8px;bottom:5px;width:26px;height:26px;border-color:#80c98b}.dls-preview i{right:6px;bottom:6px;width:25px;height:25px;border-color:#e8915b}.dls-preview b{left:7px;bottom:8px;border-color:#81b9dc}.dls-preview em{right:8px;top:8px;border-color:#d6c75e}
+@media(max-width:600px){.mobile-preset-options{grid-template-columns:1fr}.mobile-preset-option{min-height:74px}.mobile-preset-heading{align-items:flex-start}.mobile-preset-heading .text-button{font-size:8px}}
+
 /* Compact upper-left match score for touch play across CPU modes and Live H2H. */
 @media (pointer:coarse), (max-width:700px) {
   #match-hud .scoreboard {

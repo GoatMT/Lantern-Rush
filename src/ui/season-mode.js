@@ -12,7 +12,7 @@ export function draftPickError(selectedCount,goalkeeperCount,fieldCount,isGoalke
   return '';
 }
 export class SeasonMenu{
-  constructor(app){this.app=app;this.stage='choose';this.teamId='';this.state=null;this.activeFixture=null;this.tradeOpen=false;this.tradeMessage='';this.setupOptions={...(app.settings.value.seasonFeatures||{})};this.draftMessage='';}
+  constructor(app){this.app=app;this.stage='choose';this.teamId='';this.state=null;this.activeFixture=null;this.tradeOpen=false;this.tradeMessage='';this.setupOptions={...(app.settings.value.seasonFeatures||{})};this.draftMessage='';const flow=typeof document!=='undefined'?$('season-flow'):null;flow?.addEventListener('click',event=>{const button=event.target.closest?.('[data-season-team]');if(!button||this.app.mode!=='season'||this.stage!=='choose')return;event.preventDefault();event.stopImmediatePropagation();this.setTeam(button.dataset.seasonTeam);flow.querySelectorAll('[data-season-team]').forEach(option=>option.classList.toggle('active',option===button));},{capture:true});}
   teams(){
     const base=this.app.data.get(this.app.settings.value.season)||[],draft=this.state?.draft;
     const picks=draft?.picks||[],draftIds=new Set(picks.map(pick=>pick.playerId));

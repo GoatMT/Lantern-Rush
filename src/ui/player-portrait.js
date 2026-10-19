@@ -32,7 +32,7 @@ export function playerPortrait(card={}){
   <path d="M44 75q6 4 12 0" fill="none" stroke="#713f3a" stroke-width="1.6" stroke-linecap="round"/>
   ${a.beard?`<path d="M36 66q2 23 14 24 12-1 14-24-5 8-14 10-9-2-14-10z" fill="${hair}" opacity=".28"/>`:''}
   ${a.glasses?`<g fill="none" stroke="#1c2d31" stroke-width="2"><rect x="33" y="49" width="16" height="11" rx="4"/><rect x="51" y="49" width="16" height="11" rx="4"/><path d="M49 53h2M33 53l-5-2M67 53l5-2"/></g>`:''}
-  ${number?`<text x="50" y="115" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="900" fill="#f3e8be">${number}</text>`:''}
+  ${number?`<text x="50" y="115" text-anchor="middle" font-family="Segoe UI,system-ui,sans-serif" font-size="12" font-weight="900" fill="#f3e8be">${number}</text>`:''}
  </svg>`;
  const url='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);cache.set(key,url);return url;
 }

@@ -120,7 +120,7 @@ class App {
     this.loadingMatch=true;this.menus.closeAll();this.controls.clear();this.saveSelection();
     if(this.match)this.match.paused=true;$('loading').hidden=false;$('load-progress').hidden=false;$('load-progress').value=30;$('load-message').textContent='Preparing the starting seven…';
     await new Promise(requestAnimationFrame);
-    this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Preparing '+(this.match.settings.venue==='grenoble-ps'?'Grenoble Public School':'Stadium One')+'…';
+    this.match=this.makeMatch();$('load-progress').value=70;$('load-message').textContent='Preparing '+(this.match.settings.venue==='grenoble-ps'?'Grenoble Public School':this.match.settings.venue==='gpt-stadium'?'GPT Stadium':'Stadium One')+'…';
     this.renderer.setMatch(this.match);this.hud.reset();this.renderer.render(0,this.match);await new Promise(requestAnimationFrame);
     this.menus.enterMatch();$('loading').hidden=true;this.loadingMatch=false;
   }

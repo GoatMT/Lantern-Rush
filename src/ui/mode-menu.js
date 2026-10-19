@@ -19,14 +19,17 @@ export class ModeMenu{
   const pair=rivalryTeams(r,a.data.get(a.settings.value.season));if(!pair)return;
   a.selected={user:pair[0],cpu:pair[1]};a.saveSelection();if(render)a.menus.renderTeams();
  }
- render(){
-  const a=this.app,mode=a.mode==='rivalry',r=this.selected(),list=this.options();
+  render(){
+  const a=this.app,mode=a.mode==='rivalry',r=mode?this.selected():null,list=mode?this.options():[];
   $('selection').dataset.mode=mode?'rivalry':'quick';$('selection-mode').textContent=mode?'RIVALRY MATCHES':'QUICK MATCH';
   $('selection-title').textContent=mode?'PICK YOUR RIVALRY.':'CHOOSE YOUR SIDE.';
   $('selection-description').textContent=mode?'Playoff history. A new result to write.':'Real LSL squads. One pitch. Make it count.';
   $('rivalry-controls').hidden=!mode;$('rivalry-banner').hidden=!mode||!r;
-  $('rivalry-picker').innerHTML=list.map(x=>'<option value="'+e(x.id)+'">'+e(x.title+' · '+rivalryTeams(x,a.data.get(a.settings.value.season)).map(t=>t.shortName||t.name).join(' vs '))+'</option>').join('');
-  if(r)$('rivalry-picker').value=r.id;
+  if(mode){
+   const picker=$('rivalry-picker'),optionsMarkup=list.map(x=>'<option value="'+e(x.id)+'">'+e(x.title+' · '+rivalryTeams(x,a.data.get(a.settings.value.season)).map(t=>t.shortName||t.name).join(' vs '))+'</option>').join(''),optionsKey=String(a.settings.value.season)+'|'+list.map(x=>[x.id,x.title,x.season,x.round].join(':')).join('|');
+   if(picker.dataset.optionsKey!==optionsKey){picker.innerHTML=optionsMarkup;picker.dataset.optionsKey=optionsKey;}
+   if(r&&picker.value!==r.id)picker.value=r.id;
+  }
   $('rivalry-swap').disabled=!r;$('start-match').disabled=mode&&!r;
   $('rivalry-empty').hidden=!mode||list.length>0;
   for(const side of ['user','cpu'])for(const step of ['prev','next'])$(side+'-'+step).hidden=mode;

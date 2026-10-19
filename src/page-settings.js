@@ -18,6 +18,8 @@ export async function openSettings(){
       if(b.dataset.tab){dialog.querySelectorAll('[data-settings-panel]').forEach(p=>p.hidden=p.dataset.settingsPanel!==b.dataset.tab);dialog.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));}
       for(const kind of ['graphics','difficulty','duration','camera'])if(b.dataset[kind]){settings.set(kind,kind==='duration'?Number(b.dataset[kind]):b.dataset[kind]);render();}
       if(b.dataset.binding){rebinding=b.dataset.binding;b.textContent='PRESS KEY…';}
+      if(b.dataset.mobilePreset){settings.set('mobileControlPreset',b.dataset.mobilePreset);render();}
+      if(b.id==='reset-mobile-preset'){settings.set('mobileControlPreset','fc-mobile');render();}
       if(b.id==='reset-bindings'){settings.set('keys',{...DEFAULT_KEYS});render();}
     });
     const fields={'setting-lighting':'lighting','setting-venue':'venue','setting-weather':'weather','setting-random-conditions':'randomConditions','setting-crowd-reactions':'crowdReactions','setting-minor-injuries':'minorInjuries','setting-audio-muted':'audioMuted','setting-mobile-layout':'mobileLayout','setting-mobile-control-edit':'mobileControlEdit','setting-hold-switch':'holdAutoSwitch'};
@@ -34,6 +36,8 @@ function render(){
   for(const [id,key]of Object.entries({'setting-lighting':'lighting','setting-venue':'venue','setting-weather':'weather','setting-random-conditions':'randomConditions','setting-crowd-reactions':'crowdReactions','setting-minor-injuries':'minorInjuries','setting-audio-muted':'audioMuted','setting-mobile-control-edit':'mobileControlEdit','setting-hold-switch':'holdAutoSwitch'})){const el=dialog.querySelector('#'+id);if(el.type==='checkbox')el.checked=settings.value[key];else el.value=settings.value[key];}
   for(const [id,key]of [['setting-audio-master','audioMaster'],['setting-audio-sfx','audioSfx'],['setting-audio-crowd','audioCrowd']]){const value=Math.round(settings.value[key]*100),el=dialog.querySelector('#'+id),output=dialog.querySelector('#'+id+'-value');el.value=value;output.value=value+'%';output.textContent=output.value;}
   dialog.querySelector('#setting-mobile-layout').checked=settings.value.mobileLayout==='right';
+  dialog.querySelectorAll('[data-mobile-preset]').forEach(button=>button.classList.toggle('active',button.dataset.mobilePreset===settings.value.mobileControlPreset));
+  dialog.querySelector('#mobile-preset-description').textContent=settings.value.mobileControlPreset==='dls-2026'?'DLS 2026 · A shoot/tackle, B pressure/pass, C switch/through':'FC Mobile 26 · four compact action buttons with skill gestures';
   const mobileScale=Math.round(settings.value.mobileControlScale*100),mobileScaleInput=dialog.querySelector('#setting-mobile-control-scale'),mobileScaleOutput=dialog.querySelector('#setting-mobile-control-scale-value');mobileScaleInput.value=mobileScale;mobileScaleOutput.value=mobileScale+'%';mobileScaleOutput.textContent=mobileScaleOutput.value;
   dialog.querySelector('#mobile-layout-description').textContent=settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
   dialog.querySelector('#bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([key,label])=>`<label class="binding-row"><span>${label}</span><button class="key-binding" type="button" data-binding="${key}" aria-label="Rebind ${label}">${keyLabel(settings.value.keys[key])}</button></label>`).join('');

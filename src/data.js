@@ -62,8 +62,8 @@ export class LeagueData{
       const roster=(t.roster||[]).map((p,i)=>normalizePlayer(typeof p==='string'?{id:(t.id+'-'+i),name:p,position:'Player'}:{...p,id:p.id||t.id+'-'+i,name:p.name||'Player',position:p.position||p.role||'Player'}));
       while(roster.length<7)roster.push({id:t.id+'-placeholder-'+roster.length,name:'Player'+(roster.length+1),position:'Player'});
       const lineup=createLineup(roster);
-      const kit=t.logoBg||palette[(di+index)%palette.length];
-      return {...t,season:String(year),division:division.name,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,roster,lineup,bench:roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit,uniform:teamKit('',t.id,kit)};
+      const official=SEASON_KITS[String(year)]?.[t.id],kit=official?.primary||t.logoBg||palette[(di+index)%palette.length];
+      return {...t,season:String(year),division:division.name,logo:t.logo||'assets/lsl-logo.png',logoFallback:!t.logo,roster,lineup,bench:roster.filter(p=>!lineup.some(s=>s.id===p.id)),kit,uniform:teamKit(year,t.id,kit)};
     }));
   }
 }

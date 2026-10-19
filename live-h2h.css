@@ -52,3 +52,13 @@ body{background:radial-gradient(ellipse at 10% 0,#235947,#0a252a 65%);color:var(
 
 .live-form label.live-check{display:flex;align-items:center;gap:12px;color:var(--cream);font-size:13px;font-weight:700}.live-check input{width:20px;height:20px;accent-color:var(--gold)}.live-room-settings{margin:24px 0;background:linear-gradient(140deg,#19483d,#0c3032)}.live-room-settings .live-fields{align-items:end}.live-room-facts{display:grid;gap:10px;align-content:center;padding:14px 16px;min-height:76px;border:1px solid var(--line);border-radius:12px;background:#09262980}.live-room-facts strong{color:var(--gold);font-size:15px}.live-room-facts small{color:var(--muted);line-height:1.45}.live-score #live-spectator-count{grid-column:1/-1;color:#a9d7c4;font-size:10px;letter-spacing:.04em}.shootout-result{padding:12px 16px;border:1px solid #e9d28d55;border-radius:10px;color:var(--gold)!important;background:#e9d28d0c;font-weight:800;letter-spacing:.06em}
 @media(max-width:700px){.live-room-settings .live-fields{grid-template-columns:minmax(0,1fr)}.live-check{align-items:flex-start}.live-check input{flex:0 0 20px;margin-top:0}}
+
+/* Live H2H uses the same type hierarchy as the rest of Lantern Rush. Keep
+   lobby copy, dialogs, and the in-match HUD readable at small widths. */
+#live-app,#live-app :is(button,input,select,textarea),.live-dialog,.live-dialog :is(button,input,select,textarea){font-family:var(--font)}
+#live-app :is(h1,h2,h3),.live-dialog h2,.live-overlay h2{font-family:var(--font-display);font-synthesis:none}
+#live-app h1{font-weight:900}
+.live-tabs button,.live-actions .hub-button,.live-room .hub-button{font-weight:800;letter-spacing:.045em}
+.live-score,.live-nameplate,.live-match-notice{font-family:var(--font);font-synthesis:none;text-rendering:optimizeLegibility}
+body{overflow-x:hidden;touch-action:manipulation}
+@media(max-width:390px){.live-hero h1{font-size:clamp(30px,12vw,48px)}.live-tabs{gap:8px;margin-bottom:20px}.live-tabs button{flex-basis:calc(50% - 8px);min-height:48px;padding:10px 9px;font-size:10px}.live-panel{padding:18px 14px}.live-actions{gap:9px}.live-actions .hub-button{flex-basis:100%;min-height:44px}.live-score{left:8px;right:62px;padding:8px 7px}.live-score strong{font-size:18px}}

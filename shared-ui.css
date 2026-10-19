@@ -113,12 +113,12 @@
 /* Shared page navigation */
 /* One navigation component for all non-gameplay pages. */
 
-site-nav{position:fixed;inset:0 0 auto;z-index:40;display:block;height:var(--site-nav-height);background:linear-gradient(180deg,#0a2428f5,#0a2428e8);border-bottom:1px solid #cde6d518;backdrop-filter:blur(14px);font-family:Arial,Helvetica,sans-serif;color:#f3f4e9}
+site-nav{position:fixed;inset:0 0 auto;z-index:40;display:block;height:var(--site-nav-height);background:linear-gradient(180deg,#0a2428f5,#0a2428e8);border-bottom:1px solid #cde6d518;backdrop-filter:blur(14px);font-family:var(--font);color:#f3f4e9}
 .site-nav-inner{height:100%;max-width:1600px;margin:auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-sizing:border-box}
 .site-nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;font-size:10px;font-weight:800;line-height:1.4;letter-spacing:.12em}
 .site-nav-brand img{width:32px;height:40px;object-fit:contain}
 site-nav nav{display:flex;align-items:center;gap:8px}
-site-nav .site-nav-button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;min-width:88px;padding:0 13px;margin:0;border:1px solid #b8d8cc26;border-radius:9px;background:#173b3d;color:#e8efea;text-decoration:none;font:700 10px/1 Arial,Helvetica,sans-serif;letter-spacing:.05em;cursor:pointer;box-shadow:none;transition:background .18s,border-color .18s,transform .18s}
+site-nav .site-nav-button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;min-width:88px;padding:0 13px;margin:0;border:1px solid #b8d8cc26;border-radius:9px;background:#173b3d;color:#e8efea;text-decoration:none;font:700 10px/1 var(--font);letter-spacing:.05em;cursor:pointer;box-shadow:none;transition:background .18s,border-color .18s,transform .18s}
 site-nav .site-nav-button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 site-nav .site-nav-button:hover{background:#28534c;border-color:#e5d19370;transform:translateY(-1px)}
 site-nav .site-nav-button[aria-current],site-nav .site-nav-button[aria-pressed=true]{background:#31504a;border-color:#e5d1938a;color:#f1dda7}
@@ -129,10 +129,10 @@ body[data-game-shell] .selection,body[data-game-shell] .stats-screen{padding-top
 body[data-game-shell] #dream-flow{top:var(--site-nav-height)}
 .home-mode-launcher{position:absolute;right:24px;top:calc(var(--site-nav-height) + 14px);z-index:9}
 #home .home-modes{top:calc(var(--site-nav-height) + 72px);max-height:calc(100dvh - var(--site-nav-height) - 90px);overflow:auto}
-.standalone-settings{color:#f0f3e9;border:1px solid #6e978455;font:14px/1.5 Arial,sans-serif;box-sizing:border-box;--gold:#e8d293;--muted:#b5c9c1;--line:#71958544;--cream:#f0f3e9}
+.standalone-settings{color:#f0f3e9;border:1px solid #6e978455;font:14px/1.5 var(--font);box-sizing:border-box;--gold:#e8d293;--muted:#b5c9c1;--line:#71958544;--cream:#f0f3e9}
 .standalone-settings::backdrop{background:#00191cd4;backdrop-filter:blur(7px)}
 .standalone-settings [hidden]{display:none!important}
-.standalone-settings button,.standalone-settings select,.standalone-settings .primary{font:700 12px/1.4 Arial,sans-serif;color:inherit;background:#183e3b;border:1px solid #71958566;border-radius:8px;padding:10px 14px;cursor:pointer;text-decoration:none}
+.standalone-settings button,.standalone-settings select,.standalone-settings .primary{font:700 12px/1.4 var(--font);color:inherit;background:#183e3b;border:1px solid #71958566;border-radius:8px;padding:10px 14px;cursor:pointer;text-decoration:none}
 .standalone-settings .primary{background:#e8d293;color:#142c2a;display:inline-flex}
 .standalone-settings .dialog-head,.standalone-settings .dialog-footer,.standalone-settings .settings-tabs,.standalone-settings .option-row{display:flex;align-items:center;gap:12px}
 .standalone-settings .dialog-head,.standalone-settings .dialog-footer{justify-content:space-between}
@@ -144,6 +144,18 @@ body[data-game-shell] #dream-flow{top:var(--site-nav-height)}
 @media(max-width:640px){:root{--site-nav-height:66px}.site-nav-inner{padding:10px 12px;gap:8px}.site-nav-brand{gap:6px;font-size:8px}.site-nav-brand img{width:25px;height:33px}site-nav nav{gap:6px}site-nav .site-nav-button{min-width:38px;width:38px;height:38px;padding:0}site-nav .site-nav-button span{display:none}.home-mode-launcher{right:12px}#home .home-modes{top:calc(var(--site-nav-height) + 66px)}}
 @media(prefers-reduced-motion:reduce){site-nav .site-nav-button{transition:none}}
 
+/* Typography normalization. Page-specific styles may tune size and weight, but
+   the family stays consistent across every Lantern Rush surface. */
+html,body,button,input,select,textarea,summary{font-family:var(--font)}
+h1,h2,h3,h4,h5,h6{font-family:var(--font-display)}
+body{font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+.home h1,.loading h1,.intro-establish h1,.rivalry-intro h1,.intro-kit-shirt>span{font-family:var(--font-display)!important}
+.title-star{font-family:var(--font-display)!important}
+.keyboard-hint kbd{font-family:var(--font-mono)!important}
+#touch-controls .touch-action{font-family:var(--font)!important}
+.admin-shell,.admin-shell :is(button,input,select,textarea){font-family:var(--font)!important}
+.admin-shell :is(h1,h2,h3,h4,h5,h6){font-family:var(--font-display)!important}
+
 .standalone-settings .bindings{display:grid}.standalone-settings .settings-tabs{align-items:stretch}
 
-.live-invite-toast{font:13px/1.5 Arial,sans-serif}.live-invite-toast a,.live-invite-toast button{display:inline-block;margin:12px 12px 0 0;color:#ead499}.live-invite-toast button{background:transparent;border:1px solid #ead49955;padding:8px;border-radius:7px;cursor:pointer}body[data-screen=match] .live-invite-toast{}
+.live-invite-toast{font:13px/1.5 var(--font)}.live-invite-toast a,.live-invite-toast button{display:inline-block;margin:12px 12px 0 0;color:#ead499}.live-invite-toast button{background:transparent;border:1px solid #ead49955;padding:8px;border-radius:7px;cursor:pointer}body[data-screen=match] .live-invite-toast{}

@@ -19,7 +19,7 @@ export class MatchIntro{
     if(match.phase!=='intro')return;
     if(this.match!==match){this.match=match;this.stage='';}
     const stage=introStage(match.phaseTime),teams=match.teams;
-    const venue=match.settings?.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE';
+    const venue=match.settings?.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':match.settings?.venue==='gpt-stadium'?'GPT STADIUM · SPONSORED BY GPT':'STADIUM ONE';
     document.getElementById('intro-progress').style.width=(match.phaseTime/INTRO.duration*100)+'%';
     document.getElementById('intro-overlay').dataset.stage=stage;
     document.getElementById('intro-overlay').dataset.rivalry=String(!!match.rivalry);document.getElementById('intro-overlay').dataset.tournament=String(!!match.tournament);

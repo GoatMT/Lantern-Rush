@@ -30,6 +30,7 @@ export class HUD{
     const defending=m.possessionTeam()===1;
     const skillLabel=defending?'SLIDE TACKLE':'DRIBBLE';
     $('touch-dribble').textContent=skillLabel;$('touch-dribble').setAttribute('aria-label',skillLabel);$('touch-dribble').dataset.mode=defending?'slide-tackle':'dribble';
+    this.app.mobile?.refreshLabels({defending,pass:passLabel,shoot:savingPenalty?'DIVE':m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT',dribble:skillLabel,savingPenalty,keeperKick});
     $('touch-goalie').disabled=m.phase!=='playing'&&!savingPenalty;$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
     $('touch-goalie').setAttribute('aria-label',p.role==='GK'?'Switch back to outfield player':'Switch to goalkeeper');
     $('set-piece-hint').hidden=m.phase!=='restart';

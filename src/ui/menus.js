@@ -12,7 +12,7 @@ import { PRESENTATION } from '../presentation.js';
 import { FirstMatchTour } from './first-match-tour.js';
 export const $=id=>document.getElementById(id);
 export class Menus {
-  constructor(app){this.app=app;this.returnToPause=false;this.firstMatchTour=new FirstMatchTour(app);this.bind();}
+  constructor(app){this.app=app;this.returnToPause=false;this.teamRenderCache=new Map();this.firstMatchTour=new FirstMatchTour(app);this.bind();}
   bind(){
     document.querySelectorAll('[data-match-durations]').forEach(el=>el.innerHTML=durationButtons());
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
@@ -41,6 +41,8 @@ export class Menus {
     $('setting-crowd-reactions').addEventListener('change',ev=>{a.settings.set('crowdReactions',ev.target.checked);a.renderer.stadium.setCrowdReactions(ev.target.checked);this.renderSettings();});
     $('setting-minor-injuries').addEventListener('change',ev=>{a.settings.set('minorInjuries',ev.target.checked);if(a.match)a.match.settings.minorInjuries=ev.target.checked;this.renderSettings();});
     $('setting-mobile-layout').addEventListener('change',ev=>{a.settings.set('mobileLayout',ev.target.checked?'right':'left');a.mobile.applyLayout();this.renderSettings();});
+    document.querySelectorAll('[data-mobile-preset]').forEach(button=>button.addEventListener('click',()=>{a.settings.set('mobileControlPreset',button.dataset.mobilePreset);a.mobile.applyLayout();this.renderSettings();}));
+    on('reset-mobile-preset',()=>{a.settings.set('mobileControlPreset','fc-mobile');a.mobile.applyLayout();this.renderSettings();});
     $('setting-mobile-control-scale').addEventListener('input',ev=>{const value=Number(ev.target.value)/100;a.settings.set('mobileControlScale',value);$('setting-mobile-control-scale-value').value=Math.round(value*100)+'%';$('setting-mobile-control-scale-value').textContent=$('setting-mobile-control-scale-value').value;a.mobile.applyLayout();});
     $('setting-mobile-control-edit').addEventListener('change',ev=>{a.settings.set('mobileControlEdit',ev.target.checked);a.mobile.applyLayout();});
     $('setting-mobile-goalie-visible').addEventListener('change',ev=>{a.settings.set('mobileGoalieVisible',ev.target.checked);a.mobile.applyLayout();});
@@ -105,15 +107,28 @@ export class Menus {
   renderTeams(){
     for(const side of ['user','cpu']){
       const rawTeam=this.app.selected[side],team=side==='user'?(this.app.formation?.teamForMatch(rawTeam)||rawTeam):rawTeam;if(!team)continue;
+      const card=document.querySelector('.'+(side==='user'?'you':'cpu')+'-card'),lineup=$(side+'-lineup');
+      const rosterKey=(team.lineup||[]).map(player=>[player.id,player.overall,player.role,player.jersey].join(':')).join('|');
+      const previous=this.teamRenderCache.get(side)||{};
+      const teamChanged=previous.id!==team.id;
       $(side+'-name').textContent=team.name;$(side+'-division').textContent=team.division;
       $(side+'-team-ovr').textContent='TEAM OVR '+(teamOverall(team)??'—');
-      $(side+'-logo').src=team.logo;$(side+'-logo').alt=team.logoFallback?'Lantern Soccer League':team.name+' badge';
+      const logo=$(side+'-logo'),logoSrc=team.logo||'';
+      if(logo.getAttribute('src')!==logoSrc)logo.src=logoSrc;
+      logo.alt=team.logoFallback?'Lantern Soccer League':team.name+' badge';
       const color=side==='cpu'?this.app.cpuKit():team.kit;
-      document.querySelector('.'+(side==='user'?'you':'cpu')+'-card').style.setProperty('--team-color',color);
+      card?.style.setProperty('--team-color',color);
       $(side+'-kit').style.background=kitSwatch(color===team.kit?team.uniform:teamKit('',team.id,color));
-      $(side+'-lineup').innerHTML=team.lineup.map(p=>'<li><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(playerLabel(p))+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span></button></li>').join('');
+      if(previous.rosterKey!==rosterKey){
+        lineup.innerHTML=team.lineup.map((p,index)=>'<li style="--lineup-index:'+index+'"><button class="lineup-player" data-profile="'+e(p.id)+'"><span class="position">'+p.role+'</span><span class="name">'+e(playerLabel(p))+'<small>'+e(p.playstyle?.label||'Profile unavailable')+'</small></span><span class="ovr" title="LSL Website career overall">'+(p.overall??'—')+'<small>OVR</small></span></button></li>').join('');
+      }
+      if(teamChanged&&card){
+        card.classList.remove('selection-refresh');
+        (globalThis.requestAnimationFrame||((callback)=>setTimeout(callback,0)))(()=>card.classList.add('selection-refresh'));
+      }
       $(side+'-formation-label').textContent=this.app.formation?.labelFor(team)||'2 — 2 — 2';
       $(side+'-bench').textContent='VIEW SQUAD · '+team.bench.length+' SUBSTITUTES ↗';
+      this.teamRenderCache.set(side,{id:team.id,rosterKey});
     }
     this.app.modes.render();this.app.tournament.render();this.app.seasonMode.render();
     const dreamMode=this.app.mode==='dream';for(const selector of ['.selection>.topbar','.selection-heading','.rivalry-selection','.versus-layout','.selection-footer']){const node=document.querySelector(selector);if(node)node.hidden=dreamMode;}
@@ -141,9 +156,11 @@ export class Menus {
     for(const [id,key] of [['setting-audio-master','audioMaster'],['setting-audio-sfx','audioSfx'],['setting-audio-crowd','audioCrowd']]){const value=Math.round(this.app.settings.value[key]*100),slider=$(id),output=$(id+'-value');slider.value=value;output.value=value+'%';output.textContent=value+'%';}
     $('setting-audio-muted').checked=this.app.settings.value.audioMuted===true;
     $('setting-mobile-layout').checked=this.app.settings.value.mobileLayout==='right';
+    document.querySelectorAll('[data-mobile-preset]').forEach(button=>button.classList.toggle('active',button.dataset.mobilePreset===this.app.settings.value.mobileControlPreset));
+    $('mobile-preset-description').textContent=this.app.settings.value.mobileControlPreset==='dls-2026'?'DLS 2026 · A shoot/tackle, B pressure/pass, C switch/through':'FC Mobile 26 · four compact action buttons with skill gestures';
     const scale=Math.round(this.app.settings.value.mobileControlScale*100);$('setting-mobile-control-scale').value=scale;$('setting-mobile-control-scale-value').value=scale+'%';$('setting-mobile-control-scale-value').textContent=scale+'%';$('setting-mobile-control-edit').checked=this.app.settings.value.mobileControlEdit===true;$('setting-mobile-goalie-visible').checked=this.app.settings.value.mobileGoalieVisible!==false;
     $('mobile-layout-description').textContent=this.app.settings.value.mobileLayout==='right'?'Joystick Right / Buttons Left':'Joystick Left / Buttons Right · Default';
-    $('home-venue').textContent=this.app.settings.value.randomConditions!==false?'RANDOM MATCHDAY · WEATHER · STADIUM · TIME':(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':'STADIUM ONE')+' · '+this.app.settings.value.lighting.toUpperCase()+' MATCH';
+    $('home-venue').textContent=this.app.settings.value.randomConditions!==false?'RANDOM MATCHDAY · WEATHER · STADIUM · TIME':(this.app.settings.value.venue==='grenoble-ps'?'GRENOBLE PUBLIC SCHOOL':this.app.settings.value.venue==='gpt-stadium'?'GPT STADIUM · SPONSORED BY GPT':'STADIUM ONE')+' · '+this.app.settings.value.lighting.toUpperCase()+' MATCH';
     $('graphics-note').textContent='Current quality: '+this.app.settings.value.graphics.toUpperCase()+' · MATCH CONDITIONS: '+(this.app.settings.value.randomConditions!==false?'RANDOM EACH GAME':'MANUAL')+' · NO ADVANTAGE / NO ADDED TIME';this.renderBindings();this.renderAccount();
   }
   renderAccount(){

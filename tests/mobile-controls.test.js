@@ -34,6 +34,16 @@ test('goalkeeper button can be hidden and restored with a persisted control pref
   const restored=new Settings(storage);assert.equal(restored.value.mobileGoalieVisible,false);
   settings.set('mobileGoalieVisible',true);mobile.applyLayout();assert.equal(buttons.goalie.hidden,false);
 });
+test('DLS 2026 preset remaps the shared buttons without rebuilding the touch layer',()=>{
+  const {settings,mobile,root,buttons,storage}=setup();
+  settings.set('mobileControlPreset','dls-2026');mobile.applyLayout();
+  assert.equal(root.dataset.preset,'dls-2026');
+  assert.equal(buttons.shoot.dataset.touch,'shoot');assert.equal(buttons.pass.dataset.touch,'pass');assert.equal(buttons.skill.dataset.touch,'through');
+  mobile.refreshLabels({defending:true,pass:'SWITCH',shoot:'SHOOT',dribble:'SLIDE TACKLE'});
+  assert.equal(buttons.shoot.dataset.touch,'skill');assert.equal(buttons.pass.dataset.touch,'pressure');assert.equal(buttons.skill.dataset.touch,'pass');
+  const restored=new Settings(storage);assert.equal(restored.value.mobileControlPreset,'dls-2026');
+  settings.set('mobileControlPreset','fc-mobile');mobile.applyLayout();assert.equal(root.dataset.preset,'fc-mobile');assert.equal(buttons.skill.dataset.touch,'skill');
+});
 test('joystick, sprint and charge work simultaneously with proportional 360 degree movement',()=>{
   const {controls,pad,buttons}=setup();pad.pointer('pointerdown',1,70,42);const partial=controls.movement();assert(partial.intensity>0&&partial.intensity<1&&partial.x>0&&partial.z<0);
   buttons.sprint.pointer('pointerdown',2);buttons.shoot.pointer('pointerdown',3);assert(controls.held.has('shoot')&&controls.held.has('sprint'));

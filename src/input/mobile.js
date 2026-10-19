@@ -3,7 +3,8 @@ export class MobileControls {
     this.controls=controls;this.touches=new Map();this.pointer=null;
     this.root=document.querySelector('#touch-controls');
     this.pad=document.querySelector('#joystick');this.thumb=document.querySelector('#joystick-thumb');
-    this.goalieButton=[...this.root.querySelectorAll('[data-touch]')].find(button=>button.dataset.touch==='goalie')||null;
+    this.buttons=Object.fromEntries([...this.root.querySelectorAll('[data-touch]')].map(button=>[button.dataset.touch,button]));
+    this.goalieButton=this.buttons.goalie||null;
     addEventListener('keydown',()=>this.renderKeyboardThumb());
     addEventListener('keyup',()=>this.renderKeyboardThumb());
     const safeCapture=(element,id)=>{try{element.setPointerCapture?.(id);return element.hasPointerCapture?.(id)===true;}catch{return false;}};
@@ -71,7 +72,29 @@ export class MobileControls {
     });
     this.applyLayout();
   }
-  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style?.setProperty?.('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));if(this.goalieButton){this.goalieButton.hidden=this.controls.settings.value.mobileGoalieVisible===false;this.goalieButton.setAttribute?.('aria-hidden',String(this.goalieButton.hidden));}this.applyPosition('joystick');this.applyPosition('actions');}
+  applyLayout(){this.controls.clear();this.root.dataset.layout=this.controls.settings.value.mobileLayout||'left';this.root.dataset.preset=this.controls.settings.value.mobileControlPreset||'fc-mobile';this.root.dataset.editing=String(this.controls.settings.value.mobileControlEdit===true);this.root.style?.setProperty?.('--touch-scale',String(this.controls.settings.value.mobileControlScale||1));if(this.goalieButton){this.goalieButton.hidden=this.controls.settings.value.mobileGoalieVisible===false;this.goalieButton.setAttribute?.('aria-hidden',String(this.goalieButton.hidden));}this.applyPosition('joystick');this.applyPosition('actions');this.refreshLabels({defending:false,pass:'PASS',shoot:'SHOOT',dribble:'DRIBBLE'});}
+  /** Apply the active preset to the existing action buttons. HUD calls this every frame with context labels. */
+  refreshLabels({defending=false,pass='PASS',shoot='SHOOT',dribble='DRIBBLE',savingPenalty=false,keeperKick=false}={}){
+    if(!this.root)return;
+    const dls=this.controls.settings.value.mobileControlPreset==='dls-2026';
+    const shootButton=this.buttons.shoot,passButton=this.buttons.pass,dribbleButton=this.buttons.skill,sprintButton=this.buttons.sprint;
+    if(!shootButton||!passButton||!dribbleButton||!sprintButton)return;
+    const labelKey=[dls,defending,pass,shoot,dribble,savingPenalty,keeperKick].join('|');if(this.labelKey===labelKey)return;this.labelKey=labelKey;
+    const set=(button,action,label,mode)=>{button.dataset.touch=action;button.dataset.mode=mode||action;button.textContent=label;button.setAttribute?.('aria-label',label.replace(/\n/g,' '));};
+    if(dls){
+      set(shootButton,savingPenalty?'shoot':defending?'skill':'shoot',savingPenalty?'A\nDIVE':defending?'A\nTACKLE':keeperKick?'A\nKICK':'A\nSHOOT',defending?'slide-tackle':'shoot');
+      set(passButton,defending?'pressure':'pass',defending?'B\nPRESSURE':'B\nPASS',defending?'pressure':'pass');
+      set(dribbleButton,defending?'pass':'through',defending?'C\nSWITCH':'C\nTHROUGH',defending?'switch':'through');
+      set(sprintButton,'sprint','RUN','sprint');
+      this.root.dataset.dls='true';
+    }else{
+      set(shootButton,'shoot',savingPenalty?'DIVE':keeperKick?'LONG KICK':'SHOOT','shoot');
+      set(passButton,'pass',pass,pass.toLowerCase());
+      set(dribbleButton,'skill',dribble,defending?'slide-tackle':'dribble');
+      set(sprintButton,'sprint','SPRINT\n& SKILL','sprint');
+      this.root.dataset.dls='false';
+    }
+  }
   applyPosition(key){
     const position=this.controls.settings.value.mobileControlPositions?.[key]||{x:4,y:4},prefix=key==='joystick'?'--touch-pad':'--touch-action';
     this.root.style?.setProperty?.(prefix+'-x',Math.max(0,Math.min(42,position.x))+'%');this.root.style?.setProperty?.(prefix+'-y',Math.max(0,Math.min(38,position.y))+'%');
