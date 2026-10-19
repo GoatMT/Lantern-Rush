@@ -5,7 +5,7 @@ import {GameRenderer} from '../engine/renderer.js';
 import {GameLoop} from '../engine/loop.js';
 import {Controls} from '../input/controls.js';
 import {MobileControls} from '../input/mobile.js';
-import {LiveSimulation,captureInput,idlePacket,cleanInput} from './simulation.js';
+import {LiveSimulation,captureInput,idlePacket,cleanInput,mergeInputPackets} from './simulation.js';
 import {snapshot,SnapshotView} from './snapshots.js';
 import {playerLabel} from '../player-label.js';
 import {clockText,escapeHTML as e} from '../config.js';
@@ -16,7 +16,7 @@ import {ensureTackleIndicator,renderTackleIndicator} from '../ui/tackle-indicato
 const $=id=>document.getElementById(id);
 export async function traceDigest(trace){const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(trace)));return [...new Uint8Array(hash)].map(v=>v.toString(16).padStart(2,'0')).join('');}
 export class LiveArena{
- constructor({room,teams,side,send,sendSpectators=()=>{},spectator=false,onFinish,onCommand,onError}){Object.assign(this,{room,teams,side,send,sendSpectators,spectator,onFinish,onCommand,onError});this.host=!spectator&&side===0;this.trace=[];this.outgoing=[];this.ready=false;this.done=false;this.settings=new Settings();this.audio=new GameAudio(this.settings);this.pendingCommands=[];this.inputAge=0;this.sentInput=0;this.sequence=0;this.lastRemoteSequence=-1;this.remoteAt=performance.now();this.status='Connecting both players…';}
+ constructor({room,teams,side,send,sendSpectators=()=>{},spectator=false,onFinish,onCommand,onError}){Object.assign(this,{room,teams,side,send,sendSpectators,spectator,onFinish,onCommand,onError});this.host=!spectator&&side===0;this.trace=[];this.outgoing=[];this.ready=false;this.done=false;this.settings=new Settings();this.audio=new GameAudio(this.settings);this.pendingCommands=[];this.inputAge=0;this.sentInput=0;this.sequence=0;this.lastRemoteSequence=-1;this.remoteInputQueue=[];this.remoteAt=performance.now();this.status='Connecting both players…';}
  async start(){
   this.scoreboardEvents=new ScoreboardEvents(document.querySelector('.live-score'));this.tackleIndicator=ensureTackleIndicator(document.querySelector('#live-arena'));
   this.controls=new Controls(this.settings);this.mobile=new MobileControls(this.controls);
@@ -52,9 +52,9 @@ export class LiveArena{
  showNotice(data){if(scoreboardNotice(data,this.match)){this.scoreboardEvents?.show(data,this.match);this.notice=null;}else{this.scoreboardEvents?.reset();this.notice=data;this.noticeUntil=performance.now()+Math.min(6,data.seconds||3)*1000;}}
  event(type,data){this.audio?.matchEvent(type,data,this.match);if(this.host&&this.ready&&['phase','goal','injury','card','substitution','sound'].includes(type)&&!(type==='phase'&&data==='intro'))this.send({type:'audio-event',eventType:type,data:this.audioPayload(type,data)});if(type==='notice'){const title=String(data?.title||'').toUpperCase();if(this.host&&this.ready&&['SAVE','FOUL','MISS','GOAL KICK','CORNER','FREE KICK','PENALTY'].includes(title))this.send({type:'audio-event',eventType:'notice',data});}if(type==='substitution')this.renderer?.refreshPlayer(data.player,this.match);if(type==='notice'){data={...data,compact:scoreboardNotice(data,this.match)};this.showNotice(data);this.send({type:'notice',data});this.sendSpectators({type:'notice',data});}}
  audioPayload(type,data){if(type==='phase')return data;if(type==='sound'){const actor=data?.player&&typeof data.player==='object'?data.player:null;return{name:data?.name,position:actor?{x:actor.x,z:actor.z}:data?.position,speed:data?.speed,power:data?.power,kind:data?.kind};}const actor=data?.player&&typeof data.player==='object'?data.player:data?.offender&&typeof data.offender==='object'?data.offender:null;return actor?{position:{x:actor.x,z:actor.z}}:{position:{x:this.match?.ball?.x||0,z:this.match?.ball?.z||0}};}
- connection(ready,text){this.ready=ready;if(ready)this.wasConnected=true;this.status=text||'';this.controls?.clear();if(ready&&this.host){this.lastRemoteSequence=-1;this.remotePacket=idlePacket();this.remoteAt=performance.now();this.outgoing=[];this.send({type:'trace-reset'});for(let i=0;i<this.trace.length;i+=150)this.send({type:'trace',events:this.trace.slice(i,i+150)});this.send({type:'snapshot',value:snapshot(this.match,this.sim.tick)},true);if(this.done){this.send({type:'final-snapshot',value:snapshot(this.match,this.sim.tick)});this.send({type:'finish',tick:this.sim.tick,report:this.finalReport});}}}
+ connection(ready,text){this.ready=ready;if(ready)this.wasConnected=true;this.status=text||'';this.controls?.clear();if(ready&&this.host){this.lastRemoteSequence=-1;this.remoteInputQueue=[];this.remoteAt=performance.now();this.outgoing=[];this.send({type:'trace-reset'});for(let i=0;i<this.trace.length;i+=150)this.send({type:'trace',events:this.trace.slice(i,i+150)});this.send({type:'snapshot',value:snapshot(this.match,this.sim.tick)},true);if(this.done){this.send({type:'final-snapshot',value:snapshot(this.match,this.sim.tick)});this.send({type:'finish',tick:this.sim.tick,report:this.finalReport});}}}
  receive(message){
-  if(this.host){if(message.type==='input'&&Number.isInteger(message.sequence)&&message.sequence>this.lastRemoteSequence){this.lastRemoteSequence=message.sequence;this.remoteAt=performance.now();this.remotePacket=cleanInput(message.input);}if(message.type==='command'&&['skipIntro','skipReplay','skipSideline','continue','sub'].includes(message.command?.type))this.pendingCommands.push({side:1,command:message.command});return;}
+  if(this.host){if(message.type==='input'&&Number.isInteger(message.sequence)&&message.sequence>this.lastRemoteSequence){this.lastRemoteSequence=message.sequence;this.remoteAt=performance.now();this.remoteInputQueue.push(cleanInput(message.input));if(this.remoteInputQueue.length>240)this.remoteInputQueue.splice(0,this.remoteInputQueue.length-240);}if(message.type==='command'&&['skipIntro','skipReplay','skipSideline','continue','sub'].includes(message.command?.type))this.pendingCommands.push({side:1,command:message.command});return;}
   if(message.type==='snapshot')this.view.push(message.value);if(message.type==='final-snapshot'){this.view.queue=[];this.view.latestTick=-1;this.view.push(message.value);this.view.update();}
   if(message.type==='trace-reset')this.trace=[];
   if(message.type==='trace'&&Array.isArray(message.events)&&message.events.length<=150&&this.trace.length+message.events.length<=100000)this.trace.push(...message.events);
@@ -74,7 +74,7 @@ export class LiveArena{
   this.inputAge+=dt;
   if(this.inputAge>=1/30){this.inputAge=0;const packet=captureInput(this.controls);this.controls.frame();if(this.host)this.log(0,packet);else this.send({type:'input',sequence:++this.sequence,input:packet});}
   if(!this.host)return;
-  if(this.remotePacket){this.log(1,this.remotePacket);this.remotePacket=null;}
+  if(this.remoteInputQueue.length)this.log(1,mergeInputPackets(this.remoteInputQueue.splice(0)));
   if(performance.now()-this.remoteAt>700&&(this.sim.inputs[1].held.size||this.sim.inputs[1].x||this.sim.inputs[1].z)){this.log(1,idlePacket());}
   for(const event of this.pendingCommands.splice(0))try{this.log(event.side,null,event.command);}catch(error){if(event.side===1)this.send({type:'command-error',message:error.message});else this.onError(error);}
   this.sim.step();

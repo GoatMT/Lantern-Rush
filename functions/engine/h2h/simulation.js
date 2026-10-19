@@ -12,6 +12,7 @@ export function cleanInput(value={}){
  const list=key=>[...new Set(Array.isArray(value[key])?value[key].filter(a=>ACTIONS.includes(a)):[])];
  return {x:Math.round(x/n*1000)/1000,z:Math.round(z/n*1000)/1000,held:list('held'),pressed:list('pressed'),released:list('released'),cancelled:list('cancelled'),touch:value.touch===true,holdAutoSwitch:value.holdAutoSwitch!==false};
 }
+export function mergeInputPackets(packets=[]){if(!packets.length)return idlePacket();const latest=packets[packets.length-1],edges=key=>[...new Set(packets.flatMap(packet=>packet[key]||[]))];return cleanInput({...latest,pressed:edges('pressed'),released:edges('released'),cancelled:edges('cancelled')});}
 export function captureInput(c){const m=c.movement();return cleanInput({...m,held:[...c.held],pressed:[...c.pressed],released:[...c.released],cancelled:[...c.cancelled],touch:c.isTouchHeld('pass'),holdAutoSwitch:c.settings?.value.holdAutoSwitch!==false});}
 export function decodeInput(packet){const p=cleanInput(packet);return {...p,held:new Set(p.held),pressed:new Set(p.pressed),released:new Set(p.released),cancelled:new Set(p.cancelled),movement:()=>({x:p.x,z:p.z,intensity:Math.hypot(p.x,p.z)}),isTouchHeld:a=>a==='pass'&&p.touch};}
 export function buildSquad(team,selection){
@@ -24,7 +25,7 @@ export function buildSquad(team,selection){
 }
 export class LiveSimulation{
  constructor(teams,settings,seed,event=()=>{}){
-  this.match=new Match(teams,{...settings,weather:weatherOption(settings.weather),duration:matchDuration(settings.duration)},{random:seedRandom(seed),event}).enableH2H();
+  this.match=new Match(teams,{...settings,weather:weatherOption(settings.weather),duration:matchDuration(settings.duration),h2hMode:settings.mode||'regular',extraTime:settings.mode==='regular'},{random:seedRandom(seed),event}).enableH2H();
   this.tick=0;this.inputs=[decodeInput(idlePacket()),decodeInput(idlePacket())];this.halfReady=[false,false];
  }
  input(team,packet){this.inputs[team]=decodeInput(packet);}

@@ -73,8 +73,10 @@ export const h2hPresence=onCall(base,async request=>{
  await db.doc('h2hPresence/'+uid).set({lastSeen:Date.now(),roomId});return {};
 });
 export const h2hConnection=onCall({...base,secrets:[TURN_CONFIG]},async request=>{
- const uid=await signed(request),code=request.data?.code,room=(await db.doc('h2hRooms/'+code).get()).data();
- if(!room?.members.includes(uid)||room.members.length!==2||room.expiresAt<Date.now())err('permission-denied','Only accepted room participants can connect.');
+ const uid=await signed(request),code=request.data?.code,requestedWatcher=request.data?.spectatorUid,room=(await db.doc('h2hRooms/'+code).get()).data();
+ const spectatorRequest=requestedWatcher!==undefined&&requestedWatcher!==null;
+ const participant=!!room?.members.includes(uid),watcherApproved=!!(room?.options.allowSpectators===true&&(room?.spectators||[]).includes(requestedWatcher)),spectator=!!(spectatorRequest&&requestedWatcher===uid&&watcherApproved&&!participant),hostSignaling=!!(spectatorRequest&&uid===room?.host&&watcherApproved);
+ if((!participant&&!spectator&&!hostSignaling)||room.members.length!==2||room.expiresAt<Date.now())err('permission-denied','Only accepted match players or approved spectators can connect.');
  await rate('relay-'+uid,15,60000);
  if(!['STARTING','LIVE','CLOSE TO END'].includes(room.status))err('failed-precondition','The match connection is not open.');
  // Use a TURN provider token endpoint in this secret, never credentials in the static website.

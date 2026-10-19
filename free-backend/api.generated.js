@@ -43,7 +43,7 @@ const h2hRoom=onCall(base,async request=>{
  const uid=await signed(request),data=request.data||{};await rate('room-'+uid,90,60000);const profile=await identity(uid);
  if(data.action==='create'){
   const options=validateOptions(data.options,catalog);let code;
-  for(let attempt=0;attempt<8;attempt++){code='LR-'+randomInt(100000,1000000);try{await db.doc('h2hRooms/'+code).create({code,host:uid,guest:null,members:[uid],names:{[uid]:profile.username},options,choices:{},ready:{},requests:{},status:'OPEN',createdAt:Date.now(),updatedAt:Date.now(),expiresAt:Date.now()+7200000,score:[0,0],elapsed:0,remaining:options.duration*60,spectators:[],spectatorNames:{},seed:randomInt(1,2147483647),epoch:0});return {code};}catch(error){if(error.code!==6)throw error;}}
+  for(let attempt=0;attempt<8;attempt++){code='LR-'+randomInt(100000,1000000);try{await db.doc('h2hRooms/'+code).create({code,host:uid,guest:null,members:[uid],names:{[uid]:profile.username},options,choices:{},ready:{},requests:{},status:'OPEN',createdAt:Date.now(),updatedAt:Date.now(),expiresAt:Date.now()+7200000,score:[0,0],elapsed:0,remaining:options.duration*60,seed:randomInt(1,2147483647),epoch:0});return {code};}catch(error){if(error.code!==6)throw error;}}
   err('unavailable','Could not reserve a room ID. Try again.');
  }
  const code=String(data.code||'').toUpperCase();if(!/^LR-\d{6}$/.test(code))err('invalid-argument','Enter a room ID such as LR-482731.');
@@ -70,16 +70,17 @@ const h2hPresence=onCall(base,async request=>{
 const h2hConnection=onCall(base,async request=>{
  const uid=await signed(request),data=request.data||{},room=(await db.doc('h2hRooms/'+data.code).get()).data(),watcher=String(data.spectatorUid||'');
  const active=room&&room.members.length===2&&room.expiresAt>Date.now()&&['STARTING','LIVE','CLOSE TO END'].includes(room.status);
- const canWatch=active&&(uid===room.host&&watcher&&(room.spectators||[]).includes(watcher)||uid===watcher&&(room.spectators||[]).includes(uid));
- if(!active||(!room.members.includes(uid)&&!canWatch))err('permission-denied','Only match participants or approved read-only spectators can connect.');
+ const watcherApproved=!!(watcher&&(room?.spectators||[]).includes(watcher)&&room.options.allowSpectators===true);
+ const canWatch=active&&watcherApproved&&(uid===room.host||uid===watcher);
+ if(!active||(!room.members.includes(uid)&&!canWatch))err('permission-denied','Only accepted match players or approved spectators can connect.');
  await rate('connection-'+uid,15,60000);
  return {iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],relay:false};
 });
 const h2hProgress=onCall(base,async request=>{
  const uid=await signed(request),data=request.data||{};await rate('progress-'+uid,40,60000);const ref=db.doc('h2hRooms/'+data.code);
  await db.runTransaction(async t=>{const snap=await t.get(ref),r=snap.data();if(!r||r.host!==uid||!['STARTING','LIVE','CLOSE TO END'].includes(r.status))err('permission-denied','This room is not your live match.');
-  const elapsed=Number(data.elapsed),score=data.score,now=Date.now(),limit=r.options.duration*60+(r.options.mode==='regular'?60:0);if(!Number.isFinite(elapsed)||elapsed<r.elapsed||elapsed>limit||elapsed>(now-r.startedAt)/1000+2||!Array.isArray(score)||score.length!==2||score.some((v,i)=>!Number.isInteger(v)||v<r.score[i]||v>r.score[i]+1))err('invalid-argument','Invalid live match progress.');
-  t.update(ref,{elapsed,remaining:Math.max(0,limit-elapsed),score,status:elapsed>=limit*.82?'CLOSE TO END':'LIVE',updatedAt:now});});return {};
+  const elapsed=Number(data.elapsed),score=data.score,now=Date.now();if(!Number.isFinite(elapsed)||elapsed<r.elapsed||elapsed>r.options.duration*60||elapsed>(now-r.startedAt)/1000+2||!Array.isArray(score)||score.length!==2||score.some((v,i)=>!Number.isInteger(v)||v<r.score[i]||v>r.score[i]+1))err('invalid-argument','Invalid live match progress.');
+  t.update(ref,{elapsed,remaining:Math.max(0,r.options.duration*60-elapsed),score,status:elapsed>=r.options.duration*60*.82?'CLOSE TO END':'LIVE',updatedAt:now});});return {};
 });
 const h2hTrace=onCall({...base,memory:'512MiB'},async request=>{
  const uid=await signed(request),data=request.data||{},ref=db.doc('h2hRooms/'+data.code),r=(await ref.get()).data();
@@ -103,10 +104,10 @@ const h2hFinalize=onCall({...base,memory:'1GiB',timeoutSeconds:540,maxInstances:
  if(createHash('sha256').update(JSON.stringify(events)).digest('hex')!==digest)err('invalid-argument','Match inputs do not match both confirmations.');
  const teams=room.members.map(id=>buildSquad(catalog[room.options.season].find(t=>t.id===room.choices[id].team),room.choices[id]));
  let match;try{match=replayTrace(teams,room.options,room.seed,events,tick);}catch(error){err('invalid-argument','Result verification failed: '+error.message);}
- const report=captureMatch(match),now=Date.now();if(match.shootout)report.shootout={goals:[...match.shootout.goals],attempts:[...match.shootout.attempts],winner:match.shootout.winner,events:match.shootout.events.map(e=>({...e,goals:[...e.goals],attempts:[...e.attempts]}))};
+ const report=captureMatch(match),now=Date.now();
  await db.runTransaction(async t=>{const current=(await t.get(ref)).data();if(current.status==='FULL TIME'){if(!current.verified)err('failed-precondition','This match was abandoned before verification.');return;}if(!['LIVE','CLOSE TO END','STARTING'].includes(current.status))err('failed-precondition','Room already ended.');if(current.startedAt!==room.startedAt||current.members.some(id=>current.confirmations?.[id]?.digest!==digest||current.confirmations?.[id]?.tick!==tick))err('failed-precondition','Match confirmations changed. Retry verification.');
   for(let side=0;side<2;side++){const player=room.members[side],opponent=room.members[1-side],record=personalReport(report,room,side,now);t.create(db.doc(`gameProfiles/${player}/matches/h2h-${room.code}-${room.startedAt}`),record);t.set(db.doc(`h2hRecent/${player}/players/${opponent}`),{uid:opponent,username:room.names[opponent],code:room.code,playedAt:now});}
-  t.update(ref,{status:'FULL TIME',score:report.score,shootout:report.shootout||null,winner:report.shootout?.winner??(report.score[0]===report.score[1]?null:report.score[0]>report.score[1]?0:1),elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
+  t.update(ref,{status:'FULL TIME',score:report.score,elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
 });
 const accountAdmin=onCall(base,async request=>{
  const d=request.data||{};await enabled();if(!equal(d.adminPassword,ADMIN_PASSWORD))err('permission-denied','Admin password is incorrect.');if(d.action==='authorize')return {allowed:true};

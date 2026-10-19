@@ -69,7 +69,7 @@ export class Match {
     this.replayActive=false;this.replayStage='done';this.replayStageTime=0;this.replayFocus=null;this.goalReturnTime=1.4;
     this.ball.settleInNet(this.direction(this.scoringTeam));
     this.active(this.scoringTeam).forEach(p=>p.animate(p===this.celebratingPlayer?'celebrate-calm':'applaud',1.4));
-    if(this.elapsed>=this.settings.duration*48)queueSideline(this,'late-goal',this.scoringTeam,{variant:this.celebration?.lateWinner?'celebrate':'urgent'});
+    queueSideline(this,'goal-reaction',1-this.scoringTeam,{scoringTeam:this.scoringTeam,variant:'angry'});
   }
   skipSideline(){skipSideline(this);}
   finishMatch(){
@@ -191,7 +191,7 @@ export class Match {
       const regulation=this.settings.duration*60;
       if(this.extraTimeStarted){if(this.elapsed>=regulation+60){this.elapsed=regulation+60;if(this.stats[0].goals===this.stats[1].goals)this.beginShootout();else this.finishMatch();}}
       else if(this.settings.h2hMode==='regular'&&this.settings.extraTime!==false&&this.stats[0].goals===this.stats[1].goals){this.elapsed=regulation;this.extraTimeStarted=true;this.notify('EXTRA TIME','One minute to find a winner',4.5);}
-      else this.finishMatch();
+      else{this.elapsed=regulation;this.finishMatch();}
       if(this.phase==='outro')this.players.forEach(p=>p.animate(this.stats[p.team].goals>this.stats[1-p.team].goals?'celebrate-arms':this.stats[p.team].goals<this.stats[1-p.team].goals?'concede':'applaud',4));
     }
   }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {applyRoomAction,personalReport} from '../functions/policy.js';
-import {LiveSimulation,replayTrace,buildSquad,idlePacket} from '../src/h2h/simulation.js';
+import {LiveSimulation,replayTrace,buildSquad,idlePacket,mergeInputPackets} from '../src/h2h/simulation.js';
 import {captureMatch} from '../src/match-history.js';
 import {snapshot,SnapshotView} from '../src/h2h/snapshots.js';
 const catalog=JSON.parse(fs.readFileSync(new URL('../functions/catalog.json',import.meta.url),'utf8'));
@@ -14,6 +14,18 @@ test('join approval is host-only and every closed status refuses new requests',(
  let r=action(room(),'guest',{action:'request'});assert.equal(r.guest,null);assert.throws(()=>action(r,'guest',{action:'accept',uid:'guest'}),/host/);r=action(r,'host',{action:'accept',uid:'guest'});assert.deepEqual(r.members,['host','guest']);assert.equal(r.status,'FULL');
  for(const status of ['LOCKED','FULL','STARTING','LIVE','CLOSE TO END','FULL TIME'])assert.throws(()=>action({...room(),status},'intruder',{action:'request'}),/not accepting/);
 });
+test('spectators can join only permitted active rooms and can leave cleanly',()=>{
+ const live={...room(),guest:'guest',members:['host','guest'],names:{host:'MT',guest:'Ahmed'},status:'LIVE',options:{season:'2026',duration:1,difficulty:'normal',allowSpectators:true},spectators:[],spectatorNames:{}};
+ const watching=action(live,'watcher',{action:'spectate'});assert.deepEqual(watching.spectators,['watcher']);assert.equal(watching.spectatorNames.watcher,'watcher');
+ assert.deepEqual(action(watching,'watcher',{action:'unspectate'}).spectators,[]);
+ assert.throws(()=>action({...live,options:{...live.options,allowSpectators:false}},'intruder',{action:'spectate'}),/not accepting/);
+ assert.throws(()=>action({...live,status:'FULL'},'intruder',{action:'spectate'}),/not accepting/);
+});
+test('remote input batching preserves quick action edges and latest movement state',()=>{
+ const merged=mergeInputPackets([{x:0,z:1,held:['sprint'],pressed:['pass']},{x:1,z:0,held:['shoot'],released:['pass'],pressed:['skill']}]);
+ assert.deepEqual(merged.pressed,['pass','skill']);assert.deepEqual(merged.released,['pass']);assert.deepEqual(merged.held,['shoot']);assert.equal(merged.x,1);assert.equal(merged.z,0);
+});
+
 test('room lock, independent lineups and both-ready start enforce their invariants',()=>{
  let r=action(room(),'host',{action:'lock'});assert.equal(r.status,'LOCKED');assert.throws(()=>action(r,'guest',{action:'unlock'}));r=action(r,'host',{action:'unlock'});r=action(r,'guest',{action:'request'});r=action(r,'host',{action:'accept',uid:'guest'});
  for(const uid of ['host','guest'])r=action(r,uid,{action:'choose',...choices[uid]});

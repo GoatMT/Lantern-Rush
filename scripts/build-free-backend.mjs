@@ -10,8 +10,11 @@ source=source.slice(source.indexOf('const err='));
 const start=source.indexOf('export const h2hConnection='),end=source.indexOf('export const h2hProgress=');
 if(start<0||end<start)throw Error('Connection handler missing.');
 source=source.slice(0,start)+`export const h2hConnection=onCall(base,async request=>{
- const uid=await signed(request),room=(await db.doc('h2hRooms/'+request.data?.code).get()).data();
- if(!room?.members.includes(uid)||room.members.length!==2||room.expiresAt<Date.now()||!['STARTING','LIVE','CLOSE TO END'].includes(room.status))err('permission-denied','Only accepted players in an active match can connect.');
+ const uid=await signed(request),data=request.data||{},room=(await db.doc('h2hRooms/'+data.code).get()).data(),watcher=String(data.spectatorUid||'');
+ const active=room&&room.members.length===2&&room.expiresAt>Date.now()&&['STARTING','LIVE','CLOSE TO END'].includes(room.status);
+ const watcherApproved=!!(watcher&&(room?.spectators||[]).includes(watcher)&&room.options.allowSpectators===true);
+ const canWatch=active&&watcherApproved&&(uid===room.host||uid===watcher);
+ if(!active||(!room.members.includes(uid)&&!canWatch))err('permission-denied','Only accepted match players or approved spectators can connect.');
  await rate('connection-'+uid,15,60000);
  return {iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],relay:false};
 });
