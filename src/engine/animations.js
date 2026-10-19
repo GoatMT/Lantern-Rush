@@ -4,14 +4,20 @@ import { clamp } from '../config.js';
 import { angleDelta } from '../match/player.js';
 const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
 export function animationPose(p,time){
-  const speed=Math.hypot(p.vx,p.vz),phase=p.gait,run=clamp(speed/9,0,1),swing=Math.sin(phase)*(.18+run*.64);
+  const speed=Math.hypot(p.vx,p.vz),phase=p.gait,run=clamp(speed/9,0,1),swing=Math.sin(phase)*(.18+run*.64),turnLean=clamp((p.turn||0)*speed*.026,-.22,.22),weightShift=Math.sin(phase+.9)*run;
   const face=Math.atan2(p.faceX,p.faceZ),look=Math.atan2(p.lookX,p.lookZ);
-  const pose={y:0,x:0,pitch:clamp(speed*.018+p.acceleration*.003,-.10,.24),roll:clamp(-p.turn*speed*.018,-.22,.22),yaw:Math.sin(phase)*run*.045,
-    headYaw:clamp(angleDelta(face,look),-.6,.6)+Math.sin(time*.65+p.slot)*.035,headPitch:-run*.035,
-    laY:0,raY:0,laX:-swing*.67,raX:swing*.67,laZ:-.08-run*.06,raZ:.08+run*.06,le:.20+run*.90,re:.20+run*.90,
+  const pose={y:0,x:0,pitch:clamp(speed*.018+p.acceleration*.003,-.10,.24),roll:clamp(-p.turn*speed*.018,-.22,.22)-turnLean*.42,yaw:Math.sin(phase)*run*.045-turnLean*.18,
+    headYaw:clamp(angleDelta(face,look),-.6,.6)+Math.sin(time*.65+p.slot)*.035,headPitch:-run*.035+Math.sin(time*1.15+p.slot)*.012,
+    laY:-weightShift*.035,raY:weightShift*.035,laX:-swing*.67,raX:swing*.67,laZ:-.08-run*.06,raZ:.08+run*.06,le:.20+run*.90,re:.20+run*.90,
     llX:swing,rlX:-swing,llZ:-.015,rlZ:.015,lk:.06+Math.max(0,-Math.sin(phase))*(.39+run*.90),rk:.06+Math.max(0,Math.sin(phase))*(.39+run*.90)};
-  if(speed<.15){pose.pitch=.018;pose.y=Math.sin(time*1.8+p.slot)*.008;pose.roll=Math.sin(time*.5+p.slot)*.012;pose.llX=pose.rlX=0;pose.lk=pose.rk=.025;}
-  else pose.y=Math.abs(Math.sin(phase))*(.013+run*.035);
+  if(speed<.15){
+    // A quiet weight shift and breathing cycle keeps standing players alive
+    // without making the formation wobble or adding expensive bones.
+    const breath=Math.sin(time*1.8+p.slot)*.5+.5;
+    pose.pitch=.018+Math.sin(time*1.8+p.slot)*.012;pose.y=.004+breath*.006;pose.roll=Math.sin(time*.5+p.slot)*.012;pose.yaw=Math.sin(time*.7+p.slot)*.018;
+    pose.laY=Math.sin(time*1.05+p.slot)*.025;pose.raY=-pose.laY;pose.laX=-.035+breath*.025;pose.raX=.035-breath*.025;pose.llX=pose.rlX=0;pose.lk=pose.rk=.025;
+  }
+  else {pose.y=Math.abs(Math.sin(phase))*(.013+run*.035);pose.pitch+=Math.max(0,p.acceleration||0)*.002;pose.roll+=weightShift*.025;}
   if(p.locomotion==='sidestep'){pose.llZ=swing*.35;pose.rlZ=-swing*.35;pose.llX*=.35;pose.rlX*=.35;}
   if(p.locomotion==='backpedal'){pose.pitch=-.12;pose.llX*=-.65;pose.rlX*=-.65;}
   if(p.role==='GK'){
@@ -62,10 +68,11 @@ export function animationPose(p,time){
     if(names==='standing-tackle'||names==='intercept'){action[leg]=-1.05*f;action[knee]=.1;action.pitch=-.15*f;}
     if(names==='shoulder'){action.roll=-side*f*.45;action.laZ=action.raZ=0;}
     if(names==='block'){action.laX=.25;action.raX=.25;action.llZ=-.35*f;action.rlZ=.35*f;}
-  }else if(['slide-tackle','fall','roll-fall','get-up','stumble','recover'].includes(names)){
+  }else if(['slide-tackle','slide-miss','fall','roll-fall','get-up','stumble','recover'].includes(names)){
     const down=names==='get-up'?1-smooth(t):names==='recover'?(1-t)*.3:Math.min(1,t*4);
-    action.y=-.72*down;action.pitch=(names==='slide-tackle'?-.65:1.15)*down;action.lk=.7*down;action.rk=1.3*down;action.llX=-.7*down;action.rlX=-.2*down;
+    const slide=names==='slide-tackle'||names==='slide-miss';action.y=-(names==='slide-miss'?.64:.72)*down;action.pitch=(slide?(names==='slide-miss'?-.88:-.65):1.15)*down;action.lk=.7*down;action.rk=1.3*down;action.llX=-.7*down;action.rlX=-.2*down;
     action.laZ=-.85*down;action.raZ=.85*down;
+    if(names==='slide-miss'){action.laX=-.2*down;action.raX=.2*down;action.roll=side*.18*smooth(t);}
     if(names==='roll-fall')action.roll=side*Math.PI*1.6*smooth(t);
     if(names==='stumble'){action.y=-.12*f;action.pitch=.5*f;action.roll=side*.18*f;}
   }else if(names.startsWith('keeper-')){
@@ -109,7 +116,7 @@ export function animationPose(p,time){
   else if(names.startsWith('celebrate')||names==='wave'){
     celebrationPose(action,names,t,a.time,c);
   }
-  const keepDown=['fall','roll-fall','slide-tackle','keeper-dive','get-up','keeper-get-up'].includes(names);
+  const keepDown=['fall','roll-fall','slide-tackle','slide-miss','keeper-dive','get-up','keeper-get-up'].includes(names);
   const weight=keepDown?(names.includes('get-up')?1:smooth(a.time/.10)):smooth(a.time/(names.startsWith('celebrate')?.4:.09))*smooth((a.duration-a.time)/(names.startsWith('celebrate')?.6:.16));
   for(const key of Object.keys(pose))pose[key]+=(action[key]-pose[key])*weight;
   return pose;

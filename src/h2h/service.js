@@ -10,7 +10,7 @@ export class LiveService{
  watchList(path,callback){return this.listen(this.fs.collection(this.db,path),snap=>callback(snap.docs.map(d=>({id:d.id,...d.data()}))));}
  watchRooms(callback){return this.listen(this.fs.query(this.fs.collection(this.db,'h2hRooms'),this.fs.where('members','array-contains',this.uid)),snap=>callback(snap.docs.map(d=>d.data()).filter(r=>r.expiresAt>Date.now())));}
  async people(){const p=await this.account.getProfiles();return p.filter(p=>p.uid!==this.uid).map(p=>({uid:p.uid,username:p.username}));}
- async signal(code,epoch,kind,payload){await this.fs.addDoc(this.fs.collection(this.db,`h2hRooms/${code}/signals`),{from:this.uid,epoch,kind,payload:JSON.stringify(payload),createdAt:this.fs.serverTimestamp()});}
- signals(code,epoch,callback){return this.listen(this.fs.query(this.fs.collection(this.db,`h2hRooms/${code}/signals`),this.fs.where('epoch','==',epoch)),snapshot=>{for(const change of snapshot.docChanges())if(change.type==='added'&&change.doc.data().from!==this.uid)callback(change.doc.data());});}
+ async signal(code,epoch,kind,payload,spectatorUid=null){const path=spectatorUid?'h2hRooms/'+code+'/watchers/'+spectatorUid+'/signals':'h2hRooms/'+code+'/signals';await this.fs.addDoc(this.fs.collection(this.db,path),{from:this.uid,epoch,kind,payload:JSON.stringify(payload),createdAt:this.fs.serverTimestamp()});}
+ signals(code,epoch,callback,spectatorUid=null){const path=spectatorUid?'h2hRooms/'+code+'/watchers/'+spectatorUid+'/signals':'h2hRooms/'+code+'/signals';return this.listen(this.fs.query(this.fs.collection(this.db,path),this.fs.where('epoch','==',epoch)),snapshot=>{for(const change of snapshot.docChanges())if(change.type==='added'&&change.doc.data().from!==this.uid)callback(change.doc.data());});}
  close(){this.stops.splice(0).forEach(stop=>stop());}
 }

@@ -84,9 +84,9 @@ test('a SWITCH tap immediately picks the closest outfielder and holding never cy
   m.players.forEach((p,i)=>{p.x=35+i;p.z=28;});first.x=-5;first.z=0;second.x=10;second.z=0;m.controlled=second;
   buttons.pass.dataset.mode='switch';buttons.pass.pointer('pointerdown',1);m.update(1/120,controls);
   assert.equal(m.controlled,first,'the tap immediately selects the player closest to the ball');
-  controls.frame();m.ball.reset(11,0);m.update(.5,controls);
+  controls.frame();m.ball.reset(0,12);m.update(.5,controls);
   assert.equal(m.controlled,first,'holding SWITCH does not repeat or cycle to another player');
-  buttons.pass.pointer('pointerup',1);controls.frame();buttons.pass.pointer('pointerdown',2);m.update(1/120,controls);
+  buttons.pass.pointer('pointerup',1);controls.frame();m.ball.reset(10,0);buttons.pass.pointer('pointerdown',2);m.update(1/120,controls);
   assert.equal(m.controlled,second,'a second tap immediately selects the new closest player');
 });
 test('holding mobile Switch while receiving keeps possession instead of auto-passing',()=>{

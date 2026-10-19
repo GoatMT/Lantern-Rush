@@ -67,6 +67,13 @@ export class BroadcastCamera{
         }
       }
     }
+    if(match?.phase==='playing'&&(match.tackleCamera?.time>0||match.tackleFeedback?.time>0)){
+      const feedback=match.tackleFeedback,local=match.tackleCamera;
+      const tackler=local?.player||feedback?.playerId&&match.players.find(p=>p.id===feedback.playerId),victim=local?.victim||feedback?.victimId&&match.players.find(p=>p.id===feedback.victimId),ball=match.ball;
+      const focusX=victim&&tackler?(victim.x+tackler.x)*.5:((tackler?.x??ball.x)*.55+ball.x*.45),focusZ=victim&&tackler?(victim.z+tackler.z)*.5:((tackler?.z??ball.z)*.55+ball.z*.45);
+      const ox=this.position.x-this.target.x,oy=this.position.y-this.target.y,oz=this.position.z-this.target.z,scale=match.settings.camera==='mobile'?.84:.78;
+      this.target.set(focusX,.55,focusZ);this.position.set(focusX+ox*scale,.55+oy*scale,focusZ+oz*scale);fov=Math.max(38,fov-5);
+    }
     if(match?.sideline){const blend=sidelineCamera(this,match.sideline);fov+=(43-fov)*blend;}
     if(this.compact||match?.settings.camera==='mobile'){
       const lens=mobileLens(fov,aspect);

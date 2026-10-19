@@ -20,7 +20,7 @@ export class Player {
     if(this.striking){dx=dz=intensity=0;sprint=false;}
     const n=normalize(dx,dz),moving=Math.hypot(dx,dz)>.03&&intensity>.01,previousSpeed=Math.hypot(this.vx,this.vz);
     if(moving){this.dribbleX=n.x;this.dribbleZ=n.z;}
-    const recovering=this.action&&['fall','roll-fall','slide-tackle','get-up','keeper-get-up','keeper-dive'].includes(this.action.name);
+    const recovering=this.action&&['fall','roll-fall','slide-tackle','slide-miss','get-up','keeper-get-up','keeper-dive'].includes(this.action.name);
     const boosting=sprint&&moving&&!recovering;
     const settling=this.hasBall&&this.lastReceive<.24?.74:1;
     const injuryPenalty=this.injured?.72:1;
@@ -31,7 +31,7 @@ export class Player {
       const envelope=Math.sin(Math.PI*clamp(this.skillPlan.time/this.skillPlan.duration,0,1));
       tx+=this.skillPlan.x*this.skillPlan.burst*envelope;tz+=this.skillPlan.z*this.skillPlan.burst*envelope;
     }
-    if(recovering){tx=this.vx*(this.action.name==='slide-tackle'?.92:.25);tz=this.vz*(this.action.name==='slide-tackle'?.92:.25);}
+    if(recovering){const sliding=this.action.name==='slide-tackle'||this.action.name==='slide-miss';tx=this.vx*(sliding?.92:.25);tz=this.vz*(sliding?.92:.25);}
     const alignment=previousSpeed>.1?(this.vx*n.x+this.vz*n.z)/previousSpeed:1;
     this.cutTime=moving&&alignment<.65?.23:Math.max(0,(this.cutTime||0)-dt);
     const control=this.hasBall?.86+this.attributes.dribble*.82:1;
@@ -60,7 +60,7 @@ export class Player {
       this.action.time+=dt;this.animationTime=Math.max(0,this.action.duration-this.action.time);
       if(this.animationTime<=0){
         const {name,context}=this.action;this.action=null;
-        if(['fall','roll-fall','slide-tackle'].includes(name))this.animate('get-up',.65,context);
+        if(['fall','roll-fall','slide-tackle','slide-miss'].includes(name))this.animate('get-up',name==='slide-miss'?.8:.65,context);
         else if(name==='keeper-dive')this.animate('keeper-get-up',.85,context);
         else if(name==='stumble')this.animate('recover',.35);
       }

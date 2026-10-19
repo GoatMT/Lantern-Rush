@@ -128,3 +128,20 @@ body[data-screen="match"] #live-canvas,
   #live-arena .live-score strong {font-size:17px;}
   #live-arena .live-score small {font-size:7px;letter-spacing:.08em;}
 }
+
+/* Compact feedback that sits beneath the scoreboard without interrupting play. */
+.tackle-indicator { position:absolute; top:calc(68px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:14; padding:5px 10px; border:1px solid #dfe9d980; border-radius:999px; background:#09252bd9; color:#eef4dd; font:800 9px/1 system-ui,sans-serif; letter-spacing:1px; pointer-events:none; box-shadow:0 4px 16px #00151c55; animation:tackle-indicator-in .16s ease-out both; }
+.tackle-indicator[data-kind="success"] { border-color:#83d7a8aa; color:#9be1b5; }
+.tackle-indicator[data-kind="miss"] { border-color:#e1c77a99; color:#ead58d; }
+.tackle-indicator[data-kind="foul"] { border-color:#e58d7daa; color:#ffb19b; }
+@media (pointer:coarse), (max-width:700px) { .tackle-indicator { left:max(8px,env(safe-area-inset-left)); transform:none; top:calc(64px + env(safe-area-inset-top)); font-size:8px; } }
+@media (max-width:360px) and (orientation:portrait) {
+  #touch-controls { --button:50px; --edge:max(10px,env(safe-area-inset-right)); }
+  #touch-controls .touch-actions { bottom:max(12px,env(safe-area-inset-bottom)); width:calc(var(--button)*2.55); height:calc(var(--button)*3.05); }
+  #touch-controls .touch-action { min-width:48px; min-height:48px; font-size:8px; }
+  #touch-controls #touch-sprint { width:60px; height:60px; font-size:9px; }
+  #touch-controls #touch-goalie { left:-62px; width:46px; height:46px; font-size:7px; }
+  #touch-controls[data-layout="right"] #touch-goalie { left:auto; right:-62px; }
+}
+@keyframes tackle-indicator-in { from { opacity:0; transform:translate(-50%,-4px) scale(.94); } to { opacity:1; transform:translate(-50%,0) scale(1); } }
+@media (pointer:coarse), (max-width:700px) { @keyframes tackle-indicator-in { from { opacity:0; transform:translateY(-4px) scale(.94); } to { opacity:1; transform:translateY(0) scale(1); } } }

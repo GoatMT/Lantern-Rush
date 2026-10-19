@@ -25,6 +25,11 @@ service cloud.firestore {
     allow create:if participant(code) && room(code).status in ['STARTING','LIVE','CLOSE TO END'] && request.resource.data.keys().hasOnly(['from','epoch','kind','payload','createdAt']) && request.resource.data.from==request.auth.uid && request.resource.data.epoch==room(code).epoch && request.resource.data.kind in ['offer','answer','candidate'] && request.resource.data.payload is string && request.resource.data.payload.size()<16000 && request.resource.data.createdAt==request.time && (request.resource.data.kind!='offer'||room(code).host==request.auth.uid) && (request.resource.data.kind!='answer'||room(code).guest==request.auth.uid);
    }
   }
+  match /h2hRooms/{code}/watchers/{watcher}/signals/{id}{
+   function watchPeer(){return signed()&&(request.auth.uid==room(code).host||(request.auth.uid==watcher&&watcher in room(code).spectators));}
+   allow read:if watchPeer();
+   allow create:if watchPeer()&&room(code).status in ['STARTING','LIVE','CLOSE TO END']&&request.resource.data.keys().hasOnly(['from','epoch','kind','payload','createdAt'])&&request.resource.data.from==request.auth.uid&&request.resource.data.epoch==room(code).epoch&&request.resource.data.kind in ['offer','answer','candidate']&&request.resource.data.payload is string&&request.resource.data.payload.size()<16000&&request.resource.data.createdAt==request.time&&(request.resource.data.kind!='offer'||room(code).host==request.auth.uid)&&(request.resource.data.kind!='answer'||watcher==request.auth.uid);
+  }
   match /h2hInvites/{uid}/items/{id}{allow read:if own(uid);}
   match /h2hRecent/{uid}/players/{id}{allow read:if own(uid);}
   match /h2hPresence/{uid}{allow read:if signed();}

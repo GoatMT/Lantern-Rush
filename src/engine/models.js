@@ -31,15 +31,20 @@ export function textTexture(text,{color='#fff',background='#0a302b',width=512,he
 }
 function faceTexture(a){
   const c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d');
-  // Small, almond-shaped features and restrained facial shading, not painted cartoon eyes.
+  // A transparent face layer keeps the smooth 3D skull visible while adding
+  // restrained, readable features.  This avoids the flat mask look at the
+  // normal broadcast distance and stays inexpensive on mobile GPUs.
+  const shade=ctx.createRadialGradient(63,60,8,63,64,66);shade.addColorStop(0,'rgba(255,255,255,.08)');shade.addColorStop(.72,'rgba(90,45,28,.04)');shade.addColorStop(1,'rgba(25,10,8,.16)');ctx.fillStyle=shade;ctx.beginPath();ctx.ellipse(64,64,53,59,0,0,Math.PI*2);ctx.fill();
   for(const x of [37,91]){
-    ctx.fillStyle='#e5d7c8';ctx.beginPath();ctx.ellipse(x,43,7,3,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#2c2522';ctx.beginPath();ctx.ellipse(x,43,2.8,3.2,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle=a.hair;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x-9,33);ctx.quadraticCurveTo(x,29,x+8,32);ctx.stroke();
+    ctx.fillStyle='rgba(250,246,236,.92)';ctx.beginPath();ctx.ellipse(x,43,7.4,3.1,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=a.eye||'#2c2522';ctx.beginPath();ctx.ellipse(x,43,2.75,3.2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.78)';ctx.beginPath();ctx.arc(x-1,41.9,.75,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=a.hair;ctx.lineWidth=2.7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-9,33);ctx.quadraticCurveTo(x,29,x+8,32);ctx.stroke();
+    ctx.strokeStyle='rgba(71,38,28,.34)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x-7,49);ctx.quadraticCurveTo(x,52,x+7,49);ctx.stroke();
   }
-  ctx.strokeStyle='#633c3088';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(58,50);ctx.lineTo(55,66);ctx.quadraticCurveTo(64,70,69,66);ctx.stroke();
-  ctx.strokeStyle='#6d423baa';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(53,86);ctx.quadraticCurveTo(64,90,77,85);ctx.stroke();
-  if(a.beard){ctx.fillStyle=a.hair;ctx.globalAlpha=.30;ctx.beginPath();ctx.moveTo(20,70);ctx.quadraticCurveTo(28,119,64,121);ctx.quadraticCurveTo(104,119,110,70);ctx.lineTo(92,95);ctx.quadraticCurveTo(65,118,34,95);ctx.fill();ctx.globalAlpha=1;}
+  ctx.strokeStyle='rgba(76,43,32,.58)';ctx.lineWidth=1.35;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(58,50);ctx.lineTo(55,66);ctx.quadraticCurveTo(64,70,69,66);ctx.stroke();
+  ctx.strokeStyle='rgba(91,48,42,.74)';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(53,86);ctx.quadraticCurveTo(64,90,77,85);ctx.stroke();
+  if(a.beard){ctx.fillStyle=a.hair;ctx.globalAlpha=.24;ctx.beginPath();ctx.moveTo(20,70);ctx.quadraticCurveTo(28,119,64,121);ctx.quadraticCurveTo(104,119,110,70);ctx.lineTo(92,95);ctx.quadraticCurveTo(65,118,34,95);ctx.fill();ctx.globalAlpha=1;}
   if(a.glasses){ctx.strokeStyle='#242424';ctx.lineWidth=3.5;ctx.strokeRect(22,32,30,22);ctx.strokeRect(76,32,30,22);ctx.beginPath();ctx.moveTo(52,40);ctx.lineTo(76,40);ctx.moveTo(20,37);ctx.lineTo(13,33);ctx.moveTo(106,37);ctx.lineTo(114,33);ctx.stroke();}
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
@@ -101,7 +106,12 @@ export class PlayerModel{
       if(this.keeper){
         forearm.push(part('sphere','#e5e4d9',0,-.322,.006,.099,.103,.061),part('box','#283c44',0,-.27,.013,.185,.051,.12),part('box','#83b8b0',0,-.322,-.049,.122,.097,.017),part('sphere','#e5e4d9',sign*.091,-.305,.006,.038,.063,.044));
         for(let finger=0;finger<4;finger++)forearm.push(part('sphere','#e5e4d9',(finger-1.5)*.040,-.409,.010,.022,.045,.030));
-      }else forearm.push(part('sphere',skin,0,-.312,0,.074*armWidth,.095*armWidth,.048*armWidth));
+      }else {
+        // A small palm and thumb give the low-poly arm a recognisable human
+        // hand silhouette without adding a separate skinned mesh per player.
+        forearm.push(part('sphere',skin,0,-.312,0,.074*armWidth,.095*armWidth,.048*armWidth));
+        forearm.push(part('sphere',skin,sign*.055,-.296,.026,.026*armWidth,.052*armWidth,.030*armWidth,0,0,sign*.35));
+      }
       elbow.add(solid(forearm));arm.add(elbow);this.body.add(arm);this.arms.push(arm);this.elbows.push(elbow);
       const leg=new T.Group();leg.position.set(sign*(.147+a.bulk*.018),1.00,0);
       leg.add(solid([part('taper',kit.shorts,0,-.12,0,.151*(1+a.bulk*.38),.29,.154*(1+a.bulk*.34)),part('taper',player.data.staff?kit.shorts:skin,0,-.331,0,.104*(1+a.bulk*.24),.18,.104*(1+a.bulk*.24))]));

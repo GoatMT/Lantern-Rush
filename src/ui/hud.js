@@ -6,11 +6,12 @@ import { playerLabel } from '../player-label.js';
 import { SHOT_NAMES } from '../match/shooting.js';
 import { INTRO,introPlayer } from '../presentation.js';
 import {ScoreboardEvents} from './scoreboard-events.js';
+import {ensureTackleIndicator,renderTackleIndicator} from './tackle-indicator.js';
 export class HUD{
-  constructor(app){this.app=app;this.labels=new Map();this.ctx=$('minimap').getContext('2d');this.acc=0;this.intro=new MatchIntro();this.events=new ScoreboardEvents(document.querySelector('.scoreboard'));}
+  constructor(app){this.app=app;this.labels=new Map();this.ctx=$('minimap').getContext('2d');this.acc=0;this.intro=new MatchIntro();this.events=new ScoreboardEvents(document.querySelector('.scoreboard'));this.tackleIndicator=ensureTackleIndicator(document.querySelector('#match-hud'));}
   reset(){this.events.reset();this.labels.clear();$('player-labels').replaceChildren();}
   update(dt){
-    const m=this.app.match;if(!m||this.app.menus.screen!=='match')return;const p=m.controlled;this.events.update(dt);
+    const m=this.app.match;if(!m||this.app.menus.screen!=='match')return;const p=m.controlled;this.events.update(dt);renderTackleIndicator(this.tackleIndicator,m.tackleFeedback);
     $('match-hud').dataset.phase=m.phase;
     $('score-user').textContent=m.stats[0].goals;$('score-cpu').textContent=m.stats[1].goals;
     $('hud-user-ovr').textContent=(teamOverall(m.teams[0])??'—')+' OVR';$('hud-cpu-ovr').textContent=(teamOverall(m.teams[1])??'—')+' OVR';
@@ -26,7 +27,9 @@ export class HUD{
     const savingPenalty=m.phase==='restart'&&m.restart?.type==='PENALTY'&&m.restart.team!==0&&p.role==='GK';
     $('touch-shoot').textContent=savingPenalty?'DIVE':m.ball.owner===p&&p.role==='GK'?'LONG KICK':'SHOOT';
     const passLabel=m.possessionTeam()===0?'PASS':'SWITCH';$('touch-pass').textContent=passLabel;$('touch-pass').setAttribute('aria-label',passLabel);$('touch-pass').dataset.mode=passLabel.toLowerCase();
-    const skillLabel=m.possessionTeam()===0?'DRIBBLE':'TACKLE';$('touch-dribble').textContent=skillLabel;$('touch-dribble').setAttribute('aria-label',skillLabel);
+    const defending=m.possessionTeam()===1;
+    const skillLabel=defending?'SLIDE TACKLE':'DRIBBLE';
+    $('touch-dribble').textContent=skillLabel;$('touch-dribble').setAttribute('aria-label',skillLabel);$('touch-dribble').dataset.mode=defending?'slide-tackle':'dribble';
     $('touch-goalie').disabled=m.phase!=='playing'&&!savingPenalty;$('touch-goalie').setAttribute('aria-pressed',String(p.role==='GK'));
     $('touch-goalie').setAttribute('aria-label',p.role==='GK'?'Switch back to outfield player':'Switch to goalkeeper');
     $('set-piece-hint').hidden=m.phase!=='restart';
