@@ -55,13 +55,13 @@
           "profileId": "ahmad-ingar",
           "overall": 65,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Limited Scouting",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Ahmad Ingar brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -109,13 +109,13 @@
           "profileId": "marwan-ahmad",
           "overall": 91,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Power Shooter",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Shooting power",
+              "Attacking involvement",
+              "Positioning"
             ],
-            "description": "Marwan Ahmed brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "An involved attacking player with real shooting power who becomes more dangerous when he chooses placement over overpowering attempts."
           }
         },
         {
@@ -197,15 +197,15 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohammed-hammad-syed",
-          "overall": 95,
+          "overall": 94,
           "playstyle": {
-            "label": "Goalkeeper",
+            "label": "Limited Scouting",
             "traits": [
-              "Shot stopper",
-              "Back line voice",
-              "Penalty box presence"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Mohammed Hammad Syed plays as a goalkeeper, so the biggest impact is organizing the defense, staying composed under pressure, and giving the team a steady last line."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -217,13 +217,13 @@
           "profileId": "uzair-sidat",
           "overall": 61,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Limited Scouting",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Uzair Sidat brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -233,15 +233,15 @@
           "position": "Goalkeeper",
           "leadershipRole": "assistant",
           "profileId": "hammad-shaikh",
-          "overall": 83,
+          "overall": 78,
           "playstyle": {
-            "label": "Goalkeeper",
+            "label": "Limited Scouting",
             "traits": [
-              "Shot stopper",
-              "Back line voice",
-              "Penalty box presence"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Hammad Shaikh plays as a goalkeeper, so the biggest impact is organizing the defense, staying composed under pressure, and giving the team a steady last line."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         }
       ],
@@ -283,13 +283,13 @@
           "profileId": "muzamil-kharooti",
           "overall": 99,
           "playstyle": {
-            "label": "Goal-First Attacker",
+            "label": "Complete Game Controller",
             "traits": [
-              "Finishing",
-              "Forward runs",
-              "Helps winning teams"
+              "Playmaking",
+              "Scoring",
+              "Game control"
             ],
-            "description": "Muzamil Kharooti is at the best when attacking the box and looking for goals. The style is simple to understand: find space, get shots, and finish chances."
+            "description": "A complete player who can control the tempo, create for teammates, carry the ball or take over as the primary scorer."
           }
         },
         {
@@ -335,15 +335,15 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-zaidan",
-          "overall": 78,
+          "overall": 77,
           "playstyle": {
-            "label": "Goalkeeper",
+            "label": "Utility Defender",
             "traits": [
-              "Shot stopper",
-              "Back line voice",
-              "Penalty box presence"
+              "Defending",
+              "Versatility",
+              "Emergency goalkeeping"
             ],
-            "description": "Muhammad Zaidan plays as a goalkeeper, so the biggest impact is organizing the defense, staying composed under pressure, and giving the team a steady last line."
+            "description": "A versatile defensive option who can cover multiple roles and even provide emergency goalkeeping when the lineup needs flexibility."
           }
         },
         {
@@ -355,13 +355,13 @@
           "profileId": "reda-alijalam",
           "overall": 86,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Balanced Utility Player",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Balanced game",
+              "Versatility",
+              "Dependability"
             ],
-            "description": "Mohamad Reda Alijalam brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "A balanced player who can fill different situations reliably, even without one overwhelming elite attribute."
           }
         },
         {
@@ -389,15 +389,15 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "subhanullah-sharza",
-          "overall": 82,
+          "overall": 83,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Physical Support Player",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Winning impact"
+              "Physical presence",
+              "Squad depth",
+              "Simple role"
             ],
-            "description": "Subhanallah Sharzah profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "A stronger-built supporting player who can contribute when he keeps his role simple and brings physical presence to the squad."
           }
         },
         {
@@ -479,7 +479,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "ziyad-adam",
-          "overall": 77,
+          "overall": 78,
           "playstyle": {
             "label": "Defensive Anchor",
             "traits": [
@@ -499,13 +499,13 @@
           "profileId": "saad-khan",
           "overall": 99,
           "playstyle": {
-            "label": "Goalkeeper",
+            "label": "Goalkeeping Wall",
             "traits": [
-              "Shot stopper",
-              "Back line voice",
-              "Penalty box presence"
+              "Shot stopping",
+              "Reflexes",
+              "Big saves"
             ],
-            "description": "Saad Khan plays as a goalkeeper, so the biggest impact is organizing the defense, staying composed under pressure, and giving the team a steady last line."
+            "description": "A reliable goalkeeper who can change a game with excellent shot stopping, reflexes and difficult saves under pressure."
           }
         }
       ],
@@ -527,15 +527,15 @@
           "position": "Field",
           "leadershipRole": "captain",
           "profileId": "abdul-ghiyas-solyman",
-          "overall": 92,
+          "overall": 93,
           "playstyle": {
-            "label": "Creator",
+            "label": "Creative Left Winger",
             "traits": [
-              "Passing",
-              "Chance creation",
-              "Unselfish play"
+              "Elite dribbling",
+              "Close control",
+              "One-on-one ability"
             ],
-            "description": "Abdul Ghiyas Solyman plays more like a setup player, moving the ball into better areas and helping teammates get cleaner looks at goal."
+            "description": "A creative left winger who prefers taking on defenders, using close control to create space and turning those attacks into shooting chances. His vision and passing decisions can be inconsistent, and he relies more on ball control and changes of direction than top-end speed."
           }
         },
         {
@@ -583,13 +583,13 @@
           "profileId": "ayub-jan",
           "overall": 85,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Limited Scouting",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Winning impact"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Ayub Jan profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -599,7 +599,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "bayizedsha",
-          "overall": 81,
+          "overall": 82,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -637,13 +637,13 @@
           "profileId": "ilyas-salim",
           "overall": 71,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Developing Depth Player",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Reliable coverage"
+              "Squad depth",
+              "Role building",
+              "Consistency to grow"
             ],
-            "description": "Ilyas Salim profiles as a defense-first player who also adds surprise attacking value when chances open up. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "A developing squad player who is still working toward more consistent technical play, decision-making and match impact."
           }
         },
         {
@@ -655,13 +655,13 @@
           "profileId": "muhammad-affan",
           "overall": 87,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Athletic Transition Player",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Speed",
+              "Jumping",
+              "Heading"
             ],
-            "description": "M. Affan brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "A fast, athletic player who is useful in transition and can compete in the air with surprising jumping and heading ability."
           }
         },
         {
@@ -691,13 +691,13 @@
           "profileId": "taha-nakhuda",
           "overall": 88,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "All-Around Attacker",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Finishing",
+              "Playmaking",
+              "Dribbling"
             ],
-            "description": "Taaha Nakhuda brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "A versatile attacker who can finish, create for teammates or dribble past defenders instead of relying on only one part of his game."
           }
         },
         {
@@ -709,13 +709,13 @@
           "profileId": "tayyib-mohammed",
           "overall": 88,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Balanced Depth Forward",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Balanced game",
+              "Occasional scoring",
+              "Useful depth"
             ],
-            "description": "Tayyib Mohammed brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "A balanced all-around contributor who can provide useful depth and occasional scoring without relying on one elite standout trait."
           }
         },
         {
@@ -727,13 +727,13 @@
           "profileId": "tulha-ahmed",
           "overall": 84,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Depth Contributor",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Squad depth",
+              "Useful flashes",
+              "Room to improve"
             ],
-            "description": "Tulha Ahmed brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "A depth player who can provide useful minutes but is still working toward greater technical consistency and overall impact."
           }
         },
         {
@@ -743,7 +743,7 @@
           "position": "Goalkeeper",
           "leadershipRole": "assistant",
           "profileId": "aneeq-shaikh",
-          "overall": 94,
+          "overall": 97,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -755,7 +755,7 @@
           }
         }
       ],
-      "overall": 79
+      "overall": 80
     },
     {
       "id": "jogiat-palace",
@@ -791,15 +791,15 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mubashir-kharooti",
-          "overall": 80,
+          "overall": 81,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "One-on-One Dribbler",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Dribbling",
+              "Agility",
+              "Ball control"
             ],
-            "description": "Mubashir Kharooti brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "A quick, low-centre-of-gravity dribbler who is comfortable changing direction and carrying the ball through tight spaces."
           }
         },
         {
@@ -883,13 +883,13 @@
           "profileId": "m-yahya",
           "overall": 95,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Limited Scouting",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "M Yahya brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -919,13 +919,13 @@
           "profileId": "muhammad-teli",
           "overall": 92,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Recovery-Speed Defender",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Elite speed",
+              "Recovery defending",
+              "Tackling"
             ],
-            "description": "Muhummud Teli brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "An athletic defender whose elite speed turns recovery runs into a weapon, while tackling, positioning and a useful shot round out his game."
           }
         },
         {
@@ -973,13 +973,13 @@
           "profileId": "zakariya-chhibu",
           "overall": 84,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Limited Scouting",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Reliable coverage"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Zakariya Chhibu profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -989,19 +989,19 @@
           "position": "Goalkeeper",
           "leadershipRole": null,
           "profileId": "ali-razzaq",
-          "overall": 97,
+          "overall": 94,
           "playstyle": {
-            "label": "Goalkeeper",
+            "label": "Balanced Utility Player",
             "traits": [
-              "Shot stopper",
-              "Back line voice",
-              "Penalty box presence"
+              "Balanced game",
+              "Versatility",
+              "Dependability"
             ],
-            "description": "Ali Razzaq plays as a goalkeeper, so the biggest impact is organizing the defense, staying composed under pressure, and giving the team a steady last line."
+            "description": "A balanced player whose value comes from filling different roles dependably rather than taking over matches alone."
           }
         }
       ],
-      "overall": 77
+      "overall": 76
     },
     {
       "id": "asif-gangat-united",
@@ -1037,15 +1037,15 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "azizullah",
-          "overall": 79,
+          "overall": 80,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Developing Physical Defender",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Reliable coverage"
+              "Physical presence",
+              "Strength",
+              "Room to improve"
             ],
-            "description": "Azizullah profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "A physical player whose next step is becoming more consistent with the ball, decision-making and possession security."
           }
         },
         {
@@ -1055,7 +1055,7 @@
           "position": "Forward",
           "leadershipRole": "captain",
           "profileId": "hafizullah",
-          "overall": 97,
+          "overall": 96,
           "playstyle": {
             "label": "Goal-First Attacker",
             "traits": [
@@ -1093,13 +1093,13 @@
           "profileId": "huzaifa-ahmad-vadia",
           "overall": 75,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Limited Scouting",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Reliable coverage"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Huzaifa Ahmed Vadia profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         },
         {
@@ -1129,13 +1129,13 @@
           "profileId": "muhammad-salim",
           "overall": 76,
           "playstyle": {
-            "label": "Defensive Anchor",
+            "label": "Intelligent Utility Player",
             "traits": [
-              "Physical defending",
-              "Team shape",
-              "Reliable coverage"
+              "Soccer IQ",
+              "Versatility",
+              "Backup goalkeeping"
             ],
-            "description": "Muhammad Salim profiles as a defense-first player who keeps the game simple and protects space first. The style is built around positioning, effort, and helping the team stay organized."
+            "description": "An intelligent utility player who can fill different roles and give Amax extra cover as a backup goalkeeper."
           }
         },
         {
@@ -1481,15 +1481,15 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "uwais-bemat",
-          "overall": 86,
+          "overall": 87,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Transition Sprinter",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "Elite speed",
+              "Counterattacking",
+              "Passing decisions"
             ],
-            "description": "Uwais Bemat brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "An extremely fast transition player who attacks open space, makes the simple pass when needed and gives counterattacks immediate danger."
           }
         },
         {
@@ -1499,7 +1499,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "zain-adam",
-          "overall": 54,
+          "overall": 55,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1519,13 +1519,13 @@
           "profileId": "mohammed-rayyan-sayed",
           "overall": 89,
           "playstyle": {
-            "label": "Steady Contributor",
+            "label": "Limited Scouting",
             "traits": [
-              "Experience",
-              "Team role",
-              "Consistency"
+              "More to evaluate",
+              "Role unclear",
+              "2026 report"
             ],
-            "description": "Mohammed Rayyan Syed brings a steady role across seasons. The profile is less about one stat and more about being available, competing, and fitting into the team structure."
+            "description": "The 2026 scouting report has limited information for this player. More meaningful minutes will clarify the role, strengths and long-term style."
           }
         }
       ],

@@ -269,3 +269,24 @@
 .season-draft-feedback{margin:14px 0 0;padding:12px 14px;border:1px solid #e4c77978;border-left:4px solid #e4c779;border-radius:8px;background:linear-gradient(100deg,#584b272b,#ffffff05);color:#f0dfaa;font-size:13px;line-height:1.5}
 .season-draft-feedback[role="status"]{animation:draft-card-in .2s ease both}
 @media(max-width:760px){.season-draft-livebar{gap:8px}.season-draft-livebar strong{font-size:10px}.season-draft-livebar>b{font-size:11px}.season-draft-picked strong{font-size:10px}.season-draft-picked small{font-size:8px}.season-draft-matrix-cell.team-head strong{font-size:10px}.season-draft-matrix-cell.pick-cell strong{font-size:10px}.season-draft-matrix-cell.pick-cell small{font-size:8px}}
+
+.season-draft-order-tools{display:flex;align-items:center;gap:12px;margin:18px 0 10px;padding:12px 14px;border:1px solid #e4c77948;border-radius:9px;background:linear-gradient(100deg,#e4c77912,#ffffff04)}
+.season-draft-order-tools>strong{color:var(--gold);font-size:10px;letter-spacing:1.2px}
+.season-draft-order-tools>span{margin-right:auto;color:#a9c8b9;font-size:10px}
+.season-draft-order-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0;padding:0;list-style:none;counter-reset:draft-order}
+.season-draft-order-list li{display:grid;grid-template-columns:34px minmax(0,1fr) 34px 34px;align-items:center;gap:9px;min-width:0;padding:10px 12px;border:1px solid #ffffff16;border-radius:9px;background:linear-gradient(110deg,#113238,#0c2a30);animation:draft-card-in .32s both;animation-delay:calc(var(--order-index,0)*24ms)}
+.season-draft-order-list li.is-user{border-color:#e4c77978;background:linear-gradient(110deg,#594b282c,#103335)}
+.season-draft-order-list li>b{display:grid;place-items:center;width:30px;height:30px;border:1px solid #e4c77954;border-radius:50%;color:var(--gold);font-size:10px}
+.season-draft-order-list li span{min-width:0}.season-draft-order-list li strong,.season-draft-order-list li small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.season-draft-order-list li strong{color:var(--cream);font-size:11px}.season-draft-order-list li small{margin-top:4px;color:#92b7a7;font-size:8px;letter-spacing:.75px}
+.season-draft-order-list li button{display:grid;place-items:center;width:32px;height:32px;border:1px solid #9bc7ba3b;border-radius:8px;background:#ffffff08;color:#d6e5d8;font-size:14px;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}.season-draft-order-list li button:hover:not(:disabled){transform:translateY(-1px);border-color:#85d8b6;background:#27604e}.season-draft-order-list li button:disabled{opacity:.32;cursor:default}
+.season-draft-reset-note{display:flex;gap:10px;align-items:center;margin:13px 0;padding:11px 13px;border-left:3px solid #e4c779;border-radius:6px;background:#e4c7790d;color:#b4c9bd;font-size:10px;line-height:1.5}.season-draft-reset-note strong{flex:0 0 auto;color:var(--gold);font-size:8px;letter-spacing:1px}
+.season-draft-player:disabled{opacity:.5;cursor:wait;transform:none;box-shadow:none}
+.season-draft-pick-list .season-draft-picked{animation-delay:calc(min(var(--pick-index,0),18)*22ms)}
+@media(max-width:700px){.season-draft-order-tools{flex-wrap:wrap}.season-draft-order-tools>span{margin-right:0}.season-draft-order-tools button{margin-left:auto}.season-draft-order-list{grid-template-columns:1fr}.season-draft-reset-note{align-items:flex-start;flex-direction:column;gap:4px}}
+@media(prefers-reduced-motion:reduce){.season-draft-order-list li{animation:none}}
+/* Fantasy draft: animate the newest selection instead of replaying every prior pick. */
+.season-draft-matrix-cell.pick-cell.has-pick{animation:none}
+.season-draft-matrix-cell.pick-cell.has-pick.is-latest{animation:draft-card-in .32s both;border-color:#e4c779a8;box-shadow:0 0 0 2px #e4c77924,0 8px 22px #001a1c6e}
+.season-draft-recent-pick{animation:none}
+.season-draft-recent-pick.is-latest{animation:draft-card-in .3s both}
+.season-draft-picked{animation:none}
