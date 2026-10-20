@@ -33,5 +33,10 @@ service cloud.firestore {
   match /h2hInvites/{uid}/items/{id}{allow read:if own(uid);}
   match /h2hRecent/{uid}/players/{id}{allow read:if own(uid);}
   match /h2hPresence/{uid}{allow read:if signed();}
+  match /rushSeasons/{code}{
+   allow get:if signed()&&request.auth.uid in resource.data.memberIds;
+   allow list:if false;
+  }
+  match /rushSeasonInvites/{uid}/items/{id}{allow read:if own(uid);}
  }
 }

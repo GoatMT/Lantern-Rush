@@ -78,6 +78,11 @@ export function shirtTexture(kit){
     c.strokeStyle=kit.secondary;c.lineWidth=20;
     for(let i=-1;i<3;i++){c.beginPath();c.moveTo(i*128-36,450);c.bezierCurveTo(i*128+80,300,i*128-70,220,i*128+110,75);c.stroke();}
   }
+  if(kit.pattern==='sleeves'){
+    c.fillStyle=kit.secondary;c.beginPath();c.moveTo(0,0);c.lineTo(48,0);c.lineTo(35,210);c.lineTo(0,228);c.closePath();c.fill();
+    c.beginPath();c.moveTo(w,0);c.lineTo(w-48,0);c.lineTo(w-35,210);c.lineTo(w,228);c.closePath();c.fill();
+    c.strokeStyle=kit.trim||'#ffffff';c.globalAlpha=.75;c.lineWidth=3;c.beginPath();c.moveTo(48,0);c.lineTo(35,210);c.moveTo(w-48,0);c.lineTo(w-35,210);c.stroke();c.globalAlpha=1;
+  }
   // Shaped side panels, seams and tonal folds read at broadcast distance.
   for(const x of [64,192]){
     const fold=c.createLinearGradient(x-22,0,x+22,0);fold.addColorStop(0,'#00000000');fold.addColorStop(.5,'#00000026');fold.addColorStop(1,'#00000000');

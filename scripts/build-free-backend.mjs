@@ -5,7 +5,7 @@ const root=path.resolve(import.meta.dirname,'..');
 execFileSync(process.execPath,[path.join(root,'scripts/build-h2h-server.mjs')],{cwd:root,stdio:'inherit'});
 let source=await fs.readFile(path.join(root,'functions/index.js'),'utf8');
 const names=[...source.matchAll(/export const (\w+)=onCall/g)].map(m=>m[1]);
-if(names.length!==10)throw Error('Review new server operations before generating the free backend.');
+if(names.length!==11)throw Error('Review new server operations before generating the free backend.');
 source=source.slice(source.indexOf('const err='));
 const start=source.indexOf('export const h2hConnection='),end=source.indexOf('export const h2hProgress=');
 if(start<0||end<start)throw Error('Connection handler missing.');
@@ -26,6 +26,7 @@ import {applyRoomAction,validateOptions,personalReport} from '../functions/polic
 import {replayTrace,buildSquad} from '../functions/engine/h2h/simulation.js';
 import {mergeAccountProfiles,ADMIN_PASSWORD} from '../functions/engine/account-store.js';
 import {captureMatch} from '../functions/engine/match-history.js';
+import {onlineTeamIdentity,roundRobinFixtures,recordSeasonResult} from '../functions/engine/online-season.js';
 import catalog from '../functions/catalog.json' with {type:'json'};
 class HttpsError extends Error {constructor(code,message){super(message);this.code=code;}}
 const onCall=(_options,handler)=>handler,base={};

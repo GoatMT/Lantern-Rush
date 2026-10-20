@@ -62,11 +62,30 @@ test('free room API rejects unapproved players and only returns free STUN after 
  await assert.rejects(api.h2hTrace(session(db,stranger,{code,action:'confirm',digest:'a'.repeat(64),tick:500})),/participant/);
 });
 
+test('Rush Connect season rooms enforce 2-player minimum, schedule unique opponents and wait for both Play confirmations',async()=>{
+ const db=database(),api=createApi({db,auth:db}),ids=[];
+ for(const username of ['SeasonHost','SeasonGuest','SeasonExtra'])ids.push((await api.accountAuth({data:{action:'create',username,passcode:'123456'}})).profile.uid);
+ const [host,guest,extra]=ids,call=(id,data)=>api.rushSeason(session(db,id,data));
+ const created=await call(host,{action:'create',year:'2026',maxPlayers:2,duration:2}),code=created.code;
+ await assert.rejects(call(host,{action:'start',code}),/2 to 8 players/);
+ await call(guest,{action:'join',code});await assert.rejects(call(extra,{action:'join',code}),/full/);
+ const first=catalog['2026'][0],second=catalog['2026'][1];
+ await call(host,{action:'team',code,team:{teamId:first.id,name:'Host United',logoTeamId:first.id,primary:'#123456',secondary:'#abcdef',design:'stripe'}});
+ await call(guest,{action:'team',code,team:{teamId:second.id,name:'Guest Rovers',logoTeamId:second.id,primary:'#654321',secondary:'#fedcba',design:'gradient'}});
+ await call(host,{action:'start',code});
+ let season=db.records.get('rushSeasons/'+code);assert.equal(season.fixtures.length,1);assert.equal(season.fixtures[0].stage,'regular');
+ const fixtureId=season.activeFixtureId;await assert.rejects(call(extra,{action:'play',code,fixtureId}),/Join the season/);
+ const firstReady=await call(host,{action:'play',code,fixtureId});assert.equal(firstReady.roomCode,null);
+ const secondReady=await call(guest,{action:'play',code,fixtureId}),room=db.records.get('h2hRooms/'+secondReady.roomCode);
+ assert.match(secondReady.roomCode,/^LR-\d{6}$/);assert.equal(room.status,'STARTING');assert.deepEqual(room.members,[season.fixtures[0].homeUid,season.fixtures[0].awayUid]);assert.equal(room.options.duration,2);assert.equal(room.seasonOnline.code,code);assert.equal(room.choices[host].team,first.id);assert.equal(room.seasonOnline.teams[guest].name,'Guest Rovers');
+});
+
 test('free finalize replays the actual timeline and saves both histories once',async()=>{
  const db=database(),api=createApi({db,auth:db}),members=['host','guest'];
  for(const id of members){db.records.set('gameLogins/'+id,{revision:id});db.records.set('gameProfiles/'+id,{uid:id,username:id});}
  const choices=Object.fromEntries(members.map((id,i)=>[id,{team:catalog['2026'][i].id,formation:'2-2-2',lineup:catalog['2026'][i].lineup.map(p=>p.id)}]));
- const room={code:'LR-123456',members,host:'host',guest:'guest',names:{host:'Host',guest:'Guest'},choices,options:{duration:1,season:'2026',difficulty:'normal'},seed:12,startedAt:Date.now()-900000,expiresAt:Date.now()+300000,status:'LIVE'};db.records.set('h2hRooms/'+room.code,room);
+ const seasonCode='RC-123456',identities={host:{name:'Host City',teamId:catalog['2026'][0].id,logo:catalog['2026'][0].logo,primary:'#123456'},guest:{name:'Guest Town',teamId:catalog['2026'][1].id,logo:catalog['2026'][1].logo,primary:'#654321'}},season={code:seasonCode,name:'Test season',year:'2026',maxPlayers:2,duration:1,host:'host',members:[{uid:'host',username:'Host'},{uid:'guest',username:'Guest'}],memberIds:members,teams:identities,status:'ACTIVE',stage:'regular',fixtures:[{id:'league-1',stage:'regular',homeUid:'host',awayUid:'guest',status:'pending',playReady:{}}],activeFixtureId:'league-1',activeRoomCode:'LR-123456'};db.records.set('rushSeasons/'+seasonCode,season);
+ const room={code:'LR-123456',members,host:'host',guest:'guest',names:{host:'Host',guest:'Guest'},choices,options:{duration:1,season:'2026',difficulty:'normal'},seed:12,startedAt:Date.now()-900000,expiresAt:Date.now()+300000,status:'LIVE',seasonOnline:{code:seasonCode,fixtureId:'league-1',teams:identities}};db.records.set('h2hRooms/'+room.code,room);
  const sim=new LiveSimulation(members.map((id,i)=>buildSquad(catalog['2026'][i],choices[id])),room.options,room.seed),trace=[];
  const command=(side,c)=>{sim.command(side,c);trace.push({t:sim.tick,side,command:c});};command(0,{type:'skipIntro'});
  for(let n=0;n<50000&&sim.match.phase!=='fulltime';n++){
@@ -82,7 +101,7 @@ test('free finalize replays the actual timeline and saves both histories once',a
  await api.h2hTrace(session(db,'guest',{code:room.code,action:'confirm',digest,tick:sim.tick}));
  assert.equal((await api.h2hFinalize(session(db,'host',{code:room.code}))).saved,true);
  assert.equal((await api.h2hFinalize(session(db,'guest',{code:room.code}))).saved,true);
- const reports=[...db.records].filter(([key])=>key.includes('/matches/'));assert.equal(reports.length,2);assert.deepEqual(reports[0][1].score,[...reports[1][1].score].reverse());assert.equal(reports[0][1].verified,true);
+ const reports=[...db.records].filter(([key])=>key.includes('/matches/'));assert.equal(reports.length,2);assert.deepEqual(reports[0][1].score,[...reports[1][1].score].reverse());assert.equal(reports[0][1].verified,true);assert.equal(reports[0][1].mode,'season');assert.ok(['Host City','Guest Town'].includes(reports[0][1].teams[0]));const updated=db.records.get('rushSeasons/'+seasonCode);assert.equal(updated.stage,'playoffs');assert.equal(updated.fixtures.find(f=>f.id==='league-1').status,'played');assert.equal(updated.fixtures.find(f=>f.id==='final').status,'pending');
 });
 
 test('REST encoding preserves match reports, confirmation field paths and atomic creates',async()=>{

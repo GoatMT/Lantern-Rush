@@ -1,6 +1,6 @@
 import {playerOfMatch} from './match/stats.js';
 
-export const MODE_LABELS={all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.',h2h:'Live Head to Head'};
+export const MODE_LABELS={all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.',h2h:'Rush Connect · Live Match'};
 export const DIFFICULTY_LABELS=Object.freeze({all:'All difficulties',easy:'Easy',normal:'Medium (Normal)',hard:'Hard',insane:'Insane'});
 export const normalizeDifficulty=value=>String(value||'').trim().toLowerCase()==='medium'?'normal':String(value||'').trim().toLowerCase();
 export const matchesDifficulty=(record,difficulty)=>!difficulty||difficulty==='all'||(!['local','account'].includes(record.opponent?.type)&&normalizeDifficulty(record.opponent?.difficulty)===normalizeDifficulty(difficulty));
@@ -20,7 +20,9 @@ export function captureMatch(match,account={}){
     competition:match.tournament?{name:'Inter-Madrasah',stage:match.tournament.stage||'',fixtureId:match.tournament.id||''}:match.seasonMatch?{name:'LSL Season',stage:match.seasonMatch.stage||'',fixtureId:match.seasonMatch.id||''}:match.dream?{name:'Dream F.C.',stage:match.dream.event?'Event':'CPU match'}:null,
     teams:(match.teams||[]).map(t=>t.name),teamIds:(match.teams||[]).map(t=>t.id||''),score,won:score[0]>score[1],tie:score[0]===score[1],
     duration:n(match.elapsed),scheduledDuration:n(match.settings?.duration)*60,opponent:{type:'cpu',difficulty:match.settings?.difficulty||'normal'},
-    stats:{user:copy(match.stats?.[0]||{}),cpu:copy(match.stats?.[1]||{})},goals,substitutions:copy(match.subEvents||[]),injuries:copy(match.injuryEvents||[]),
+    stats:{user:copy(match.stats?.[0]||{}),cpu:copy(match.stats?.[1]||{})},goals,
+    shootout:match.shootout?{goals:[...(match.shootout.goals||[0,0])],attempts:[...(match.shootout.attempts||[0,0])],winner:Number.isInteger(match.shootout.winner)?match.shootout.winner:null,events:copy(match.shootout.events||[])}:null,
+    substitutions:copy(match.subEvents||[]),injuries:copy(match.injuryEvents||[]),
     startingLineups:sides(match.startingLineups),finalLineups:sides([0,1].map(team=>(match.players||[]).filter(p=>p.team===team&&!p.sentOff).map(playerSnapshot))),
     startingFormations:sides(match.startingFormations),finalFormations:sides(match.formations),playerOfMatch:potm?playerSnapshot(potm):null,
     players:players.map(p=>({...playerSnapshot(p),goals:n(p.goals),assists:n(p.assists),shots:n(p.shots),onTarget:n(p.onTarget),passes:n(p.passes),tackles:n(p.tackles),saves:n(p.saves),yellows:n(p.yellow),reds:p.sentOff?1:0,involvement:n(p.involvement)}))});

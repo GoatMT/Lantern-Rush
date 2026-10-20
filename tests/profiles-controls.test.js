@@ -33,8 +33,8 @@ test('all seasons include career overalls and complete website playstyle profile
     }
   }assert.equal(count,278);
 });
-test('the seven supplied 2026 kits are season-specific with the requested patterns',()=>{
-  assert.equal(Object.keys(SEASON_KITS['2026']).length,7);
+test('2026 team kit references are season-specific and preserve the requested patterns',()=>{
+  assert.equal(Object.keys(SEASON_KITS['2026']).length,8);
   assert.equal(teamKit('2026','leeward-lions').pattern,'gradient');
   assert.equal(teamKit('2026','gangat-warriors').pattern,'stripe');
   assert.equal(teamKit('2026','refuel-rovers').pattern,'sleeves');

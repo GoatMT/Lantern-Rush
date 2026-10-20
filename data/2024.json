@@ -197,7 +197,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohammed-hammad-syed",
-          "overall": 94,
+          "overall": 74,
           "playstyle": {
             "label": "Limited Scouting",
             "traits": [
@@ -215,7 +215,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "uzair-sidat",
-          "overall": 61,
+          "overall": 62,
           "playstyle": {
             "label": "Limited Scouting",
             "traits": [
@@ -233,7 +233,7 @@
           "position": "Goalkeeper",
           "leadershipRole": "assistant",
           "profileId": "hammad-shaikh",
-          "overall": 78,
+          "overall": 56,
           "playstyle": {
             "label": "Limited Scouting",
             "traits": [
@@ -263,7 +263,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abubakr-amirat",
-          "overall": 65,
+          "overall": 64,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -299,7 +299,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-hassan",
-          "overall": 72,
+          "overall": 73,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -317,7 +317,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-iqrash",
-          "overall": 65,
+          "overall": 64,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -335,7 +335,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-zaidan",
-          "overall": 77,
+          "overall": 58,
           "playstyle": {
             "label": "Utility Defender",
             "traits": [
@@ -371,7 +371,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "omar-ajmal",
-          "overall": 83,
+          "overall": 84,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -389,7 +389,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "subhanullah-sharza",
-          "overall": 83,
+          "overall": 82,
           "playstyle": {
             "label": "Physical Support Player",
             "traits": [
@@ -407,7 +407,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "sufyan-munshi",
-          "overall": 71,
+          "overall": 70,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -443,7 +443,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "umar-nakhuda",
-          "overall": 65,
+          "overall": 64,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -461,7 +461,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "yousuf-haqqani",
-          "overall": 72,
+          "overall": 73,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -497,7 +497,7 @@
           "position": "Goalkeeper",
           "leadershipRole": "assistant",
           "profileId": "saad-khan",
-          "overall": 99,
+          "overall": 72,
           "playstyle": {
             "label": "Goalkeeping Wall",
             "traits": [
@@ -527,7 +527,7 @@
           "position": "Field",
           "leadershipRole": "captain",
           "profileId": "abdul-ghiyas-solyman",
-          "overall": 93,
+          "overall": 92,
           "playstyle": {
             "label": "Creative Left Winger",
             "traits": [
@@ -563,7 +563,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ayaz-a-tutla",
-          "overall": 65,
+          "overall": 64,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -581,7 +581,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ayub-jan",
-          "overall": 85,
+          "overall": 84,
           "playstyle": {
             "label": "Limited Scouting",
             "traits": [
@@ -599,7 +599,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "bayizedsha",
-          "overall": 82,
+          "overall": 83,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -653,7 +653,7 @@
           "position": "Forward",
           "leadershipRole": "assistant",
           "profileId": "muhammad-affan",
-          "overall": 87,
+          "overall": 86,
           "playstyle": {
             "label": "Athletic Transition Player",
             "traits": [
@@ -671,7 +671,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohammad-hamzah-wahab",
-          "overall": 65,
+          "overall": 64,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -707,7 +707,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "tayyib-mohammed",
-          "overall": 88,
+          "overall": 87,
           "playstyle": {
             "label": "Balanced Depth Forward",
             "traits": [
@@ -725,7 +725,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "tulha-ahmed",
-          "overall": 84,
+          "overall": 83,
           "playstyle": {
             "label": "Depth Contributor",
             "traits": [
@@ -743,7 +743,7 @@
           "position": "Goalkeeper",
           "leadershipRole": "assistant",
           "profileId": "aneeq-shaikh",
-          "overall": 97,
+          "overall": 76,
           "playstyle": {
             "label": "Goalkeeper",
             "traits": [
@@ -755,7 +755,7 @@
           }
         }
       ],
-      "overall": 80
+      "overall": 79
     },
     {
       "id": "jogiat-palace",
@@ -773,7 +773,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "aamir-jogiat",
-          "overall": 67,
+          "overall": 66,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -827,7 +827,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ayhaam-khalefa",
-          "overall": 67,
+          "overall": 69,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -845,7 +845,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "elyas-roien",
-          "overall": 61,
+          "overall": 60,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -863,7 +863,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "ismail-mohammed",
-          "overall": 61,
+          "overall": 60,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -881,7 +881,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "m-yahya",
-          "overall": 95,
+          "overall": 94,
           "playstyle": {
             "label": "Limited Scouting",
             "traits": [
@@ -899,7 +899,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-nakhuda",
-          "overall": 61,
+          "overall": 60,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -917,7 +917,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "muhammad-teli",
-          "overall": 92,
+          "overall": 91,
           "playstyle": {
             "label": "Recovery-Speed Defender",
             "traits": [
@@ -935,7 +935,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "mohamed-aathif",
-          "overall": 61,
+          "overall": 60,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -953,7 +953,7 @@
           "position": "Forward",
           "leadershipRole": "captain",
           "profileId": "rehaan-adam",
-          "overall": 91,
+          "overall": 90,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -971,7 +971,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "zakariya-chhibu",
-          "overall": 84,
+          "overall": 83,
           "playstyle": {
             "label": "Limited Scouting",
             "traits": [
@@ -989,7 +989,7 @@
           "position": "Goalkeeper",
           "leadershipRole": null,
           "profileId": "ali-razzaq",
-          "overall": 94,
+          "overall": 65,
           "playstyle": {
             "label": "Balanced Utility Player",
             "traits": [
@@ -1019,7 +1019,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "abdul-basit-mesbah",
-          "overall": 74,
+          "overall": 75,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1037,7 +1037,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "azizullah",
-          "overall": 80,
+          "overall": 78,
           "playstyle": {
             "label": "Developing Physical Defender",
             "traits": [
@@ -1073,7 +1073,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "hamzah-gangat",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1145,7 +1145,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "muhammad-okasha",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1163,7 +1163,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "mussadiq-khan",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1181,7 +1181,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "rehan-ahmad",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1199,7 +1199,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "rizwaan-amirat",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1217,7 +1217,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "rizwan-khan",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1235,7 +1235,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "saifan-mohammed",
-          "overall": 56,
+          "overall": 55,
           "playstyle": {
             "label": "Developing Profile",
             "traits": [
@@ -1319,7 +1319,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "bashir-ahmad-dastagiri",
-          "overall": 69,
+          "overall": 68,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1337,7 +1337,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "bilal-sami-ahmad",
-          "overall": 68,
+          "overall": 67,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1355,7 +1355,7 @@
           "position": "Field",
           "leadershipRole": "captain",
           "profileId": "haroon-sarood",
-          "overall": 68,
+          "overall": 67,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1481,7 +1481,7 @@
           "position": "Field",
           "leadershipRole": "assistant",
           "profileId": "uwais-bemat",
-          "overall": 87,
+          "overall": 85,
           "playstyle": {
             "label": "Transition Sprinter",
             "traits": [
@@ -1499,7 +1499,7 @@
           "position": "Field",
           "leadershipRole": null,
           "profileId": "zain-adam",
-          "overall": 55,
+          "overall": 54,
           "playstyle": {
             "label": "Steady Contributor",
             "traits": [
@@ -1529,7 +1529,7 @@
           }
         }
       ],
-      "overall": 62
+      "overall": 61
     }
   ]
 }

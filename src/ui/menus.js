@@ -15,6 +15,8 @@ export class Menus {
   constructor(app){this.app=app;this.returnToPause=false;this.teamRenderCache=new Map();this.firstMatchTour=new FirstMatchTour(app);this.bind();}
   bind(){
     document.querySelectorAll('[data-match-durations]').forEach(el=>el.innerHTML=durationButtons());
+    const pauseTools=document.querySelector('.pause-tool-grid');
+    if(pauseTools&&!$('save-progress')){const save=document.createElement('button');save.id='save-progress';save.className='pause-tool pause-tool-wide';save.innerHTML='<span class="pause-tool-icon">▣</span><span><b>SAVE PROGRESS</b><small>Save this mode and match record on this device</small></span><span class="pause-tool-arrow">›</span>';pauseTools.prepend(save);}
     const a=this.app,on=(id,fn)=>$(id).addEventListener('click',fn);
     on('play-now',()=>a.selectTeams('quick'));on('selection-back',()=>document.body.dataset.modePage?location.assign('./index.html'):a.home());
     on('start-match',()=>a.start());document.addEventListener('lantern-settings-request',event=>{event.preventDefault();this.settings();});on('match-options',()=>this.settings('game'));
@@ -47,7 +49,7 @@ export class Menus {
     $('setting-mobile-control-edit').addEventListener('change',ev=>{a.settings.set('mobileControlEdit',ev.target.checked);a.mobile.applyLayout();});
     $('setting-mobile-goalie-visible').addEventListener('change',ev=>{a.settings.set('mobileGoalieVisible',ev.target.checked);a.mobile.applyLayout();});
     on('reset-mobile-controls',()=>{a.mobile.resetPositions();this.renderSettings();});
-    on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('pause-close',()=>this.resume());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
+    on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('pause-close',()=>this.resume());on('save-progress',()=>this.saveProgress());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
     on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
     document.querySelectorAll('[data-pause-setting]').forEach(select=>select.addEventListener('change',ev=>this.changePauseSetting(ev.target.dataset.pauseSetting,ev.target.value)));
     on('restart-match',()=>this.confirm('RESTART MATCH?',()=>a.start()));on('quit-home',()=>this.confirm('QUIT TO HOME?',()=>a.home()));
@@ -172,6 +174,7 @@ export class Menus {
   renderBindings(){$('bindings').innerHTML=Object.entries(CONTROL_NAMES).map(([action,label])=>'<div class="binding-row"><span>'+label+'</span><button class="key-binding '+(this.app.controls.rebinding===action?'listening':'')+'" data-bind="'+action+'">'+(this.app.controls.rebinding===action?'PRESS KEY':e(keyLabel(this.app.settings.value.keys[action])))+'</button></div>').join('');}
   keyboardHint(){const keys=this.app.settings.value.keys;$('keyboard-hint').innerHTML=[['pass','PASS / SWITCH'],['shoot','SHOOT'],['skill','SKILL'],['sprint','SPRINT'],['goalie','GOALIE']].map(([k,v])=>'<span><kbd>'+e(keyLabel(keys[k]))+'</kbd>'+v+'</span>').join('');}
   pause(){this.app.controls.clear();this.renderPause();$('pause-dialog').showModal();}
+  saveProgress(){try{this.app.saveProgress();const button=$('save-progress');if(button){button.dataset.saved='true';button.querySelector('b').textContent='SAVED ON THIS DEVICE';setTimeout(()=>{if(button.isConnected){button.dataset.saved='false';button.querySelector('b').textContent='SAVE PROGRESS';}},1800);}}catch(error){this.notice({title:'SAVE FAILED',subtitle:error.message||'Could not save progress on this device.',seconds:5});}}
   renderPause(){
     const match=this.app.match,settings=this.app.settings.value;
     $('pause-team-home').textContent=match.teams[0].name;$('pause-team-away').textContent=match.teams[1].name;

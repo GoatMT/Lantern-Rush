@@ -19,6 +19,7 @@ import { FormationBuilder } from './ui/formation-editor.js';
 import { SeasonMenu } from './ui/season-mode.js';
 import { DreamMenu } from './dream.js';
 import { CloudAccount } from './cloud-account.js';
+import {captureMatch} from './match-history.js';
 
 async function badgeColor(team){
   if(team.kit)return;
@@ -97,7 +98,7 @@ class App {
   handleEvent(type,data){
     if(!this.menus||!this.match)return;
     this.audio?.matchEvent(type,data,this.match);
-    if(type==='phase'){if(data==='fulltime'){this.cloudAccount?.recordMatch(this.match).catch(()=>{this.menus.notice({title:'HISTORY SYNC PENDING',subtitle:this.match.historySavedLocally?'Saved on this device. Open History to retry cloud sync.':'Could not save the report. Keep this page open and check device storage.',seconds:6});});}this.menus.phase(data);}
+    if(type==='phase'){if(data==='fulltime'){this.saveCompletedProgress();this.cloudAccount?.recordMatch(this.match).catch(()=>{this.menus.notice({title:'HISTORY SYNC PENDING',subtitle:this.match.historySavedLocally?'Saved on this device. Open History to retry cloud sync.':'Could not save the report. Keep this page open and check device storage.',seconds:6});});}this.menus.phase(data);}
     if(type==='notice')this.menus.notice(data);
     if(type==='goal')this.renderer.stadium.score(...this.match.stats.map(s=>s.goals));
     if(type==='substitution'){this.renderer.refreshPlayer(data.player,this.match);this.menus.notice({title:'SUBSTITUTION',team:data.team,subtitle:playerLabel({name:data.out,jersey:data.outJersey})+' → '+playerLabel({name:data.in,jersey:data.inJersey}),seconds:PRESENTATION.substitution});}
@@ -107,6 +108,8 @@ class App {
   returnToDream(){this.menus.closeAll();this.mode='dream';this.dream.afterGame(this.match);this.menus.selection();}
   home(){if(document.body.dataset.modePage){location.assign('./index.html');return;}this.menus.closeAll();this.controls.clear();this.match=this.makeMatch();this.match.phase='home';this.renderer.setMatch(this.match);this.hud.reset();this.menus.show('home');$('home-modes')?.classList.remove('is-open');$('home-modes-toggle')?.setAttribute('aria-expanded','false');}
   selectTeams(mode=this.mode){this.mode=['rivalry','tournament','season','dream'].includes(mode)?mode:'quick';this.menus.closeAll();if(this.match)this.match.phase='home';this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.dream.prepare();this.menus.selection();}
+  saveCompletedProgress(){const match=this.match;if(!match||match.localProgressSaved)return;const record=match.cloudAccountRecord||=captureMatch(match,this.cloudAccount?.profile||{}),history=this.settings.value.localMatchHistory||[];this.settings.value.localMatchHistory=[record,...history.filter(item=>item.id!==record.id)].slice(0,40);const key=record.mode,old=this.settings.value.modeProgress[key]||{matches:0,wins:0,draws:0,losses:0,goalsFor:0,goalsAgainst:0};old.matches++;old.wins+=record.won?1:0;old.draws+=record.tie?1:0;old.losses+=!record.won&&!record.tie?1:0;old.goalsFor+=record.score[0];old.goalsAgainst+=record.score[1];old.lastResult={teams:record.teams,score:record.score,date:record.date};old.updatedAt=Date.now();this.settings.value.modeProgress[key]=old;this.settings.save();match.localProgressSaved=true;}
+  saveProgress(){this.seasonMode?.save?.();this.tournament?.save?.();this.dream?.save?.();const mode=this.mode||'quick',m=this.match;this.settings.value.modeProgress[mode]={...(this.settings.value.modeProgress[mode]||{}),savedAt:Date.now(),season:String(this.settings.value.season),userTeam:this.selected?.user?.id||'',cpuTeam:this.selected?.cpu?.id||'',liveMatch:m&&m.phase!=='fulltime'?{teams:m.teams.map(t=>t.name),score:m.stats.map(s=>s.goals),elapsed:m.elapsed,phase:m.phase,savedAt:Date.now()}:null};this.settings.save();return true;}
   changeSeason(year){this.settings.set('season',year);this.chooseDefaults();this.modes.prepare();this.tournament.prepare();this.seasonMode.prepare();this.dream.prepare();this.saveSelection();this.menus.renderTeams();}
   cycle(side,step){
     const teams=this.data.get(this.settings.value.season),other=side==='user'?'cpu':'user';let i=teams.indexOf(this.selected[side]);

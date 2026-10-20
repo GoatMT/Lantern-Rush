@@ -27,6 +27,10 @@ test('full-time snapshot freezes lineups and player stats, includes every mode a
  const r=captureMatch(m);m.startingLineups[0][0].name='Changed';assert.equal(r.startingLineups[0][0].name,'Original');assert.ok(matchReport(r).includes('Individual match statistics'));
  const validate=value=>{if(Array.isArray(value))assert.ok(!value.some(Array.isArray),'Firestore cannot store directly nested arrays');if(value&&typeof value==='object')Object.values(value).forEach(validate);};validate(r);
 });
+test('shootout report keeps the deciding kicks for Rush Connect history and online playoffs',()=>{
+ const m={stats:[{goals:1},{goals:1}],teams:[{name:'A'},{name:'B'}],settings:{},shootout:{goals:[4,3],attempts:[5,5],winner:0,events:[{team:0,scored:true,goals:[4,3],attempts:[5,5],time:1}]}};
+ const r=captureMatch(m);assert.deepEqual(r.shootout.goals,[4,3]);assert.equal(r.shootout.winner,0);assert.equal(r.shootout.events[0].scored,true);
+});
 test('archive reader loads beyond the first page with stable cursors',async()=>{
  const rows=Array.from({length:421},(_,i)=>({id:String(i),data:()=>report(String(i),[1,0])}));let calls=0;
  const fs={collection:(_,s)=>s,orderBy:()=>null,limit:n=>({n}),startAfter:cursor=>({start:Number(cursor.id)+1}),query:(ref,...c)=>({ref,c}),getDocs:async q=>{calls++;const start=q.c.find(x=>x?.start)?.start||0;return {docs:rows.slice(start,start+200)};}};const all=await fetchArchive(fs,{},'account');assert.equal(all.length,421);assert.equal(calls,3);
