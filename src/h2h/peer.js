@@ -19,13 +19,14 @@ export class LivePeer{
  }
  attach(channel){if(!['reliable','snapshots'].includes(channel.label)){channel.close();return;}this.channels[channel.label]=channel;
   if(channel.label==='reliable'){channel.bufferedAmountLowThreshold=64000;channel.onbufferedamountlow=()=>this.flush();}
-  channel.onopen=()=>{if(Object.values(this.channels).length===2&&Object.values(this.channels).every(c=>c.readyState==='open')){this.ready=true;clearTimeout(this.connectDeadline);this.flush();this.lastSeen=performance.now();this.onState('connected');}};
+  const checkReady=()=>{if(!this.closed&&Object.keys(this.channels).length===2&&Object.values(this.channels).every(c=>c.readyState==='open')&&!this.ready){this.ready=true;clearTimeout(this.connectDeadline);this.flush();this.lastSeen=performance.now();this.onState('connected');}};
+  channel.onopen=checkReady;checkReady();
   channel.onclose=()=>{this.ready=false;if(!this.closed)this.onState('disconnected');};
   channel.onmessage=e=>{if(typeof e.data!=='string'||e.data.length>200000)return;this.lastSeen=performance.now();let data;try{data=JSON.parse(e.data);}catch{return;}
    if(data.type==='ping'){this.send({type:'pong',at:data.at});return;}if(data.type==='pong'){this.latency=Math.round(performance.now()-data.at);return;}this.onMessage(data);
   };
  }
- send(message,fast=false){const c=this.channels[fast?'snapshots':'reliable'];if(c?.readyState!=='open')return false;const text=JSON.stringify(message);if(fast){if(c.bufferedAmount>64000)return false;c.send(text);return true;}if(this.outbox.length>2000){this.onState('error','Connection is too slow. Reconnecting…');return false;}this.outbox.push(text);this.flush();return true;}
+ send(message,fast=false){const c=this.channels[fast?'snapshots':'reliable'];if(c?.readyState!=='open')return false;const text=JSON.stringify(message);if(fast){if(c.bufferedAmount>64000)return false;try{c.send(text);return true;}catch{this.onState('disconnected');return false;}}if(this.outbox.length>2000){this.onState('error','Connection is too slow. Reconnecting…');return false;}this.outbox.push(text);this.flush();return true;}
  flush(){const c=this.channels.reliable;while(c?.readyState==='open'&&c.bufferedAmount<128000&&this.outbox.length)c.send(this.outbox.shift());}
 
  close(){this.closed=true;this.ready=false;clearInterval(this.health);clearTimeout(this.connectDeadline);this.stop?.();this.pc?.close();}

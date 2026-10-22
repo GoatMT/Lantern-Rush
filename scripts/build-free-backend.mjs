@@ -5,7 +5,7 @@ const root=path.resolve(import.meta.dirname,'..');
 execFileSync(process.execPath,[path.join(root,'scripts/build-h2h-server.mjs')],{cwd:root,stdio:'inherit'});
 let source=await fs.readFile(path.join(root,'functions/index.js'),'utf8');
 const names=[...source.matchAll(/export const (\w+)=onCall/g)].map(m=>m[1]);
-if(names.length!==11)throw Error('Review new server operations before generating the free backend.');
+if(names.length!==12)throw Error('Review new server operations before generating the free backend.');
 source=source.slice(source.indexOf('const err='));
 const start=source.indexOf('export const h2hConnection='),end=source.indexOf('export const h2hProgress=');
 if(start<0||end<start)throw Error('Connection handler missing.');
@@ -16,7 +16,7 @@ source=source.slice(0,start)+`export const h2hConnection=onCall(base,async reque
  const canWatch=active&&watcherApproved&&(uid===room.host||uid===watcher);
  if(!active||(!room.members.includes(uid)&&!canWatch))err('permission-denied','Only accepted match players or approved spectators can connect.');
  await rate('connection-'+uid,15,60000);
- return {iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],relay:false};
+ return {iceServers:[{urls:'stun:stun.cloudflare.com:3478'},{urls:'stun:stun.l.google.com:19302'}],relay:false};
 });
 `+source.slice(end);
 source=source.replace(/export const /g,'const ');

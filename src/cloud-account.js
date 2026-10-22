@@ -5,6 +5,7 @@ export {ADMIN_PASSWORD,validateCredentials} from './account-store.js';
 import {captureMatch,uniqueMatches,summarize,recordsFor} from './match-history.js';
 import {enqueueReport,removePending,pendingReports,fetchArchive} from './history-store.js';
 import {FIREBASE_CONFIG,FIREBASE_SDK_VERSION} from './firebase-config.js';
+import {FREE_BACKEND_URL} from './live-config.js';
 
 const PROFILE_COLLECTION='gameProfiles';
 
@@ -69,8 +70,19 @@ export class CloudAccount {
       ]);
       const instance=app.getApps().find(item=>item.name==='lantern-rush')||app.initializeApp(FIREBASE_CONFIG,'lantern-rush');
       this.modules={app,firestore};this.db=firestore.getFirestore(instance);
-      let online=false;try{online=(await firestore.getDoc(firestore.doc(this.db,'runtime','live'))).data()?.enabled===true;}catch{}
-      this.store=online?new VerifiedAccountStore(firestore,this.db,instance):new FirestoreAccountStore(firestore,this.db);this.available=true;
+      // Do not silently downgrade to the legacy browser-only adapter when a
+      // browser extension or network policy blocks the runtime flag read. That
+      // adapter has no Firebase identity and can never authorize Live H2H. If a
+      // free backend URL is configured, keep the verified account path and let
+      // the backend return its normal setup/availability message instead.
+      let online=false,flagRead=false;
+      try{const runtime=await firestore.getDoc(firestore.doc(this.db,'runtime','live'));flagRead=true;online=runtime.data()?.enabled===true;}catch{}
+      const backendConfigured=(()=>{try{return Boolean(FREE_BACKEND_URL&&new URL(FREE_BACKEND_URL).hostname);}catch{return false;}})();
+      // All newly signed-in players use the same verified identity when the
+      // free backend is configured. Selecting the legacy adapter merely
+      // because runtime/live is disabled made some valid accounts enter Rush
+      // Connect without the Firebase token required by room operations.
+      this.store=backendConfigured||online?new VerifiedAccountStore(firestore,this.db,instance):new FirestoreAccountStore(firestore,this.db);this.available=true;
       try { const restored=await this.store.restore(); if(restored)this.adopt(restored); }
       catch(error){this.error=error;}
       globalThis.addEventListener?.('storage',event=>{

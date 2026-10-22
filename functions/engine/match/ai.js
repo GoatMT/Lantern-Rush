@@ -52,7 +52,7 @@ export function updateAI(match,dt){
       }else if(owner===p){
         const goalDistance=FIELD.halfLength-p.x*direction;
         const defenders=match.active(1-team).filter(o=>distance(p,o)<5);
-        tx=direction*FIELD.halfLength;tz=clamp(p.z*(goalDistance<28?.62:.9),-FIELD.halfWidth*.8,FIELD.halfWidth*.8);
+        tx=direction*FIELD.halfLength;const centralize=goalDistance<15?.25:goalDistance<28?.48:.9;tz=clamp(p.z*centralize,-FIELD.halfWidth*.8,FIELD.halfWidth*.8);
         const forward=normalize(tx-p.x,tz-p.z);let avoidX=0,avoidZ=0;
         for(const defender of defenders){
           const dx=defender.x-p.x,dz=defender.z-p.z,dist=Math.hypot(dx,dz);

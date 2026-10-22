@@ -3,7 +3,6 @@ import {initializeApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import {getFirestore,FieldValue} from 'firebase-admin/firestore';
 import {onCall,HttpsError} from 'firebase-functions/v2/https';
-import {defineSecret} from 'firebase-functions/params';
 import {readFileSync} from 'node:fs';
 import {applyRoomAction,validateOptions,personalReport} from './policy.js';
 import {replayTrace,buildSquad} from './engine/h2h/simulation.js';
@@ -11,7 +10,6 @@ import {mergeAccountProfiles,ADMIN_PASSWORD} from './engine/account-store.js';
 import {captureMatch} from './engine/match-history.js';
 import {onlineTeamIdentity,roundRobinFixtures,recordSeasonResult} from './engine/online-season.js';
 initializeApp();const db=getFirestore(),auth=getAuth();
-const TURN_CONFIG=defineSecret('H2H_TURN_CONFIG');
 const catalog=JSON.parse(readFileSync(new URL('./catalog.json',import.meta.url),'utf8'));
 const base={region:'us-central1',maxInstances:12};
 const err=(code,message)=>{throw new HttpsError(code,message);};
@@ -52,8 +50,19 @@ export const h2hRoom=onCall(base,async request=>{
   for(let attempt=0;attempt<8;attempt++){code='LR-'+randomInt(100000,1000000);try{await db.doc('h2hRooms/'+code).create({code,host:uid,guest:null,members:[uid],names:{[uid]:profile.username},options,choices:{},ready:{},requests:{},status:'OPEN',createdAt:Date.now(),updatedAt:Date.now(),expiresAt:Date.now()+7200000,score:[0,0],elapsed:0,remaining:options.duration*60,seed:randomInt(1,2147483647),epoch:0});return {code};}catch(error){if(error.code!==6)throw error;}}
   err('unavailable','Could not reserve a room ID. Try again.');
  }
+ if(data.action==='list'){
+  const snapshot=await db.collection('h2hRooms').get();
+  return {rooms:snapshot.docs.map(item=>item.data()).filter(room=>room.members?.includes(uid)&&room.expiresAt>Date.now())};
+ }
  const code=String(data.code||'').toUpperCase();if(!/^LR-\d{6}$/.test(code))err('invalid-argument','Enter a room ID such as LR-482731.');
  const ref=db.doc('h2hRooms/'+code);
+ if(data.action==='read'){
+  const room=(await ref.get()).data();
+  if(!room)err('not-found','Room not found.');
+  const requested=room.requests?.[uid],watching=(room.spectators||[]).includes(uid),invited=(await db.doc(`h2hInvites/${uid}/items/${code}`).get()).exists,recent=(await db.doc(`h2hRecent/${uid}/players/${room.members.find(id=>id!==uid)||'none'}`).get()).exists;
+  if(!room.members.includes(uid)&&!requested&&!watching&&!invited&&!recent)err('permission-denied','This room is not available to your signed-in account.');
+  return {room};
+ }
  try{return await db.runTransaction(async t=>{
   const snap=await t.get(ref);if(!snap.exists)err('not-found','Room not found.');const room=snap.data();
   const next=applyRoomAction(room,uid,profile.username,data,catalog,Date.now());t.set(ref,next);return {code,status:next.status};
@@ -125,24 +134,42 @@ export const h2hInvite=onCall(base,async request=>{
  if(!target||target===uid)err('not-found','Choose another Lantern Rush account.');
  await db.doc(`h2hInvites/${target}/items/${code}`).set({code,from:uid,fromName:room.names[uid],createdAt:Date.now(),expiresAt:room.expiresAt});return {};
 });
+export const h2hSignal=onCall(base,async request=>{
+ const uid=await signed(request),data=request.data||{},code=String(data.code||'').toUpperCase(),room=(await db.doc('h2hRooms/'+code).get()).data(),watcher=String(data.spectatorUid||'');await rate('signal-'+uid,200,60000);
+ if(!room||!/^LR-\d{6}$/.test(code))err('not-found','Room not found.');
+ const active=['STARTING','LIVE','CLOSE TO END'].includes(room.status)&&room.expiresAt>Date.now(),member=room.members.includes(uid),watching=watcher&&room.spectators?.includes(watcher)&&(uid===watcher||uid===room.host);
+ if(!active||(!member&&!watching))err('permission-denied','Only accepted match players or approved spectators can signal.');
+ const path=watcher?`h2hRooms/${code}/watchers/${watcher}/signals`:`h2hRooms/${code}/signals`;
+ if(data.action==='send'){
+  const kind=String(data.kind||''),payload=typeof data.payload==='string'?data.payload:JSON.stringify(data.payload);
+  if(!['offer','answer','candidate'].includes(kind)||typeof payload!=='string'||payload.length>16000||Number(data.epoch)!==Number(room.epoch))err('invalid-argument','Invalid connection signal.');
+  const id=randomUUID();await db.doc(`${path}/${id}`).create({from:uid,epoch:Number(data.epoch),kind,payload,createdAt:Date.now()});return {id};
+ }
+ if(data.action==='read'){
+  const snapshot=await db.collection(path).where('epoch','==',Number(data.epoch)).get();return {signals:snapshot.docs.map(item=>({id:item.id,...item.data()}))};
+ }
+ err('invalid-argument','Unknown signal operation.');
+});
 export const h2hPresence=onCall(base,async request=>{
  const uid=await signed(request);await rate('presence-'+uid,8,60000);let roomId=null;
  if(request.data?.code){const r=(await db.doc('h2hRooms/'+request.data.code).get()).data();if(r?.members.includes(uid)&&r.expiresAt>Date.now())roomId=r.code;}
  await db.doc('h2hPresence/'+uid).set({lastSeen:Date.now(),roomId});return {};
 });
-export const h2hConnection=onCall({...base,secrets:[TURN_CONFIG]},async request=>{
+export const h2hConnection=onCall(base,async request=>{
  const uid=await signed(request),code=request.data?.code,requestedWatcher=request.data?.spectatorUid,room=(await db.doc('h2hRooms/'+code).get()).data();
  const spectatorRequest=requestedWatcher!==undefined&&requestedWatcher!==null;
  const participant=!!room?.members.includes(uid),watcherApproved=!!(room?.options.allowSpectators===true&&(room?.spectators||[]).includes(requestedWatcher)),spectator=!!(spectatorRequest&&requestedWatcher===uid&&watcherApproved&&!participant),hostSignaling=!!(spectatorRequest&&uid===room?.host&&watcherApproved);
  if((!participant&&!spectator&&!hostSignaling)||room.members.length!==2||room.expiresAt<Date.now())err('permission-denied','Only accepted match players or approved spectators can connect.');
  await rate('relay-'+uid,15,60000);
  if(!['STARTING','LIVE','CLOSE TO END'].includes(room.status))err('failed-precondition','The match connection is not open.');
- // Use a TURN provider token endpoint in this secret, never credentials in the static website.
- const config=JSON.parse(TURN_CONFIG.value());
- if(!config.endpoint||!config.authorization)err('failed-precondition','The host must configure the TURN service.');
- const response=await fetch(config.endpoint,{method:'POST',headers:{Authorization:config.authorization,'Content-Type':'application/json'},body:JSON.stringify({ttl:3600}),signal:AbortSignal.timeout(12000)});
- if(!response.ok)err('unavailable','Could not obtain relay credentials.');const result=await response.json();
- const iceServers=result.iceServers||result;if(!Array.isArray(iceServers))err('unavailable','Invalid relay configuration.');return {iceServers};
+ // Free peer-to-peer transport: public STUN discovers direct paths without
+ // requiring a paid TURN relay or a secret configured in the deployed app.
+ // Some restrictive networks block direct WebRTC; those players get a clear
+ // connection failure and can retry on a different network.
+ return {relay:false,iceServers:[
+  {urls:'stun:stun.cloudflare.com:3478'},
+  {urls:'stun:stun.l.google.com:19302'}
+ ]};
 });
 export const h2hProgress=onCall(base,async request=>{
  const uid=await signed(request),data=request.data||{};await rate('progress-'+uid,40,60000);const ref=db.doc('h2hRooms/'+data.code);

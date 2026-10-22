@@ -1,7 +1,7 @@
 import {FirebaseRest} from './firebase-rest.js';
 import {createApi} from './api.generated.js';
 
-const apiNames=new Set(['accountAuth','accountProfile','accountAdmin','h2hRoom','rushSeason','h2hInvite','h2hPresence','h2hConnection','h2hProgress','h2hTrace','h2hFinalize']);
+const apiNames=new Set(['accountAuth','accountProfile','accountAdmin','h2hRoom','rushSeason','h2hInvite','h2hSignal','h2hPresence','h2hConnection','h2hProgress','h2hTrace','h2hFinalize']);
 const statusCode={ 'invalid-argument':400,unauthenticated:401,'permission-denied':403,'not-found':404,'already-exists':409,'failed-precondition':409,'resource-exhausted':429,unavailable:503 };
 const json=(body,status=200,headers={})=>Response.json(body,{status,headers:{'Cache-Control':'no-store',...headers}});
 const error=(code,message)=>Object.assign(new Error(message),{code});

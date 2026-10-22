@@ -47,8 +47,19 @@ const h2hRoom=onCall(base,async request=>{
   for(let attempt=0;attempt<8;attempt++){code='LR-'+randomInt(100000,1000000);try{await db.doc('h2hRooms/'+code).create({code,host:uid,guest:null,members:[uid],names:{[uid]:profile.username},options,choices:{},ready:{},requests:{},status:'OPEN',createdAt:Date.now(),updatedAt:Date.now(),expiresAt:Date.now()+7200000,score:[0,0],elapsed:0,remaining:options.duration*60,seed:randomInt(1,2147483647),epoch:0});return {code};}catch(error){if(error.code!==6)throw error;}}
   err('unavailable','Could not reserve a room ID. Try again.');
  }
+ if(data.action==='list'){
+  const snapshot=await db.collection('h2hRooms').get();
+  return {rooms:snapshot.docs.map(item=>item.data()).filter(room=>room.members?.includes(uid)&&room.expiresAt>Date.now())};
+ }
  const code=String(data.code||'').toUpperCase();if(!/^LR-\d{6}$/.test(code))err('invalid-argument','Enter a room ID such as LR-482731.');
  const ref=db.doc('h2hRooms/'+code);
+ if(data.action==='read'){
+  const room=(await ref.get()).data();
+  if(!room)err('not-found','Room not found.');
+  const requested=room.requests?.[uid],watching=(room.spectators||[]).includes(uid),invited=(await db.doc(`h2hInvites/${uid}/items/${code}`).get()).exists,recent=(await db.doc(`h2hRecent/${uid}/players/${room.members.find(id=>id!==uid)||'none'}`).get()).exists;
+  if(!room.members.includes(uid)&&!requested&&!watching&&!invited&&!recent)err('permission-denied','This room is not available to your signed-in account.');
+  return {room};
+ }
  try{return await db.runTransaction(async t=>{
   const snap=await t.get(ref);if(!snap.exists)err('not-found','Room not found.');const room=snap.data();
   const next=applyRoomAction(room,uid,profile.username,data,catalog,Date.now());t.set(ref,next);return {code,status:next.status};
@@ -92,7 +103,7 @@ const rushSeason=onCall(base,async request=>{
  }
  if(action==='play'){
   const roomCode='LR-'+randomInt(100000,1000000),roomRef=db.doc('h2hRooms/'+roomCode),now=Date.now();
-  return await db.runTransaction(async t=>{
+  try{return await db.runTransaction(async t=>{
    const snap=await t.get(ref),roomSnap=await t.get(roomRef),season=snap.data();if(roomSnap.exists)err('already-exists','Room code collision. Try again.');
    if(!season||!season.members.some(member=>member.uid===uid))err('permission-denied','Join the season before playing.');
    if(season.status!=='ACTIVE'||!season.activeFixtureId)err('failed-precondition','There is no scheduled fixture ready to play.');
@@ -107,7 +118,7 @@ const rushSeason=onCall(base,async request=>{
     t.create(roomRef,gameRoom);season.activeRoomCode=roomCode;fixture.gameRoomCode=roomCode;
    }
    t.set(ref,season);return {code,ready:true,roomCode:season.activeRoomCode||null};
-  });
+  });}catch(error){throw error;}
  }
  err('invalid-argument','Unknown Rush Connect season action.');
 });
@@ -119,6 +130,22 @@ const h2hInvite=onCall(base,async request=>{
  const target=(await db.doc('gameUsernames/'+String(username||'').toLowerCase()).get()).data()?.uid;
  if(!target||target===uid)err('not-found','Choose another Lantern Rush account.');
  await db.doc(`h2hInvites/${target}/items/${code}`).set({code,from:uid,fromName:room.names[uid],createdAt:Date.now(),expiresAt:room.expiresAt});return {};
+});
+const h2hSignal=onCall(base,async request=>{
+ const uid=await signed(request),data=request.data||{},code=String(data.code||'').toUpperCase(),room=(await db.doc('h2hRooms/'+code).get()).data(),watcher=String(data.spectatorUid||'');await rate('signal-'+uid,200,60000);
+ if(!room||!/^LR-\d{6}$/.test(code))err('not-found','Room not found.');
+ const active=['STARTING','LIVE','CLOSE TO END'].includes(room.status)&&room.expiresAt>Date.now(),member=room.members.includes(uid),watching=watcher&&room.spectators?.includes(watcher)&&(uid===watcher||uid===room.host);
+ if(!active||(!member&&!watching))err('permission-denied','Only accepted match players or approved spectators can signal.');
+ const path=watcher?`h2hRooms/${code}/watchers/${watcher}/signals`:`h2hRooms/${code}/signals`;
+ if(data.action==='send'){
+  const kind=String(data.kind||''),payload=typeof data.payload==='string'?data.payload:JSON.stringify(data.payload);
+  if(!['offer','answer','candidate'].includes(kind)||typeof payload!=='string'||payload.length>16000||Number(data.epoch)!==Number(room.epoch))err('invalid-argument','Invalid connection signal.');
+  const id=randomUUID();await db.doc(`${path}/${id}`).create({from:uid,epoch:Number(data.epoch),kind,payload,createdAt:Date.now()});return {id};
+ }
+ if(data.action==='read'){
+  const snapshot=await db.collection(path).where('epoch','==',Number(data.epoch)).get();return {signals:snapshot.docs.map(item=>({id:item.id,...item.data()}))};
+ }
+ err('invalid-argument','Unknown signal operation.');
 });
 const h2hPresence=onCall(base,async request=>{
  const uid=await signed(request);await rate('presence-'+uid,8,60000);let roomId=null;
@@ -132,7 +159,7 @@ const h2hConnection=onCall(base,async request=>{
  const canWatch=active&&watcherApproved&&(uid===room.host||uid===watcher);
  if(!active||(!room.members.includes(uid)&&!canWatch))err('permission-denied','Only accepted match players or approved spectators can connect.');
  await rate('connection-'+uid,15,60000);
- return {iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],relay:false};
+ return {iceServers:[{urls:'stun:stun.cloudflare.com:3478'},{urls:'stun:stun.l.google.com:19302'}],relay:false};
 });
 const h2hProgress=onCall(base,async request=>{
  const uid=await signed(request),data=request.data||{};await rate('progress-'+uid,40,60000);const ref=db.doc('h2hRooms/'+data.code);
@@ -162,14 +189,14 @@ const h2hFinalize=onCall({...base,memory:'1GiB',timeoutSeconds:540,maxInstances:
  if(createHash('sha256').update(JSON.stringify(events)).digest('hex')!==digest)err('invalid-argument','Match inputs do not match both confirmations.');
  const teams=room.members.map(id=>buildSquad(catalog[room.options.season].find(t=>t.id===room.choices[id].team),room.choices[id]));
  let match;try{match=replayTrace(teams,room.options,room.seed,events,tick);}catch(error){err('invalid-argument','Result verification failed: '+error.message);}
-  const report=captureMatch(match),now=Date.now();
-  if(room.seasonOnline){for(const [side,playerId]of room.members.entries()){const identity=room.seasonOnline.teams?.[playerId];if(identity&&report.teams?.[side]!==undefined)report.teams[side]=identity.name;}}
-  await db.runTransaction(async t=>{const current=(await t.get(ref)).data();if(current.status==='FULL TIME'){if(!current.verified)err('failed-precondition','This match was abandoned before verification.');return;}if(!['LIVE','CLOSE TO END','STARTING'].includes(current.status))err('failed-precondition','Room already ended.');if(current.startedAt!==room.startedAt||current.members.some(id=>current.confirmations?.[id]?.digest!==digest||current.confirmations?.[id]?.tick!==tick))err('failed-precondition','Match confirmations changed. Retry verification.');
-   const seasonRef=current.seasonOnline?db.doc('rushSeasons/'+current.seasonOnline.code):null,seasonSnap=seasonRef?await t.get(seasonRef):null,season=seasonSnap?.data();
-   if(current.seasonOnline&&(!season||season.activeRoomCode!==current.code||!season.members.every(member=>current.members.includes(member.uid))))err('failed-precondition','This verified match no longer matches the active online season.');
-   for(let side=0;side<2;side++){const player=room.members[side],opponent=room.members[1-side],record=personalReport(report,room,side,now);if(current.seasonOnline){const fixture=season.fixtures.find(item=>item.id===current.seasonOnline.fixtureId);record.mode='season';record.modeLabel='Rush Connect Season';record.season=season.year;record.competition={name:season.name,stage:fixture?.stage||'Season'};}t.create(db.doc(`gameProfiles/${player}/matches/h2h-${room.code}-${room.startedAt}`),record);t.set(db.doc(`h2hRecent/${player}/players/${opponent}`),{uid:opponent,username:room.names[opponent],code:room.code,playedAt:now});}
-   if(current.seasonOnline){try{recordSeasonResult(season,current.seasonOnline.fixtureId,report,now);}catch(error){err('failed-precondition',error.message);}season.status=season.stage==='complete'?'COMPLETE':'ACTIVE';t.set(seasonRef,season);}
-   t.update(ref,{status:'FULL TIME',score:report.score,elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
+ const report=captureMatch(match),now=Date.now();
+ if(room.seasonOnline){for(const [side,playerId]of room.members.entries()){const identity=room.seasonOnline.teams?.[playerId];if(identity&&report.teams?.[side]!==undefined)report.teams[side]=identity.name;}}
+ await db.runTransaction(async t=>{const current=(await t.get(ref)).data();if(current.status==='FULL TIME'){if(!current.verified)err('failed-precondition','This match was abandoned before verification.');return;}if(!['LIVE','CLOSE TO END','STARTING'].includes(current.status))err('failed-precondition','Room already ended.');if(current.startedAt!==room.startedAt||current.members.some(id=>current.confirmations?.[id]?.digest!==digest||current.confirmations?.[id]?.tick!==tick))err('failed-precondition','Match confirmations changed. Retry verification.');
+  const seasonRef=current.seasonOnline?db.doc('rushSeasons/'+current.seasonOnline.code):null,seasonSnap=seasonRef?await t.get(seasonRef):null,season=seasonSnap?.data();
+  if(current.seasonOnline&&(!season||season.activeRoomCode!==current.code||!season.members.every(member=>current.members.includes(member.uid))))err('failed-precondition','This verified match no longer matches the active online season.');
+  for(let side=0;side<2;side++){const player=room.members[side],opponent=room.members[1-side],record=personalReport(report,room,side,now);if(current.seasonOnline){const fixture=season.fixtures.find(item=>item.id===current.seasonOnline.fixtureId);record.mode='season';record.modeLabel='Rush Connect Season';record.season=season.year;record.competition={name:season.name,stage:fixture?.stage||'Season'};}t.create(db.doc(`gameProfiles/${player}/matches/h2h-${room.code}-${room.startedAt}`),record);t.set(db.doc(`h2hRecent/${player}/players/${opponent}`),{uid:opponent,username:room.names[opponent],code:room.code,playedAt:now});}
+  if(current.seasonOnline){try{recordSeasonResult(season,current.seasonOnline.fixtureId,report,now);}catch(error){err('failed-precondition',error.message);}season.status=season.stage==='complete'?'COMPLETE':'ACTIVE';t.set(seasonRef,season);}
+  t.update(ref,{status:'FULL TIME',score:report.score,elapsed:report.duration,remaining:0,verified:true,endedAt:now,expiresAt:now+300000,updatedAt:now});});return {saved:true};
 });
 const accountAdmin=onCall(base,async request=>{
  const d=request.data||{};await enabled();if(!equal(d.adminPassword,ADMIN_PASSWORD))err('permission-denied','Admin password is incorrect.');if(d.action==='authorize')return {allowed:true};
@@ -189,5 +216,5 @@ const accountAdmin=onCall(base,async request=>{
  else err('invalid-argument','Unsupported admin operation.');return {};
 });
 
- return {accountAuth,accountProfile,h2hRoom,rushSeason,h2hInvite,h2hPresence,h2hConnection,h2hProgress,h2hTrace,h2hFinalize,accountAdmin};
+ return {accountAuth,accountProfile,h2hRoom,rushSeason,h2hInvite,h2hSignal,h2hPresence,h2hConnection,h2hProgress,h2hTrace,h2hFinalize,accountAdmin};
 }
