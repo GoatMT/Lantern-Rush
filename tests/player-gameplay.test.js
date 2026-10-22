@@ -11,7 +11,7 @@ test('profile references exist in the real 2026 LSL rosters and leave OVR untouc
  const ids=new Set(season.teams.flatMap(t=>t.roster.map(p=>p.id)));
  for(const id of Object.keys(profiles))assert(ids.has(id),'unknown roster id '+id);
   const players=season.teams.flatMap(t=>t.roster),player=players.find(p=>p.id==='mudassir'),fastest=players.find(p=>p.id==='muhammad-teli');
-  assert.equal(player.overall,99);assert.equal(playerRatings({...fastest,gameplayProfile:profiles[fastest.profileId]}).speed,100);
+  assert.equal(player.overall,98);assert.equal(playerRatings({...fastest,gameplayProfile:profiles[fastest.profileId]}).speed,100);
 });
 test('scouting adjusts dribbling, strength and goalkeeper attributes',()=>{
  assert(playerAttributes({overall:98,gameplayProfile:profiles.mudassir}).dribble>playerAttributes({overall:98}).dribble);

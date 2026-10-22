@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "source": "LSL Website",
   "basis": "LSL Website career OVR and inferPlayerStyle, all games; not season-only ratings",
-  "generatedAt": "2026-10-20T05:09:35.899Z",
+  "generatedAt": "2026-10-22T04:03:54.399Z",
   "seasons": {
     "2024": {
       "teams": [
         {
           "id": "silver-suits-strikers",
           "name": "Silver Suits Strikers",
-          "overall": 62,
+          "overall": 59,
           "players": [
             {
               "id": "abdul-wahab-dastagiri",
@@ -30,7 +30,7 @@
               "profileId": "ahmad-ingar",
               "name": "Ahmad Ingar",
               "position": "Field",
-              "overall": 65
+              "overall": 66
             },
             {
               "id": "ayaan-jogiyat",
@@ -79,35 +79,35 @@
               "profileId": "mohammed-hanzala",
               "name": "Mohammed Hanzala",
               "position": "Field",
-              "overall": 64
+              "overall": 63
             },
             {
               "id": "mohammed-hammad-syed",
               "profileId": "mohammed-hammad-syed",
               "name": "Mohammed Hammad Syed",
               "position": "Field",
-              "overall": 74
+              "overall": 72
             },
             {
               "id": "uzair-sidat",
               "profileId": "uzair-sidat",
               "name": "Uzair Sidat",
               "position": "Field",
-              "overall": 62
+              "overall": 63
             },
             {
               "id": "hammad-shaikh",
               "profileId": "hammad-shaikh",
               "name": "Hammad Shaikh",
               "position": "Goalkeeper",
-              "overall": 56
+              "overall": 58
             }
           ]
         },
         {
           "id": "refuel-juicery-kickers",
           "name": "Refuel Juicery Kickers",
-          "overall": 78,
+          "overall": 75,
           "players": [
             {
               "id": "abubakr-amirat",
@@ -128,7 +128,7 @@
               "profileId": "muhammad-hassan",
               "name": "Muhammad Hassan",
               "position": "Field",
-              "overall": 73
+              "overall": 74
             },
             {
               "id": "muhammad-iqrash",
@@ -142,28 +142,28 @@
               "profileId": "muhammad-zaidan",
               "name": "Muhammad Zaidan",
               "position": "Field",
-              "overall": 58
+              "overall": 67
             },
             {
               "id": "reda-alijalam",
               "profileId": "reda-alijalam",
               "name": "Mohamad Reda Alijalam",
               "position": "Field",
-              "overall": 86
+              "overall": 85
             },
             {
               "id": "omar-ajmal",
               "profileId": "omar-ajmal",
               "name": "Omar Ajmal",
               "position": "Field",
-              "overall": 84
+              "overall": 83
             },
             {
               "id": "subhanullah-sharza",
               "profileId": "subhanullah-sharza",
               "name": "Subhanullah Sharza",
               "position": "Field",
-              "overall": 82
+              "overall": 80
             },
             {
               "id": "sufyan-munshi",
@@ -191,14 +191,14 @@
               "profileId": "yousuf-haqqani",
               "name": "Yousuf Haqqani",
               "position": "Field",
-              "overall": 73
+              "overall": 74
             },
             {
               "id": "ziyad-adam",
               "profileId": "ziyad-adam",
               "name": "Ziyad Adam",
               "position": "Field",
-              "overall": 78
+              "overall": 76
             },
             {
               "id": "saad-khan",
@@ -212,21 +212,21 @@
         {
           "id": "shifa-pharmacy-fc",
           "name": "Shifa Pharmacy F.C.",
-          "overall": 79,
+          "overall": 78,
           "players": [
             {
               "id": "abdul-ghiyas-solyman",
               "profileId": "abdul-ghiyas-solyman",
               "name": "Abdul Ghiyas Solyman",
               "position": "Field",
-              "overall": 92
+              "overall": 91
             },
             {
               "id": "ali-shadab-shaikh",
               "profileId": "ali-shadab-shaikh",
               "name": "Ali Shadab Shaikh",
               "position": "Field",
-              "overall": 63
+              "overall": 62
             },
             {
               "id": "ayaz-a-tutla",
@@ -247,7 +247,7 @@
               "profileId": "bayizedsha",
               "name": "Bayizedsha",
               "position": "Field",
-              "overall": 83
+              "overall": 87
             },
             {
               "id": "basir-ahmad-dastagiri",
@@ -282,21 +282,21 @@
               "profileId": "taha-nakhuda",
               "name": "Taha Nakhuda",
               "position": "Field",
-              "overall": 88
+              "overall": 89
             },
             {
               "id": "tayyib-mohammed",
               "profileId": "tayyib-mohammed",
               "name": "Tayyib Mohammad",
               "position": "Field",
-              "overall": 87
+              "overall": 86
             },
             {
               "id": "tulha-ahmad",
               "profileId": "tulha-ahmed",
               "name": "Tulha Ahmad",
               "position": "Field",
-              "overall": 83
+              "overall": 82
             },
             {
               "id": "aneeq-shaikh",
@@ -310,7 +310,7 @@
         {
           "id": "jogiat-palace",
           "name": "Jogiat Palace",
-          "overall": 76,
+          "overall": 74,
           "players": [
             {
               "id": "aamir-jogiat",
@@ -324,21 +324,21 @@
               "profileId": "mubashir-kharooti",
               "name": "Mubashir Kharooti",
               "position": "Field",
-              "overall": 81
+              "overall": 79
             },
             {
               "id": "abdur-rakib",
               "profileId": "abdur-rakib",
               "name": "Abdur Rakib",
               "position": "Field",
-              "overall": 79
+              "overall": 80
             },
             {
               "id": "ayhaam-khalefa",
               "profileId": "ayhaam-khalefa",
               "name": "Ayhaam Khalefa",
               "position": "Field",
-              "overall": 69
+              "overall": 72
             },
             {
               "id": "elyas-roien",
@@ -359,7 +359,7 @@
               "profileId": "m-yahya",
               "name": "M Yahya",
               "position": "Field",
-              "overall": 94
+              "overall": 93
             },
             {
               "id": "muhammad-nakhuda",
@@ -373,7 +373,7 @@
               "profileId": "muhammad-teli",
               "name": "Muhummud Teli",
               "position": "Field",
-              "overall": 91
+              "overall": 90
             },
             {
               "id": "mohamed-aathif",
@@ -387,21 +387,21 @@
               "profileId": "rehaan-adam",
               "name": "Rehaan Adam",
               "position": "Forward",
-              "overall": 90
+              "overall": 92
             },
             {
               "id": "zakariya-chhibu",
               "profileId": "zakariya-chhibu",
               "name": "Zakariya Chhibu",
               "position": "Field",
-              "overall": 83
+              "overall": 81
             },
             {
               "id": "ali-razzaq",
               "profileId": "ali-razzaq",
               "name": "Ali Razzaq",
               "position": "Goalkeeper",
-              "overall": 65
+              "overall": 66
             }
           ]
         },
@@ -422,7 +422,7 @@
               "profileId": "azizullah",
               "name": "Azizullah",
               "position": "Field",
-              "overall": 78
+              "overall": 77
             },
             {
               "id": "hafizullah",
@@ -450,7 +450,7 @@
               "profileId": "muhammad-badin",
               "name": "Muhammad Badin",
               "position": "Field",
-              "overall": 57
+              "overall": 56
             },
             {
               "id": "muhammad-salim",
@@ -506,7 +506,7 @@
         {
           "id": "umer-memon-fc",
           "name": "Umer Memon F.C.",
-          "overall": 61,
+          "overall": 62,
           "players": [
             {
               "id": "anan-abrar",
@@ -520,14 +520,14 @@
               "profileId": "asad-khan",
               "name": "Asad Khan",
               "position": "Field",
-              "overall": 58
+              "overall": 60
             },
             {
               "id": "saad-saud",
               "profileId": "saad-saud",
               "name": "Saad Saud",
               "position": "Field",
-              "overall": 58
+              "overall": 60
             },
             {
               "id": "bashir-ahmad-dastagiri",
@@ -562,7 +562,7 @@
               "profileId": "ibrahim-mohamed",
               "name": "Ibrahim Mohamed",
               "position": "Field",
-              "overall": 58
+              "overall": 60
             },
             {
               "id": "imran-abdulimiti",
@@ -597,7 +597,7 @@
               "profileId": "uwais-bemat",
               "name": "Uwais Bemat",
               "position": "Field",
-              "overall": 85
+              "overall": 84
             },
             {
               "id": "zain-adam",
@@ -611,7 +611,7 @@
               "profileId": "mohammed-rayyan-sayed",
               "name": "Mohammed Rayyan Sayed",
               "position": "Goalkeeper",
-              "overall": 89
+              "overall": 88
             }
           ]
         }
@@ -622,14 +622,14 @@
         {
           "id": "asif-gangat-united-2025",
           "name": "Asif Gangat United",
-          "overall": 78,
+          "overall": 76,
           "players": [
             {
               "id": "mohammed-rayyan-sayed",
               "profileId": "mohammed-rayyan-sayed",
               "name": "Mohammed Rayyan Sayed",
               "position": "Goalkeeper",
-              "overall": 89
+              "overall": 88
             },
             {
               "id": "hafizullah",
@@ -650,21 +650,21 @@
               "profileId": "sayem-mohammed-sadi",
               "name": "Sayem Mohammed Sadi",
               "position": "Field",
-              "overall": 79
+              "overall": 78
             },
             {
               "id": "abdul-ghiyas-solyman",
               "profileId": "abdul-ghiyas-solyman",
               "name": "Abdul Ghiya Solyman",
               "position": "Field",
-              "overall": 92
+              "overall": 91
             },
             {
               "id": "hammad-shaikh",
               "profileId": "hammad-shaikh",
               "name": "Hammad Shaikh",
               "position": "Field",
-              "overall": 56
+              "overall": 58
             },
             {
               "id": "muhammad-salim",
@@ -692,14 +692,14 @@
               "profileId": "muhammad-shah",
               "name": "Muhammad Shah",
               "position": "Field",
-              "overall": 71
+              "overall": 72
             },
             {
               "id": "abdullah-patel",
               "profileId": "abdullah-patel",
               "name": "Abdullah Patel",
               "position": "Field",
-              "overall": 60
+              "overall": 59
             },
             {
               "id": "bilal-sami-ahmad",
@@ -713,7 +713,7 @@
         {
           "id": "umer-memon-fc-2025",
           "name": "Umer Memon FC",
-          "overall": 79,
+          "overall": 77,
           "players": [
             {
               "id": "saad-khan",
@@ -741,14 +741,14 @@
               "profileId": "azizullah",
               "name": "Azizullah",
               "position": "Field",
-              "overall": 78
+              "overall": 77
             },
             {
               "id": "muhammad-teli",
               "profileId": "muhammad-teli",
               "name": "Muhummud Teli",
               "position": "Field",
-              "overall": 91
+              "overall": 90
             },
             {
               "id": "ishaaq-ali",
@@ -769,21 +769,21 @@
               "profileId": "mohammed-hanzala",
               "name": "Mohammed Hanzala Hasan",
               "position": "Field",
-              "overall": 64
+              "overall": 63
             },
             {
               "id": "yusuf-ahmed-baharustani",
               "profileId": "yusuf-ahmed-baharustani",
               "name": "Yusuf Ahmed Baharustani",
               "position": "Field",
-              "overall": 69
+              "overall": 60
             },
             {
               "id": "uwais-bemat",
               "profileId": "uwais-bemat",
               "name": "Uwais Bemat",
               "position": "Field",
-              "overall": 85
+              "overall": 84
             },
             {
               "id": "hasan-hatia",
@@ -797,7 +797,7 @@
               "profileId": "abdul-ahad-muabir",
               "name": "Abdul Ahad Muabir",
               "position": "Field",
-              "overall": 69
+              "overall": 72
             }
           ]
         },
@@ -818,21 +818,21 @@
               "profileId": "mudassir",
               "name": "Mudassir",
               "position": "Forward",
-              "overall": 99
+              "overall": 98
             },
             {
               "id": "ahmad-ingar",
               "profileId": "ahmad-ingar",
               "name": "Ahmad Ingar",
               "position": "Field",
-              "overall": 65
+              "overall": 66
             },
             {
               "id": "tayyib-mohammed",
               "profileId": "tayyib-mohammed",
               "name": "Tayyib Mohammed",
               "position": "Field",
-              "overall": 87
+              "overall": 86
             },
             {
               "id": "zain-adam",
@@ -853,7 +853,7 @@
               "profileId": "mohammed-hasan",
               "name": "Mohammed Hasan",
               "position": "Field",
-              "overall": 77
+              "overall": 78
             },
             {
               "id": "basir-ahmad-dastagiri",
@@ -881,7 +881,7 @@
               "profileId": "muhammad-badin",
               "name": "Muhammed Badin",
               "position": "Field",
-              "overall": 57
+              "overall": 56
             },
             {
               "id": "zakariyya-dualeh",
@@ -916,14 +916,14 @@
               "profileId": "tulha-ahmed",
               "name": "Tulha Ahmed",
               "position": "Field",
-              "overall": 83
+              "overall": 82
             },
             {
               "id": "taha-nakhuda",
               "profileId": "taha-nakhuda",
               "name": "Taaha Nakhuda",
               "position": "Field",
-              "overall": 88
+              "overall": 89
             },
             {
               "id": "hamza-akalwala",
@@ -993,35 +993,35 @@
         {
           "id": "im-construction-sc",
           "name": "IM Construction SC",
-          "overall": 80,
+          "overall": 77,
           "players": [
             {
               "id": "muhammad-hasan-faraz",
               "profileId": "muhammad-hasan-faraz",
               "name": "Muhammad Hasan Faraz",
               "position": "Field",
-              "overall": 60
+              "overall": 59
             },
             {
               "id": "rehaan-adam",
               "profileId": "rehaan-adam",
               "name": "Rehaan Adam",
               "position": "Forward",
-              "overall": 90
+              "overall": 92
             },
             {
               "id": "omar-ajmal",
               "profileId": "omar-ajmal",
               "name": "Omar Ajmal",
               "position": "Forward",
-              "overall": 84
+              "overall": 83
             },
             {
               "id": "waise-sherzi",
               "profileId": "waise-sherzi",
               "name": "Waise Sherzi",
               "position": "Field",
-              "overall": 60
+              "overall": 59
             },
             {
               "id": "amadu",
@@ -1056,14 +1056,14 @@
               "profileId": "zakariya-chhibu",
               "name": "Zakariya Chhibu",
               "position": "Field",
-              "overall": 83
+              "overall": 81
             },
             {
               "id": "mohammed-ali-siddiqui",
               "profileId": "mohammed-ali-siddiqui",
               "name": "Mohammed Ali Siddiqui",
               "position": "Field",
-              "overall": 80
+              "overall": 79
             },
             {
               "id": "ayaan-tutla",
@@ -1077,14 +1077,14 @@
               "profileId": "ali-razzaq",
               "name": "Ali Razzaq",
               "position": "Goalkeeper",
-              "overall": 65
+              "overall": 66
             }
           ]
         },
         {
           "id": "refuel-juicery-athletic",
           "name": "Refuel Juicery Athletic",
-          "overall": 80,
+          "overall": 78,
           "players": [
             {
               "id": "usman",
@@ -1105,28 +1105,28 @@
               "profileId": "reda-alijalam",
               "name": "Mohamad Reda Alijalam",
               "position": "Forward",
-              "overall": 86
+              "overall": 85
             },
             {
               "id": "mohammed-ibrahim",
               "profileId": "mohammed-ibrahim",
               "name": "Mohammed Ibrahim",
               "position": "Forward",
-              "overall": 95
+              "overall": 94
             },
             {
               "id": "ziyad-adam",
               "profileId": "ziyad-adam",
               "name": "Ziyad Adam",
               "position": "Defender",
-              "overall": 78
+              "overall": 76
             },
             {
               "id": "abdur-rakib",
               "profileId": "abdur-rakib",
               "name": "Abdur Rakib",
               "position": "Field",
-              "overall": 79
+              "overall": 80
             },
             {
               "id": "nasibullah",
@@ -1168,21 +1168,21 @@
               "profileId": "rizwan-haque",
               "name": "Rizwan Haque",
               "position": "Goalkeeper",
-              "overall": 69
+              "overall": 71
             },
             {
               "id": "m-yahya",
               "profileId": "m-yahya",
               "name": "M Yahya",
               "position": "Forward",
-              "overall": 94
+              "overall": 93
             }
           ]
         },
         {
           "id": "dhahabiya-strikers",
           "name": "Dhahabiya Strikers",
-          "overall": 66,
+          "overall": 64,
           "players": [
             {
               "id": "azaan",
@@ -1217,7 +1217,7 @@
               "profileId": "mohammed-wahedi",
               "name": "Mohammed Wahedi",
               "position": "Field",
-              "overall": 78
+              "overall": 77
             },
             {
               "id": "abdullah-juniors",
@@ -1231,7 +1231,7 @@
               "profileId": "hasibullah-kharooti",
               "name": "Hasibullah Kharooti",
               "position": "Field",
-              "overall": 70
+              "overall": 71
             },
             {
               "id": "mohammed-maaz-aswat",
@@ -1252,7 +1252,7 @@
               "profileId": "ajmal-shakkari",
               "name": "Ajmal Shakkari",
               "position": "Forward",
-              "overall": 93
+              "overall": 92
             },
             {
               "id": "rafiullah",
@@ -1266,14 +1266,14 @@
         {
           "id": "the-travel-builder-united",
           "name": "Travel Builder United",
-          "overall": 56,
+          "overall": 55,
           "players": [
             {
               "id": "syed-zaeem-arshad",
               "profileId": "syed-zaeem-arshad",
               "name": "Syed Zaeem Arshad",
               "position": "Field",
-              "overall": 59
+              "overall": 58
             },
             {
               "id": "hammad-parekh",
@@ -1294,14 +1294,14 @@
               "profileId": "arsham",
               "name": "Arsham",
               "position": "Field",
-              "overall": 59
+              "overall": 62
             },
             {
               "id": "umar-manjra",
               "profileId": "umar-manjra",
               "name": "Umar Manjra",
               "position": "Field",
-              "overall": 72
+              "overall": 64
             },
             {
               "id": "ahmed-ibadullah-minhas",
@@ -1329,14 +1329,14 @@
               "profileId": "ali-shadab-shaikh",
               "name": "Ali Shadab Shaikh",
               "position": "Field",
-              "overall": 63
+              "overall": 62
             },
             {
               "id": "idrees-nawabi-travel",
               "profileId": "idrees-nawabi-travel",
               "name": "Idrees Nawabi",
               "position": "Field",
-              "overall": 59
+              "overall": 62
             }
           ]
         },
@@ -1350,7 +1350,7 @@
               "profileId": "mubashir-kharooti",
               "name": "Mubashir Kharooti",
               "position": "Field",
-              "overall": 81
+              "overall": 79
             },
             {
               "id": "umair",
@@ -1399,7 +1399,7 @@
               "profileId": "murtaza-ahmadi",
               "name": "Murtaza Ahmadi",
               "position": "Field",
-              "overall": 50
+              "overall": 51
             },
             {
               "id": "huzaifa-kotwal",
@@ -1420,7 +1420,7 @@
         {
           "id": "rafik-enterprise-fc",
           "name": "Rafik Enterprise FC",
-          "overall": 63,
+          "overall": 60,
           "players": [
             {
               "id": "zakariya",
@@ -1448,7 +1448,7 @@
               "profileId": "mohammed-hammad-syed",
               "name": "Mohammed Hammad Syed",
               "position": "Field",
-              "overall": 74
+              "overall": 72
             },
             {
               "id": "ibad-sheikh",
@@ -1501,14 +1501,14 @@
         {
           "id": "refuel-rovers",
           "name": "Refuel Rovers",
-          "overall": 78,
+          "overall": 75,
           "players": [
             {
               "id": "mosa-fazli",
               "profileId": "mosa-fazli",
               "name": "Mosa Fazli",
               "position": "Striker",
-              "overall": 87
+              "overall": 85
             },
             {
               "id": "yousaf-hosseinzada",
@@ -1522,7 +1522,7 @@
               "profileId": "abdul-ghiyas-solyman",
               "name": "Abdul Ghiyas Solyman",
               "position": "Striker/Winger",
-              "overall": 92
+              "overall": 91
             },
             {
               "id": "ishaaq-ali",
@@ -1543,7 +1543,7 @@
               "profileId": "azizullah",
               "name": "Azizullah",
               "position": "Defender",
-              "overall": 78
+              "overall": 77
             },
             {
               "id": "mohammad-usman",
@@ -1557,7 +1557,7 @@
               "profileId": "zakariya-mohmed-bemat",
               "name": "Zakariya Mohmed Bemat",
               "position": "Goalie",
-              "overall": 70
+              "overall": 71
             },
             {
               "id": "ayub-jan",
@@ -1571,14 +1571,14 @@
               "profileId": "hasibullah-kharooti",
               "name": "Hasibullah Kharooti",
               "position": "Midfielder",
-              "overall": 70
+              "overall": 71
             }
           ]
         },
         {
           "id": "rawaha-royals",
           "name": "Rawaha Royals",
-          "overall": 76,
+          "overall": 73,
           "players": [
             {
               "id": "uthman",
@@ -1599,7 +1599,7 @@
               "profileId": "mubashir-kharooti",
               "name": "Mubashir Kharooti",
               "position": "Midfielder",
-              "overall": 81
+              "overall": 79
             },
             {
               "id": "umair-saiyad",
@@ -1613,7 +1613,7 @@
               "profileId": "tulha-ahmed",
               "name": "Tulha Ahmed",
               "position": "Midfielder",
-              "overall": 83
+              "overall": 82
             },
             {
               "id": "muneeb",
@@ -1627,7 +1627,7 @@
               "profileId": "syed-zaeem-arshad",
               "name": "Syed Zaeem Arshad",
               "position": "Defender",
-              "overall": 59
+              "overall": 58
             },
             {
               "id": "murtaza-syed",
@@ -1641,21 +1641,21 @@
               "profileId": "mohammed-ibrahim",
               "name": "Mohammad Ibrahim",
               "position": "Striker",
-              "overall": 95
+              "overall": 94
             },
             {
               "id": "zakariya-chhibu",
               "profileId": "zakariya-chhibu",
               "name": "Zakariya Chhibu",
               "position": "Defender",
-              "overall": 83
+              "overall": 81
             }
           ]
         },
         {
           "id": "em-haulers-fc",
           "name": "EM Haulers FC",
-          "overall": 84,
+          "overall": 81,
           "players": [
             {
               "id": "muzamil-kharooti",
@@ -1676,7 +1676,7 @@
               "profileId": "mohammed-wahedi",
               "name": "Mohammed Wahedi",
               "position": "Goalie",
-              "overall": 78
+              "overall": 77
             },
             {
               "id": "maaz-andurrahman",
@@ -1711,56 +1711,56 @@
               "profileId": "uwais-bemat",
               "name": "Uwais Bemat",
               "position": "Attacking Midfielder",
-              "overall": 85
+              "overall": 84
             },
             {
               "id": "haroon-ahmadi",
               "profileId": "haroon-ahmadi",
               "name": "Haroon Ahmadi",
               "position": "Striker",
-              "overall": 98
+              "overall": 97
             },
             {
               "id": "tayyib-mohammed",
               "profileId": "tayyib-mohammed",
               "name": "Tayyib Mohammed",
               "position": "Attacking Midfielder",
-              "overall": 87
+              "overall": 86
             }
           ]
         },
         {
           "id": "leeward-lions",
           "name": "Leeward Lions",
-          "overall": 82,
+          "overall": 80,
           "players": [
             {
               "id": "mudassir",
               "profileId": "mudassir",
               "name": "Mudassir",
               "position": "Attacking Midfielder",
-              "overall": 99
+              "overall": 98
             },
             {
               "id": "ajmal-shakkari",
               "profileId": "ajmal-shakkari",
               "name": "Ajmal Chakkari",
               "position": "Winger",
-              "overall": 93
+              "overall": 92
             },
             {
               "id": "subhanullah-sharza",
               "profileId": "subhanullah-sharza",
               "name": "Subhanallah Sharzah",
               "position": "Defender",
-              "overall": 82
+              "overall": 80
             },
             {
               "id": "abdullah-hosseinzadah",
               "profileId": "abdullah-hosseinzadah",
               "name": "Abdullah Hosseinzadah",
               "position": "Defender",
-              "overall": 72
+              "overall": 73
             },
             {
               "id": "zayd-badin",
@@ -1781,14 +1781,14 @@
               "profileId": "usman-ahmad-popal",
               "name": "Usman Ahmad Popal",
               "position": "Goalie",
-              "overall": 75
+              "overall": 76
             },
             {
               "id": "muhammad-teli",
               "profileId": "muhammad-teli",
               "name": "Muhummud Teli",
               "position": "Winger",
-              "overall": 91
+              "overall": 90
             },
             {
               "id": "abubakr-manjra",
@@ -1802,14 +1802,14 @@
               "profileId": "sayem-mohammed-sadi",
               "name": "Sayem Mohamed Saad",
               "position": "Defender",
-              "overall": 79
+              "overall": 78
             }
           ]
         },
         {
           "id": "memon-mavericks",
           "name": "Memon Mavericks",
-          "overall": 61,
+          "overall": 60,
           "players": [
             {
               "id": "omar-hicham",
@@ -1823,7 +1823,7 @@
               "profileId": "hasan-hamraz",
               "name": "Hasan Hamraz",
               "position": "Goalie",
-              "overall": 53
+              "overall": 58
             },
             {
               "id": "muhammad-affan",
@@ -1858,7 +1858,7 @@
               "profileId": "muhammad-zaidan",
               "name": "Muhammad Zaidan",
               "position": "Field/Goalie",
-              "overall": 58
+              "overall": 67
             },
             {
               "id": "nasibullah",
@@ -1886,28 +1886,28 @@
         {
           "id": "gangat-warriors",
           "name": "Gangat Warriors",
-          "overall": 67,
+          "overall": 65,
           "players": [
             {
               "id": "taha-nakhuda",
               "profileId": "taha-nakhuda",
               "name": "Taaha Nakhuda",
               "position": "Striker",
-              "overall": 88
+              "overall": 89
             },
             {
               "id": "hammad-shaikh",
               "profileId": "hammad-shaikh",
               "name": "Hammad Shaikh",
               "position": "Goalie",
-              "overall": 56
+              "overall": 58
             },
             {
               "id": "ahmad-ingar",
               "profileId": "ahmad-ingar",
               "name": "Ahmad Ingar",
               "position": "Winger",
-              "overall": 65
+              "overall": 66
             },
             {
               "id": "huzaifa-ahmad-vadia",
@@ -1949,7 +1949,7 @@
               "profileId": "umar-manjra",
               "name": "Umar Manjra",
               "position": "Winger",
-              "overall": 72
+              "overall": 64
             },
             {
               "id": "ali-imran",
@@ -1970,7 +1970,7 @@
         {
           "id": "sharp-strikers",
           "name": "Sharp Strikers",
-          "overall": 81,
+          "overall": 79,
           "players": [
             {
               "id": "marwan-ahmad",
@@ -1984,14 +1984,14 @@
               "profileId": "mohammed-hammad-syed",
               "name": "Mohammed Hammad Syed",
               "position": "Goalie",
-              "overall": 74
+              "overall": 72
             },
             {
               "id": "m-yahya",
               "profileId": "m-yahya",
               "name": "M Yahya",
               "position": "Striker",
-              "overall": 94
+              "overall": 93
             },
             {
               "id": "rehan-ahmed-mohammed",
@@ -2012,7 +2012,7 @@
               "profileId": "mohammed-rayyan-sayed",
               "name": "Mohammed Rayyan Syed",
               "position": "Striker",
-              "overall": 89
+              "overall": 88
             },
             {
               "id": "younes-meraidia",
@@ -2026,7 +2026,7 @@
               "profileId": "mohammed-ali-siddiqui",
               "name": "Mohammed Ali Siddiqui",
               "position": "Defender",
-              "overall": 80
+              "overall": 79
             },
             {
               "id": "jamal-mujaddidi",
@@ -2047,7 +2047,7 @@
         {
           "id": "amax-visionaries",
           "name": "Amax Visionaries",
-          "overall": 68,
+          "overall": 66,
           "players": [
             {
               "id": "ahmed-bhaiyat",
@@ -2061,7 +2061,7 @@
               "profileId": "ali-razzaq",
               "name": "Ali Razzaq",
               "position": "Goalie",
-              "overall": 65
+              "overall": 66
             },
             {
               "id": "muhammad-salim",
@@ -2103,21 +2103,21 @@
               "profileId": "reda-alijalam",
               "name": "Mohamad Reda Alijalam",
               "position": "Midfielder",
-              "overall": 86
+              "overall": 85
             },
             {
               "id": "uzair-sidat",
               "profileId": "uzair-sidat",
               "name": "Uzair Sidat",
               "position": "Midfielder",
-              "overall": 62
+              "overall": 63
             },
             {
               "id": "muhammad-shah",
               "profileId": "muhammad-shah",
               "name": "Muhammad Shah",
               "position": "Defender",
-              "overall": 71
+              "overall": 72
             },
             {
               "id": "sajadullah-khalil",
