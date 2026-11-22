@@ -1,6 +1,14 @@
 # LANTERN RUSH — gameplay and feature audit
 
-Checked September 15, 2026 in the standalone **LSL Game** project.
+The interactive and browser audit below was checked September 15, 2026 in the standalone **LSL Game** project. Automated checks were refreshed November 21, 2026: **260 tests passed** and **798 JavaScript syntax/static-asset checks passed**. The published game was also smoke checked in the browser on November 21; physical devices and a real cross-network Live H2H match remain untested.
+
+## November 21 follow-up
+
+The graphics-quality pass makes High the default for new installs, renders at the display's native pixel ratio, increases player/kit/face texture and mesh detail, and uses the highest anisotropic filtering supported by the device. High and Medium adapt resolution down only after sustained low frame rates and restore it when performance recovers; saved user quality choices remain honored. New player likenesses cannot be made accurate from roster names or gameplay stats alone: approved face references for the requested 24 teams are still needed. The current player appearance generator remains a stylized fallback, not a photoreal likeness system.
+
+The follow-up player pass corrected a face-texture canvas scale mismatch that compressed/misplaced the drawn eyes and mouth, added subtle skin and feature shading, and reduced oversized head proportions. This improves generic player readability while keeping the existing low-cost mesh approach; it does not create individual real-person likenesses.
+
+The published Quick Match flow loaded, started a match, skipped the intro, and opened Pause and Settings without browser console errors or warnings. Responsive browser checks covered 844 × 390 landscape and 390 × 844 / 320 × 568 portrait viewports. In portrait, the fixed rotation hint covered the joystick and lower action buttons. `styles.css` now positions the hint above the touch-control area, with a regression check in `tests/mobile-proportions.test.js`. The sandboxed browser could not reach the local preview server, so the CSS change has automated coverage but still needs a visual check against the updated workspace build.
 
 Historical audit: on September 13, the separate Steal control was replaced by automatic standing steals, and Mobile Cam was added. Goal replays now use a bounded in-memory player/ball state buffer with a dedicated camera and skippable playback. Current controls are documented in README.md; focused regression checks are in tests/mobile-camera.test.js.
 
@@ -8,7 +16,7 @@ The September 15 consistency pass also verified every dedicated mode page (home,
 
 The latest polish pass adds a short celebration hold and eased replay-camera blend, removes intrusive save notices while keeping save reactions for the crowd, normalizes button/card spacing across shared menus and Dream F.C. surfaces, keeps Quick Match from inheriting Rivalry presentation when the selected teams happen to be rivals, and adds Firebase account gating, profile pictures, per-mode player charts, records and expandable match history.
 
-**Result:** 161 automated tests passed with no failures; 389 JavaScript/import/static-asset checks passed. The full automated gameplay run completed in approximately 2.0 seconds. Browser smoke checks covered the home, account, charts and locked admin entry points with no page-load console errors.
+**September 15 result:** 161 automated tests passed with no failures; 389 JavaScript/import/static-asset checks passed. The full automated gameplay run completed in approximately 2.0 seconds. Browser smoke checks covered the home, account, charts and locked admin entry points with no page-load console errors.
 
 ## Fixes made in this audit
 

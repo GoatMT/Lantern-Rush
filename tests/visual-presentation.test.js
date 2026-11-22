@@ -7,7 +7,7 @@ import {playerAttributes} from '../src/match/attributes.js';
 import {playerShapes} from '../src/engine/player-mesh-parts.js';
 import fs from 'node:fs';
 const profiles=JSON.parse(fs.readFileSync(new URL('../data/player-gameplay-2026.json',import.meta.url)));
-import {Settings} from '../src/settings.js';
+import {Settings,startingGraphics} from '../src/settings.js';
 import {MatchLighting,MATCH_LIGHTING} from '../src/engine/lighting.js';
 import {BroadcastCamera} from '../src/engine/camera.js';
 import {createMarkings} from '../src/engine/turf.js';
@@ -18,6 +18,11 @@ test('lighting persists independently of graphics and corrupt values fall back s
   assert.equal(settings.value.lighting,'evening');assert.equal(settings.value.camera,'broadcast');
   for(const mode of ['day','evening','night']){settings.set('lighting',mode);settings.set('graphics','low');assert.equal(new Settings(storage).value.lighting,mode);}
   saved='{"lighting":"invalid"}';assert.equal(new Settings(storage).value.lighting,'evening');
+});
+test('new installs start at maximum graphics while saved quality choices remain respected',()=>{
+  assert.equal(startingGraphics(),'high');
+  assert.equal(new Settings({getItem:()=>null,setItem:()=>{}}).value.graphics,'high');
+  assert.equal(new Settings({getItem:()=>'{"graphics":"low"}',setItem:()=>{}}).value.graphics,'low');
 });
 
 test('lighting transitions preserve a single bounded, moving shadow light',()=>{
@@ -68,6 +73,6 @@ test('2026 model appearance honors player hair, build, and shared pitch scale',(
   assert(abu.bulk<.6&&abu.build<1.15,'Abu remains broad but no longer scales much larger than teammates');
   assert(stocky.bulk<.25,'stocky players get a subtle build difference');
   for(const id of ['haroon-ahmadi','mudassir'])assert(playerAttributes({id,name:id,overall:90,gameplayProfile:profiles.players[id]}).dribble>1.1,id+' gets elite close-control ability');
-  assert(playerShapes.sphere.parameters.widthSegments>=32);assert(playerShapes.limb.parameters.radialSegments>=28);
+  assert(playerShapes.sphere.parameters.widthSegments>=48);assert(playerShapes.limb.parameters.radialSegments>=36);
   assert.equal(FIELD.halfLength,64);assert.equal(FIELD.halfWidth,42);
 });

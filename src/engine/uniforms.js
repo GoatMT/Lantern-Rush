@@ -8,7 +8,7 @@ let fabricNormal;
 export function shirtTexture(kit){
   const key=JSON.stringify(kit),existing=shirts.get(key);
   if(existing){existing.references++;return existing.texture;}
-  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=512;
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=1024;
   const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
   c.fillStyle=kit.primary;c.fillRect(0,0,w,h);
   if(kit.pattern==='gradient'){

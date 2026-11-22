@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import * as T from '../vendor/three.module.js';
 import {mobileLens} from '../src/engine/viewport.js';
-import {GameRenderer} from '../src/engine/renderer.js';
+import {GameRenderer,renderPixelRatio} from '../src/engine/renderer.js';
 import {BroadcastCamera} from '../src/engine/camera.js';
 
 test('phone lens caps wide-angle distortion while preserving central field coverage',()=>{
@@ -12,6 +13,16 @@ test('phone lens caps wide-angle distortion while preserving central field cover
     assert(horizontal<=76.001);assert(lens.fov<=52);
     const before=Math.tan(base*rad/2),after=Math.tan(lens.fov*rad/2)*lens.distanceScale;assert(Math.abs(before-after)<1e-10);
   }
+});
+test('portrait rotation prompt stays clear of the bottom touch controls',()=>{
+  const css=fs.readFileSync(new URL('../styles.css',import.meta.url),'utf8');
+  assert.match(css,/@media\(max-width:600px\) and \(orientation:portrait\)\{[\s\S]*?#rotate-hint:not\(\.dismissed\)\{[^}]*top:max\(160px,calc\(env\(safe-area-inset-top\) \+ 150px\)\);bottom:auto/);
+});
+test('high graphics uses native screen resolution and medium keeps a restrained cap',()=>{
+  assert.equal(renderPixelRatio('high',2),2);
+  assert.equal(renderPixelRatio('medium',2),1.5);
+  assert.equal(renderPixelRatio('low',2),1);
+  assert.equal(renderPixelRatio('high',2,.8),1.6);
 });
 test('canvas sizing keeps projection and drawing buffer synchronized through rotation and toolbar changes',()=>{
   const g=Object.create(GameRenderer.prototype),canvas={clientWidth:844,clientHeight:390},sizes=[];
@@ -30,10 +41,10 @@ test('render synchronizes resized canvas even when no window resize event is del
   Object.assign(g,{time:0,models:[],resize(){synced=true;},sidelineOverlay:{update(){}},broadcast:{update(){assert(synced);}},lighting:{update(){}},weather:{update(){}},sidelineCast:{update(){}},renderer:{render(){rendered=true;}}});
   g.render(1/60,null);assert(rendered);
 });
-test('phone quality adapts to sustained low frame rate without repeated buffer resizing',()=>{
-  const g=Object.create(GameRenderer.prototype);let resizes=0;Object.assign(g,{compact:true,adaptiveScale:1,resize(){resizes++;}});
+test('adaptive resolution lowers on sustained slowdown and recovers on desktop too',()=>{
+  const g=Object.create(GameRenderer.prototype);let resizes=0;Object.assign(g,{quality:'high',compact:false,adaptiveScale:1,resize(){resizes++;}});
   for(let i=0;i<240;i++)g.adaptPerformance(35,1/60);assert(g.adaptiveScale<1);assert.equal(resizes,1);
-  for(let i=0;i<300;i++)g.adaptPerformance(60,1/60);assert.equal(resizes,1);
+  for(let i=0;i<1020;i++)g.adaptPerformance(60,1/60);assert.equal(g.adaptiveScale,1);assert.equal(resizes,3);
 });
 test('Mobile Cam preserves a visible ball during fast moves on wide and portrait phones',()=>{
   for(const aspect of [844/390,3.1,390/844]){

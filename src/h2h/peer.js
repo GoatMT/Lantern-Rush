@@ -4,7 +4,16 @@ export class LivePeer{
   const {iceServers,relay}=await this.service.call('h2hConnection',{code:this.room.code,...(this.spectatorUid?{spectatorUid:this.spectatorUid}:{})});this.directOnly=relay===false;if(this.closed)return;
   this.pc=new RTCPeerConnection({iceServers});
   this.pc.onicecandidate=e=>{if(e.candidate)this.service.signal(this.room.code,this.room.epoch,'candidate',e.candidate.toJSON(),this.spectatorUid).catch(e=>this.onState('error',e.message));};
-  this.pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(this.pc.connectionState)&&!this.closed)this.onState('disconnected');};
+  this.pc.onconnectionstatechange=()=>{
+   if(this.closed)return;
+   if(this.pc.connectionState==='connected'){
+    this.lastSeen=performance.now();
+    if(Object.keys(this.channels).length===2&&Object.values(this.channels).every(c=>c.readyState==='open')&&!this.ready){this.ready=true;clearTimeout(this.connectDeadline);this.flush();this.onState('connected');}
+   }else if(['failed','disconnected','closed'].includes(this.pc.connectionState)){
+    if(this.pc.connectionState==='disconnected'){clearTimeout(this.disconnectGrace);this.disconnectGrace=setTimeout(()=>{if(!this.closed&&this.pc?.connectionState==='disconnected'){this.ready=false;this.onState('disconnected');}},3000);}
+    else{this.ready=false;this.onState('disconnected');}
+   }
+  };
   this.pc.ondatachannel=e=>this.attach(e.channel);
   this.stop=this.service.signals(this.room.code,this.room.epoch,data=>{this.chain=this.chain.then(()=>this.signal(data)).catch(e=>this.onState('error',e.message));},this.spectatorUid);
   if(this.host){this.attach(this.pc.createDataChannel('reliable'));this.attach(this.pc.createDataChannel('snapshots',{ordered:false,maxRetransmits:0}));const offer=await this.pc.createOffer();await this.pc.setLocalDescription(offer);await this.service.signal(this.room.code,this.room.epoch,'offer',offer,this.spectatorUid);}
@@ -27,7 +36,7 @@ export class LivePeer{
   };
  }
  send(message,fast=false){const c=this.channels[fast?'snapshots':'reliable'];if(c?.readyState!=='open')return false;const text=JSON.stringify(message);if(fast){if(c.bufferedAmount>64000)return false;try{c.send(text);return true;}catch{this.onState('disconnected');return false;}}if(this.outbox.length>2000){this.onState('error','Connection is too slow. Reconnecting…');return false;}this.outbox.push(text);this.flush();return true;}
- flush(){const c=this.channels.reliable;while(c?.readyState==='open'&&c.bufferedAmount<128000&&this.outbox.length)c.send(this.outbox.shift());}
+ flush(){const c=this.channels.reliable;while(c?.readyState==='open'&&c.bufferedAmount<128000&&this.outbox.length){try{c.send(this.outbox.shift());}catch{this.ready=false;this.onState('disconnected');break;}}}
 
- close(){this.closed=true;this.ready=false;clearInterval(this.health);clearTimeout(this.connectDeadline);this.stop?.();this.pc?.close();}
+ close(){this.closed=true;this.ready=false;clearInterval(this.health);clearTimeout(this.connectDeadline);clearTimeout(this.disconnectGrace);this.stop?.();this.pc?.close();}
 }

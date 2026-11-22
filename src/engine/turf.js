@@ -34,7 +34,7 @@ export function createTurf(){
   const material=new T.MeshStandardMaterial({map,bumpMap:bump,bumpScale:.055,roughness:.94,metalness:0});
   const pitch=new T.Mesh(new T.PlaneGeometry(FIELD.halfLength*2,FIELD.halfWidth*2),material);
   pitch.rotation.x=-Math.PI/2;pitch.receiveShadow=true;
-  return {pitch,map,bump,quality(level,anisotropy){map.anisotropy=Math.min(anisotropy,level==='high'?8:level==='medium'?4:2);material.bumpMap=level==='low'?null:bump;material.needsUpdate=true;}};
+  return {pitch,map,bump,quality(level,anisotropy){map.anisotropy=level==='high'?anisotropy:Math.min(anisotropy,level==='medium'?4:2);material.bumpMap=level==='low'?null:bump;material.needsUpdate=true;}};
 }
 
 // Painted ribbons retain a physical width on desktop and high-density phones.

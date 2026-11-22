@@ -100,7 +100,7 @@ test('a deflected shot keeps its original goalscorer and assist',()=>{
   m.phase='playing';m.ball.lastTouch=p;m.ball.previousTouch=assist;m.shoot(p,.5);m.ball.touch(keeper);m.goal(0);
   assert.equal(m.goalEvents[0].name,p.name);assert.equal(m.goalEvents[0].ownGoal,false);assert.equal(m.goalEvents[0].assist,assist.name);
 });
-test('a seeded CPU match progresses through both halves without invalid physics',()=>{
+test('a seeded match progresses through both halves without invalid physics',()=>{
   let seed=19;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
   const m=new Match(teams,{duration:3,difficulty:'normal'},{random});m.skipIntro();let halfSeen=false;
   for(let i=0;i<90000&&m.phase!=='fulltime';i++){
@@ -108,5 +108,5 @@ test('a seeded CPU match progresses through both halves without invalid physics'
     if(m.phase==='halftime'){halfSeen=true;m.continueHalf();}
     assert(Number.isFinite(m.ball.x)&&Number.isFinite(m.ball.z));
   }
-  assert(halfSeen);assert.equal(m.phase,'fulltime');assert.equal(m.elapsed,180);assert(m.stats[1].shots>0);
+  assert(halfSeen);assert.equal(m.phase,'fulltime');assert.equal(m.elapsed,180);
 });

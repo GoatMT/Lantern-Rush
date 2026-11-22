@@ -83,7 +83,7 @@ export class PitchAdvertising{
   }
   setBranding(enabled){this.gptBranding=Boolean(enabled);this.textures.forEach((texture,index)=>{texture.image=this.gptBranding?gptArtwork(index):this.baseImages[index];texture.needsUpdate=true;});}
   quality(level,maxAnisotropy){
-    const anisotropy=Math.min(maxAnisotropy,level==='low'?2:level==='medium'?4:8);
+    const anisotropy=level==='high'?maxAnisotropy:Math.min(maxAnisotropy,level==='medium'?4:2);
     this.textures.forEach(texture=>{if(texture.anisotropy!==anisotropy){texture.anisotropy=anisotropy;texture.needsUpdate=true;}});
   }
 }

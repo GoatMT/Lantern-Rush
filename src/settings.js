@@ -3,7 +3,7 @@ import {matchDuration} from './match-options.js';
 export const DEFAULT_KEYS = {forward:'KeyW',left:'KeyA',back:'KeyS',right:'KeyD',sprint:'KeyP',pass:'KeyM',shoot:'KeyK',skill:'KeyO',curve:'ShiftLeft',goalie:'KeyG',pause:'Escape'};
 export const CONTROL_NAMES = {forward:'Move forward',left:'Move left',back:'Move back',right:'Move right',sprint:'Sprint (hold)',pass:'Pass / switch outfield player',shoot:'Shoot (hold)',skill:'Dribble / skill',curve:'Curved shot (hold with Shoot)',goalie:'Switch goalkeeper / outfield',pause:'Pause'};
 export function startingGraphics() {
-  return typeof navigator==='undefined'?'medium':((navigator.hardwareConcurrency||4)<=4 || (typeof matchMedia!=='undefined'&&matchMedia('(pointer:coarse)').matches))?'low':'medium';
+  return 'high';
 }
 export function startingCamera(){return typeof matchMedia!=='undefined'&&matchMedia('(pointer:coarse)').matches?'mobile':'broadcast';}
 export class Settings {

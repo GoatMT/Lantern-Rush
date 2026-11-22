@@ -6,7 +6,7 @@ import { PLAYER_VISUAL_SCALE } from '../config.js';
 import { playerShapes,jointMaterial,part,solid,tailoredTorso } from './player-mesh-parts.js';
 
 function curvedFace(){
-  const columns=24,rows=20,width=.27,height=.23,positions=[],uv=[],indices=[];
+  const columns=48,rows=40,width=.27,height=.23,positions=[],uv=[],indices=[];
   for(let y=0;y<=rows;y++)for(let x=0;x<=columns;x++){
     const u=x/columns,v=y/rows,px=(u-.5)*width,py=(.5-v)*height,inside=Math.max(.04,1-(px/.185)**2-(py/.221)**2);
     positions.push(px,py,.177*Math.sqrt(inside)+.002);uv.push(u,1-v);
@@ -15,7 +15,7 @@ function curvedFace(){
   const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
 }
 function curvedBadge(width){
-  const columns=20,rows=8,positions=[],uv=[],indices=[];
+  const columns=36,rows=14,positions=[],uv=[],indices=[];
   for(let y=0;y<=rows;y++)for(let x=0;x<=columns;x++){
     const u=x/columns,v=y/rows,px=u-.5;
     positions.push(px,v-.5,.18*Math.sqrt(Math.max(.04,1-((px*width)/.27)**2)));
@@ -41,22 +41,30 @@ export function textTexture(text,{color='#fff',background='#0a302b',width=512,he
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
 function faceTexture(a){
-  const c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d');
+  const c=document.createElement('canvas');c.width=c.height=512;const ctx=c.getContext('2d');ctx.scale(c.width/128,c.height/128);
   // A transparent face layer keeps the smooth 3D skull visible while adding
-  // restrained, readable features.  This avoids the flat mask look at the
-  // normal broadcast distance and stays inexpensive on mobile GPUs.
-  const shade=ctx.createRadialGradient(63,60,8,63,64,66);shade.addColorStop(0,'rgba(255,255,255,.08)');shade.addColorStop(.72,'rgba(90,45,28,.04)');shade.addColorStop(1,'rgba(25,10,8,.16)');ctx.fillStyle=shade;ctx.beginPath();ctx.ellipse(64,64,53,59,0,0,Math.PI*2);ctx.fill();
+  // softly shaded, correctly aligned features. Drawing in a 128px design
+  // space and scaling to the full canvas preserves the intended proportions.
+  const shade=ctx.createRadialGradient(48,43,5,63,64,68);shade.addColorStop(0,'rgba(255,246,228,.16)');shade.addColorStop(.56,'rgba(96,52,37,.025)');shade.addColorStop(1,'rgba(25,10,8,.19)');ctx.fillStyle=shade;ctx.beginPath();ctx.ellipse(64,64,53,59,0,0,Math.PI*2);ctx.fill();
+  const cheek=ctx.createRadialGradient(64,69,2,64,69,27);cheek.addColorStop(0,'rgba(132,57,45,.10)');cheek.addColorStop(1,'rgba(132,57,45,0)');ctx.fillStyle=cheek;ctx.fillRect(22,48,84,39);
   for(const x of [37,91]){
-    ctx.fillStyle='rgba(250,246,236,.92)';ctx.beginPath();ctx.ellipse(x,43,7.4,3.1,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=a.eye||'#2c2522';ctx.beginPath();ctx.ellipse(x,43,2.75,3.2,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.78)';ctx.beginPath();ctx.arc(x-1,41.9,.75,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle=a.hair;ctx.lineWidth=2.7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-9,33);ctx.quadraticCurveTo(x,29,x+8,32);ctx.stroke();
-    ctx.strokeStyle='rgba(71,38,28,.34)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(x-7,49);ctx.quadraticCurveTo(x,52,x+7,49);ctx.stroke();
+    ctx.fillStyle='rgba(74,42,32,.16)';ctx.beginPath();ctx.ellipse(x,43.5,8,4.1,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(245,230,211,.92)';ctx.beginPath();ctx.ellipse(x,43,7.1,2.65,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=a.eye||'#2c2522';ctx.beginPath();ctx.ellipse(x,43,2.45,2.75,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#171515';ctx.beginPath();ctx.arc(x,43,1.25,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.84)';ctx.beginPath();ctx.arc(x-.8,42.1,.68,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=a.hair;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-9,33);ctx.quadraticCurveTo(x-1,29.2,x+8,32);ctx.stroke();
+    ctx.strokeStyle='rgba(71,38,28,.27)';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(x-6,47.7);ctx.quadraticCurveTo(x,50.2,x+6,47.7);ctx.stroke();
   }
-  ctx.strokeStyle='rgba(76,43,32,.58)';ctx.lineWidth=1.35;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(58,50);ctx.lineTo(55,66);ctx.quadraticCurveTo(64,70,69,66);ctx.stroke();
-  ctx.strokeStyle='rgba(91,48,42,.74)';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(53,86);ctx.quadraticCurveTo(64,90,77,85);ctx.stroke();
-  if(a.beard){ctx.fillStyle=a.hair;ctx.globalAlpha=.24;ctx.beginPath();ctx.moveTo(20,70);ctx.quadraticCurveTo(28,119,64,121);ctx.quadraticCurveTo(104,119,110,70);ctx.lineTo(92,95);ctx.quadraticCurveTo(65,118,34,95);ctx.fill();ctx.globalAlpha=1;}
-  if(a.glasses){ctx.strokeStyle='#242424';ctx.lineWidth=3.5;ctx.strokeRect(22,32,30,22);ctx.strokeRect(76,32,30,22);ctx.beginPath();ctx.moveTo(52,40);ctx.lineTo(76,40);ctx.moveTo(20,37);ctx.lineTo(13,33);ctx.moveTo(106,37);ctx.lineTo(114,33);ctx.stroke();}
+  const nose=ctx.createLinearGradient(56,0,72,0);nose.addColorStop(0,'rgba(75,39,28,0)');nose.addColorStop(.48,'rgba(75,39,28,.13)');nose.addColorStop(1,'rgba(255,231,208,.12)');ctx.fillStyle=nose;ctx.beginPath();ctx.moveTo(61,48);ctx.quadraticCurveTo(58,61,55,66);ctx.quadraticCurveTo(63,70,71,66);ctx.quadraticCurveTo(66,60,66,48);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(76,43,32,.39)';ctx.lineWidth=.85;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(56,66);ctx.quadraticCurveTo(59,68,61,67);ctx.moveTo(67,67);ctx.quadraticCurveTo(70,68,72,66);ctx.stroke();
+  ctx.strokeStyle='rgba(91,48,42,.70)';ctx.lineWidth=1.35;ctx.beginPath();ctx.moveTo(53,86);ctx.quadraticCurveTo(58,83.5,64,85);ctx.quadraticCurveTo(71,83,77,85);ctx.stroke();
+  ctx.strokeStyle='rgba(242,188,164,.43)';ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(57,87);ctx.quadraticCurveTo(64,89.5,73,86.5);ctx.stroke();
+  if(a.beard){
+    ctx.fillStyle=a.hair;ctx.globalAlpha=.14;ctx.beginPath();ctx.moveTo(22,72);ctx.quadraticCurveTo(29,111,64,119);ctx.quadraticCurveTo(99,111,106,72);ctx.lineTo(92,91);ctx.quadraticCurveTo(65,111,36,92);ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=a.hair;ctx.globalAlpha=.28;ctx.lineWidth=.55;for(let i=0;i<68;i++){const x=26+(i*37%76),y=75+(i*23%37);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+((i%3)-1)*.7,y+1.8);ctx.stroke();}ctx.globalAlpha=1;
+  }
+  if(a.glasses){ctx.strokeStyle='#242424';ctx.lineWidth=2.2;ctx.strokeRect(22,32,30,22);ctx.strokeRect(76,32,30,22);ctx.beginPath();ctx.moveTo(52,40);ctx.lineTo(76,40);ctx.moveTo(20,37);ctx.lineTo(13,33);ctx.moveTo(106,37);ctx.lineTo(114,33);ctx.stroke();}
   const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return tex;
 }
 function identityTexture(player,color,back,kit){
@@ -108,7 +116,7 @@ export class PlayerModel{
     const collar=solid([part('collar',trim,0,1.822,0,.12,.11,.105,Math.PI/2),part('box',trim,0,1.73,.157,.012,.115,.006)]);this.body.add(collar);this.details.push(collar);
     // Original league crest and a small kit seam. No copied real-world sponsor marks.
     const crest=solid([part('box',trim,.15,1.61,.181,.065,.088,.008),part('box',kit.primary,.15,1.615,.187,.040,.056,.006)]);this.body.add(crest);this.fineDetails.push(crest);
-    this.head=new T.Group();this.head.position.y=1.88;this.body.add(this.head);
+    this.head=new T.Group();this.head.position.y=1.88;this.head.scale.setScalar(.78);this.body.add(this.head);
     const skull=[part('sphere',skin,0,.176,0,.185,.221,.177)];
     if(a.hairstyle!==4)skull.push(part('cap',a.hair,0,.294,-.006,.189,.122,.18));
     this.head.add(solid(skull));
@@ -182,7 +190,7 @@ export class PlayerModel{
     const p=this.player;this.root.visible=!p.sentOff;if(p.sentOff)return;
     this.root.position.set(p.x,0,p.z);this.orientation.rotation.y=Math.atan2(p.faceX,p.faceZ);
     this.indicator.visible=this.ring.visible=controlled;
-    const near=quality!=='low'&&cameraDistance<(quality==='high'?44:28),close=quality==='high'&&cameraDistance<32;
+    const near=quality==='high'||(quality!=='low'&&cameraDistance<28),close=quality==='high';
     this.details.forEach(detail=>detail.visible=near);this.fineDetails.forEach(detail=>detail.visible=close);
     if(this.lastQuality!==quality){this.shirtMaterial.normalMap=quality==='low'?null:fabricNormalTexture();this.shirtMaterial.needsUpdate=true;this.lastQuality=quality;}
     const target=animationPose(p,time),blend=1-Math.exp(-Math.min(dt,.1)*(p.striking?38:23));

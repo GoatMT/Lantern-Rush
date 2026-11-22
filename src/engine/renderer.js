@@ -8,6 +8,10 @@ import { PlayerModel,createBallMesh } from './models.js';
 import { BroadcastCamera } from './camera.js';
 import { MatchLighting } from './lighting.js';
 import { FIELD,PLAYER_VISUAL_SCALE,fieldUnits as u } from '../config.js';
+export function renderPixelRatio(quality,devicePixelRatio=1,adaptiveScale=1){
+  const nativeRatio=devicePixelRatio||1;
+  return (quality==='low'?Math.min(nativeRatio,1):quality==='medium'?Math.min(nativeRatio,1.5):nativeRatio)*adaptiveScale;
+}
 export class GameRenderer{
   constructor(canvas,settings){
     this.canvas=canvas;this.scene=new T.Scene();this.adaptiveScale=1;
@@ -35,7 +39,7 @@ export class GameRenderer{
   setWeather(name){this.weather.set(name,this.quality);this.lighting.weather=this.weather.kind;this.setLighting(this.lighting.name);}
   resize(){
     const {width:w,height:h}=canvasSize(this.canvas,globalThis.innerWidth,globalThis.innerHeight);
-    const ratio=Math.min(globalThis.devicePixelRatio||1,this.quality==='low'?1:this.quality==='medium'?1.35:1.75)*this.adaptiveScale;
+    const ratio=renderPixelRatio(this.quality,globalThis.devicePixelRatio||1,this.adaptiveScale);
     if(w===this.viewportWidth&&h===this.viewportHeight&&ratio===this.pixelRatio)return false;
     const rotated=this.viewportWidth&&((w>h)!==(this.viewportWidth>this.viewportHeight));
     this.viewportWidth=w;this.viewportHeight=h;this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
@@ -47,9 +51,11 @@ export class GameRenderer{
     return true;
   }
   adaptPerformance(fps,dt){
-    if(!this.compact)return;
-    this.slowFrames=fps<42?(this.slowFrames||0)+dt:Math.max(0,(this.slowFrames||0)-dt*.5);
-    if(this.slowFrames>3&&this.adaptiveScale>.76){this.adaptiveScale=Math.max(.75,this.adaptiveScale-.1);this.slowFrames=0;this.resize();}
+    if(this.quality==='low')return;
+    this.slowFrames=fps<48?(this.slowFrames||0)+dt:Math.max(0,(this.slowFrames||0)-dt*.5);
+    this.fastFrames=fps>58?(this.fastFrames||0)+dt:0;
+    if(this.slowFrames>2.5&&this.adaptiveScale>.71){this.adaptiveScale=Math.max(.7,this.adaptiveScale-.1);this.slowFrames=0;this.fastFrames=0;this.resize();}
+    else if(this.fastFrames>8&&this.adaptiveScale<1){this.adaptiveScale=Math.min(1,this.adaptiveScale+.05);this.fastFrames=0;this.resize();}
   }
   playerLabelHeight(){return 3.1*this.actorScale;}
   setMatch(match){

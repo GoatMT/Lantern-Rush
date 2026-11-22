@@ -57,7 +57,7 @@ test('free room API rejects unapproved players and only returns free STUN after 
  for(const [i,id]of [host,guest].entries())await call(id,{action:'choose',code,team:catalog['2026'][i].id,formation:'2-2-2'});
  await assert.rejects(call(host,{action:'start',code}),/Both/);
  for(const id of [host,guest])await call(id,{action:'ready',code,ready:true});await call(host,{action:'start',code});
- const connection=await api.h2hConnection(session(db,guest,{code}));assert.equal(connection.relay,false);assert.deepEqual(connection.iceServers,[{urls:'stun:stun.cloudflare.com:3478'}]);
+ const connection=await api.h2hConnection(session(db,guest,{code}));assert.equal(connection.relay,false);assert.deepEqual(connection.iceServers,[{urls:'stun:stun.cloudflare.com:3478'},{urls:'stun:stun.l.google.com:19302'}]);
  await assert.rejects(api.h2hProgress(session(db,guest,{code,elapsed:1,score:[0,0]})),/not your/);
  await assert.rejects(api.h2hTrace(session(db,stranger,{code,action:'confirm',digest:'a'.repeat(64),tick:500})),/participant/);
 });
