@@ -1,10 +1,10 @@
 import {playerOfMatch} from './match/stats.js';
 
-export const MODE_LABELS={all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',dream:'LSL Dream F.C.',h2h:'Rush Connect · Live Match'};
+export const MODE_LABELS={all:'All modes',quick:'Play Now',rivalry:'Rivalry Matches',tournament:'Tournament Mode',season:'Season Mode',career:'Road to LSL · Player Career',dream:'LSL Dream F.C.',h2h:'Rush Connect · Live Match'};
 export const DIFFICULTY_LABELS=Object.freeze({all:'All difficulties',easy:'Easy',normal:'Medium (Normal)',hard:'Hard',insane:'Insane'});
 export const normalizeDifficulty=value=>String(value||'').trim().toLowerCase()==='medium'?'normal':String(value||'').trim().toLowerCase();
 export const matchesDifficulty=(record,difficulty)=>!difficulty||difficulty==='all'||(!['local','account'].includes(record.opponent?.type)&&normalizeDifficulty(record.opponent?.difficulty)===normalizeDifficulty(difficulty));
-export const modeFor=m=>m.dream?'dream':m.rivalry?'rivalry':m.tournament?'tournament':m.seasonMatch?'season':'quick';
+export const modeFor=m=>m.career?'career':m.dream?'dream':m.rivalry?'rivalry':m.tournament?'tournament':m.seasonMatch?'season':'quick';
 const n=v=>Number.isFinite(Number(v))?Number(v):0;
 const copy=v=>JSON.parse(JSON.stringify(v));
 // Firestore does not accept arrays directly nested inside arrays. Numeric team keys
@@ -17,7 +17,7 @@ export function captureMatch(match,account={}){
   const score=(match.stats||[{},{}]).map(s=>n(s.goals)),potm=players.length?playerOfMatch(players):null;
   return copy({schemaVersion:2,id:crypto.randomUUID(),ownerId:account.uid||'',accountName:account.username||'',date:Date.now(),
     mode,modeLabel:MODE_LABELS[mode],season:String(match.tournament?.season||match.teams?.[0]?.season||match.settings?.season||''),
-    competition:match.tournament?{name:'Inter-Madrasah',stage:match.tournament.stage||'',fixtureId:match.tournament.id||''}:match.seasonMatch?{name:'LSL Season',stage:match.seasonMatch.stage||'',fixtureId:match.seasonMatch.id||''}:match.dream?{name:'Dream F.C.',stage:match.dream.event?'Event':'CPU match'}:null,
+    competition:match.career?{name:'Road to LSL · Player Career',stage:'Career season '+(match.career.careerSeason||1),fixtureId:match.career.fixtureId||'',playerId:match.career.playerId||''}:match.tournament?{name:'Inter-Madrasah',stage:match.tournament.stage||'',fixtureId:match.tournament.id||''}:match.seasonMatch?{name:'LSL Season',stage:match.seasonMatch.stage||'',fixtureId:match.seasonMatch.id||''}:match.dream?{name:'Dream F.C.',stage:match.dream.event?'Event':'CPU match'}:null,
     teams:(match.teams||[]).map(t=>t.name),teamIds:(match.teams||[]).map(t=>t.id||''),score,won:score[0]>score[1],tie:score[0]===score[1],
     duration:n(match.elapsed),scheduledDuration:n(match.settings?.duration)*60,opponent:{type:'cpu',difficulty:match.settings?.difficulty||'normal'},
     stats:{user:copy(match.stats?.[0]||{}),cpu:copy(match.stats?.[1]||{})},goals,

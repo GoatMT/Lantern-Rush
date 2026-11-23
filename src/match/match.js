@@ -43,7 +43,7 @@ export class Match {
     Object.assign(this,this.humanSeats[team]);this.inputTeam=team;
     try{return fn();}finally{for(const key of this.humanKeys)this.humanSeats[team][key]=this[key];Object.assign(this,saved);this.inputTeam=previous;}
   }
-  isHumanControlled(p){return this.humanSeats?this.humanSeats.some(s=>s.controlled===p&&(p.role!=='GK'||this.ball.owner===p||s.manualKeeper)):p===this.controlled&&(p.role!=='GK'||this.ball.owner===p||this.manualKeeper);}
+  isHumanControlled(p){if(this.careerPlayerId&&p.team===0&&p.id===this.careerPlayerId)return true;return this.humanSeats?this.humanSeats.some(s=>s.controlled===p&&(p.role!=='GK'||this.ball.owner===p||s.manualKeeper)):p===this.controlled&&(p.role!=='GK'||this.ball.owner===p||this.manualKeeper);}
   direction(team){return (team===0?1:-1)*(this.half===1?1:-1);}
   aiConfig(team){return DIFFICULTY[this.humanSeats||team===1?this.settings.difficulty:'normal']||DIFFICULTY.normal;}
   active(team){return this.players.filter(p=>p.team===team&&!p.sentOff);}
@@ -103,6 +103,7 @@ export class Match {
     return this.active(this.inputTeam).filter(p=>p.role!=='GK').sort((a,b)=>score(a)-score(b))[0];
   }
   toggleGoalkeeper(){
+    if(this.careerPlayerId&&this.inputTeam===0)return;
     const penaltyKeeper=this.phase==='restart'&&this.restart?.type==='PENALTY'&&this.restart.team!==this.inputTeam;
     if(this.phase!=='playing'&&!penaltyKeeper)return;
     const keeper=this.active(this.inputTeam).find(p=>p.role==='GK');if(!keeper)return;
@@ -112,6 +113,11 @@ export class Match {
     else{this.controlled=keeper;this.manualKeeper=true;this.keeperReturn=false;}
   }
   selectPlayer(manual=false){
+    if(this.careerPlayerId&&this.inputTeam===0){
+      const careerPlayer=this.players.find(player=>player.team===0&&player.id===this.careerPlayerId);
+      if(careerPlayer){this.controlled=careerPlayer;this.manualKeeper=false;this.keeperReturn=false;this.receiverAssist=false;}
+      return;
+    }
     if(manual){this.manualKeeper=false;this.keeperReturn=false;}
     if(!manual&&this.manualKeeper&&!this.controlled?.sentOff)return;
     if(!manual&&this.keeperReturn&&this.ball.owner?.team===this.inputTeam&&this.ball.owner.role==='GK')return;
@@ -201,9 +207,10 @@ export class Match {
     this.passHeldTime=input?.held.has('pass')&&!touchPass?this.passHeldTime+dt:0;
     const owner=this.ball.owner;
     this.selectPlayer();const move=input?.movement()||{x:0,z:0,intensity:0};
-    if(input?.pressed.has('switch'))this.selectPlayer(true);
-    if(input?.pressed.has('goalie'))this.toggleGoalkeeper();
-    if(input?.pressed.has('pass')){if(owner?.team===this.inputTeam){this.manualKeeper=false;this.keeperReturn=false;this.controlled=owner;}else if(!pressureHeld)this.selectPlayer(true);}
+    const careerLock=Boolean(this.careerPlayerId&&this.inputTeam===0);
+    if(input?.pressed.has('switch')&&!careerLock)this.selectPlayer(true);
+    if(input?.pressed.has('goalie')&&!careerLock)this.toggleGoalkeeper();
+    if(input?.pressed.has('pass')&&!careerLock){if(owner?.team===this.inputTeam){this.manualKeeper=false;this.keeperReturn=false;this.controlled=owner;}else if(!pressureHeld)this.selectPlayer(true);}
     if(this.controlled&&!this.controlled.sentOff){
       if(((input?.held.has('pass')&&!touchPass)||pressureHeld)&&owner&&owner.team!==this.inputTeam&&move.intensity<.1){
         const n=normalize(owner.x-this.controlled.x,owner.z-this.controlled.z);this.controlled.move(n.x,n.z,1,dt,input.held.has('sprint'));
@@ -510,6 +517,7 @@ export class Match {
   updatePenaltyKeeper(dt,input){
     if(this.phase!=='restart'||this.restart?.type!=='PENALTY')return;
     const team=this.inputTeam,keeper=this.active(team).find(p=>p.role==='GK');if(!keeper)return;
+    if(this.careerPlayerId&&team===0&&keeper.id!==this.careerPlayerId)return;
     this.controlled=keeper;this.manualKeeper=true;this.keeperReturn=false;keeper.watch(this.ball);
     const move=input?.movement?.()||{x:0,z:0,intensity:0},own=-this.direction(team)*FIELD.halfLength;
     keeper.move(move.x,move.z,move.intensity,dt,!!input?.held?.has('sprint'),{x:this.ball.x,z:this.ball.z});

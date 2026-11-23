@@ -50,7 +50,7 @@ export class Menus {
     $('setting-mobile-goalie-visible').addEventListener('change',ev=>{a.settings.set('mobileGoalieVisible',ev.target.checked);a.mobile.applyLayout();});
     on('reset-mobile-controls',()=>{a.mobile.resetPositions();this.renderSettings();});
     on('pause-button',()=>a.pause());on('resume',()=>this.resume());on('pause-close',()=>this.resume());on('save-progress',()=>this.saveProgress());on('skip-intro',()=>a.match.skipIntro());on('skip-replay',()=>this.skipReplay());
-    on('open-subs',()=>this.subs());on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
+    on('open-subs',()=>{if(!a.match?.career)this.subs();});on('pause-settings',()=>this.settings());on('open-controls',()=>this.settings('controls'));
     document.querySelectorAll('[data-pause-setting]').forEach(select=>select.addEventListener('change',ev=>this.changePauseSetting(ev.target.dataset.pauseSetting,ev.target.value)));
     on('restart-match',()=>this.confirm('RESTART MATCH?',()=>a.start()));on('quit-home',()=>this.confirm('QUIT TO HOME?',()=>a.home()));
     on('confirm-cancel',()=>{$('confirm-dialog').close();$('pause-dialog').showModal();});
@@ -76,7 +76,7 @@ export class Menus {
     $('result-actions').addEventListener('click',ev=>{
       const action=ev.target.closest('[data-result]')?.dataset.result;
       if(action==='continue'){a.controls.clear();a.match.continueHalf();}
-      if(action==='subs')this.subs();if(action==='rematch')a.start();if(action==='teams')a.selectTeams();if(action==='tournament')a.returnToTournament();if(action==='season')a.returnToSeason();if(action==='dream')a.returnToDream();if(action==='home')a.home();
+      if(action==='subs')this.subs();if(action==='rematch')a.start();if(action==='teams')a.selectTeams();if(action==='tournament')a.returnToTournament();if(action==='season')a.returnToSeason();if(action==='career')a.returnToCareer();if(action==='dream')a.returnToDream();if(action==='home')a.home();
     });
     for(const id of ['settings-dialog','subs-dialog','squad-dialog','account-dialog'])$(id).addEventListener('cancel',ev=>{ev.preventDefault();this.closeDialog(id);});
     $('pause-dialog').addEventListener('cancel',ev=>{ev.preventDefault();this.resume();});
@@ -132,7 +132,7 @@ export class Menus {
       $(side+'-bench').textContent='VIEW SQUAD · '+team.bench.length+' SUBSTITUTES ↗';
       this.teamRenderCache.set(side,{id:team.id,rosterKey});
     }
-    this.app.modes.render();this.app.tournament.render();this.app.seasonMode.render();
+    this.app.modes.render();this.app.tournament.render();this.app.seasonMode.render();this.app.careerMode.render();
     const dreamMode=this.app.mode==='dream';for(const selector of ['.selection>.topbar','.selection-heading','.rivalry-selection','.versus-layout','.selection-footer']){const node=document.querySelector(selector);if(node)node.hidden=dreamMode;}
     if(this.app.dream?.root)this.app.dream.root.hidden=!dreamMode;this.app.dream?.render();
     $('cpu-kit-label').textContent=this.app.cpuKit()!==this.app.selected.cpu.kit?'CONTRAST KIT':'AWAY';
@@ -202,7 +202,8 @@ export class Menus {
       $('hud-'+side+'-logo').closest('.hud-team').style.setProperty('--team-color',m.teams[i].kit);
     }
     $('match-hud').dataset.rivalry=String(!!m.rivalry);$('match-hud').dataset.tournament=String(!!m.tournament);$('match-hud').dataset.dream=String(!!m.dream);
-    document.querySelector('.broadcast-mark b').textContent=m.dream?'LSL DREAM F.C.':m.rivalry?'RIVALRY MATCH':m.tournament?'INTER-MADRASAH':m.seasonMatch?'SEASON MODE':'LANTERN RUSH';
+    $('open-subs').hidden=Boolean(m.career);
+    document.querySelector('.broadcast-mark b').textContent=m.career?'ROAD TO LSL · PLAYER CAREER':m.dream?'LSL DREAM F.C.':m.rivalry?'RIVALRY MATCH':m.tournament?'INTER-MADRASAH':m.seasonMatch?'SEASON MODE':'LANTERN RUSH';
     $('intro-overlay').hidden=false;
   }
   phase(phase){if(phase==='halftime'||phase==='fulltime'){this.results();return;}if(phase==='home')return;if(this.screen!=='match')this.show('match');$('intro-overlay').hidden=phase!=='intro';}
@@ -212,7 +213,7 @@ export class Menus {
     this.app.hud?.events.reset();
     const root=$('notice'),goal=title==='GOAL!',m=this.app.match;
     root.querySelector('strong').textContent=title;root.querySelector('span').textContent=subtitle;
-    root.querySelector('.notice-kicker').textContent=m?.dream?'LSL DREAM F.C. · CPU MATCH':m?.rivalry?'RIVALRY MATCH · '+m.rivalry.title.toUpperCase():m?.tournament?'INTER-MADRASAH · '+m.tournament.season:m?.seasonMatch?'SEASON MODE · '+m.seasonMatch.year:'LANTERN RUSH · MATCHDAY';
+    root.querySelector('.notice-kicker').textContent=m?.career?'ROAD TO LSL · PLAYER CAREER':m?.dream?'LSL DREAM F.C. · CPU MATCH':m?.rivalry?'RIVALRY MATCH · '+m.rivalry.title.toUpperCase():m?.tournament?'INTER-MADRASAH · '+m.tournament.season:m?.seasonMatch?'SEASON MODE · '+m.seasonMatch.year:'LANTERN RUSH · MATCHDAY';
     root.dataset.kind=goal?'goal':title.includes('RED')?'red':title.includes('YELLOW')?'yellow':'match';
     $('notice-score').hidden=!goal;
     if(goal)$('notice-score').innerHTML='<img src="'+e(m.teams[0].logo)+'" alt=""><b>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</b><img src="'+e(m.teams[1].logo)+'" alt="">';
@@ -238,16 +239,16 @@ export class Menus {
     const m=this.app.match,half=m.phase==='halftime';this.closeAll();this.show('stats-screen');
     $('result-title').textContent=half?'HALFTIME':'FULL TIME';
     $('result-kicker').textContent=half?'TIME TO REGROUP':m.stats[0].goals===m.stats[1].goals?'HONOURS EVEN':m.stats[0].goals>m.stats[1].goals?'VICTORY':'CPU WINS';
-    $('result-season').textContent=this.app.settings.value.season+' · '+(m.dream?'LSL DREAM F.C. · ':m.rivalry?'RIVALRY MATCH · ':m.tournament?'INTER-MADRASAH · ':m.seasonMatch?'SEASON MODE · ':'')+m.settings.duration+' MIN MATCH';
+    $('result-season').textContent=this.app.settings.value.season+' · '+(m.career?'ROAD TO LSL · ':m.dream?'LSL DREAM F.C. · ':m.rivalry?'RIVALRY MATCH · ':m.tournament?'INTER-MADRASAH · ':m.seasonMatch?'SEASON MODE · ':'')+m.settings.duration+' MIN MATCH';
     $('result-score').innerHTML='<div><span>'+e(m.teams[0].name)+'<small>YOU · '+(teamOverall(m.teams[0])??'—')+' OVR</small></span><img src="'+e(m.teams[0].logo)+'" alt=""></div><strong>'+m.stats[0].goals+' <i>—</i> '+m.stats[1].goals+'</strong><div><img src="'+e(m.teams[1].logo)+'" alt=""><span>'+e(m.teams[1].name)+'<small>CPU · '+(teamOverall(m.teams[1])??'—')+' OVR</small></span></div>';
     const potm=playerOfMatch([...m.players,...m.archive]);
-    $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Make your changes. CPU takes the second-half kickoff.</span></p>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(playerLabel(potm))+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
+    $('result-highlight').innerHTML=half?'<p class="halftime-copy">A new half. A new direction.<span>Continue the match. CPU takes the second-half kickoff.</span></p>':m.career&&m.careerResult?'<div class="career-result"><span><small>YOUR MATCH RATING</small><strong>'+m.careerResult.rating+'<i>/10</i></strong></span><span><small>CAREER XP EARNED</small><strong>+'+m.careerResult.xp+' XP</strong></span><span><small>CAREER LEVEL</small><strong>'+m.careerResult.level+'</strong></span></div>':potm?'<div class="potm"><img src="'+e(m.teams[potm.team].logo)+'" alt=""><span><small>PLAYER OF THE MATCH</small><strong>'+e(playerLabel(potm))+'</strong><span>'+e(potm.role)+' · '+e(m.teams[potm.team].name)+'</span></span><b>'+(potm.data.overall??'—')+'<small>OVR</small></b></div>':'';
     $('stats-table').innerHTML=statRows(m).map(([label,a,b])=>{
       const va=parseFloat(a)||0,vb=parseFloat(b)||0,total=va+vb;
       return '<div class="stat-row"><b>'+a+'</b><span>'+label+'</span><b>'+b+'</b><div class="stat-bars" aria-hidden="true"><span><i style="width:'+(total?va/total*100:0)+'%"></i></span><span><i style="width:'+(total?vb/total*100:0)+'%"></i></span></div></div>';
     }).join('');
     $('goal-list').innerHTML=m.goalEvents.length?m.goalEvents.map(g=>'<div class="moment">⚽ '+e(playerLabel(g))+(g.ownGoal?' (OG)':'')+' <small>'+clockText(g.time)+' · '+e(m.teams[g.team].name)+(g.assist?' · Assist: '+e(playerLabel({name:g.assist,jersey:g.assistJersey})):'')+'</small></div>').join(''):'<p class="muted-copy">No goals yet.</p>';
     $('sub-list').innerHTML=m.subEvents.map(s=>'<div class="moment">↔ '+e(playerLabel({name:s.in,jersey:s.inJersey}))+'<small>Replaced '+e(playerLabel({name:s.out,jersey:s.outJersey}))+' · '+clockText(s.time)+'</small></div>').join('')+(m.injuryEvents||[]).map(i=>'<div class="moment">⚕ '+e(playerLabel({name:i.player,jersey:i.jersey}))+'<small>Minor injury · '+clockText(i.time)+'</small></div>').join('')||'No substitutions';
-    $('result-actions').innerHTML=half?'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>':m.dream?'<button data-result="dream" class="primary">DREAM F.C. HUB →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':m.tournament?'<button data-result="tournament" class="primary">TOURNAMENT SCHEDULE →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':m.seasonMatch?'<button data-result="season" class="primary">SEASON HUB →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
+    $('result-actions').innerHTML=half?(m.career?'<button data-result="continue" class="primary">CONTINUE →</button>':'<button data-result="subs" class="secondary">SUBSTITUTIONS</button><button data-result="continue" class="primary">CONTINUE →</button>'):m.career?'<button data-result="career" class="primary">CAREER HUB →</button><button data-result="rematch" class="secondary">REPLAY MATCH</button><button data-result="home" class="secondary">HOME</button>':m.dream?'<button data-result="dream" class="primary">DREAM F.C. HUB →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':m.tournament?'<button data-result="tournament" class="primary">TOURNAMENT SCHEDULE →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':m.seasonMatch?'<button data-result="season" class="primary">SEASON HUB →</button><button data-result="rematch" class="secondary">REMATCH</button><button data-result="home" class="secondary">HOME</button>':'<button data-result="rematch" class="primary">REMATCH ↗</button><button data-result="teams" class="secondary">CHANGE TEAMS</button><button data-result="home" class="secondary">HOME</button>';
   }
 }

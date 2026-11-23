@@ -18,6 +18,7 @@ Each mode also has its own GitHub Pages-compatible HTML entry point:
 - `rivalry-matches.html` — featured LSL Rivalry Matches.
 - `tournament-mode.html` — Inter-Madrasah Tournament flow.
 - `season-mode.html` — LSL season career with standings, trades and awards.
+- `player-career.html` — Road to LSL player career using official season rosters.
 - `dream-fc.html` — LSL Dream F.C. single-player Ultimate Team hub.
 - `charts.html` — public Firebase leaderboard and record holders.
 - `account.html` — account profile, trophies and match-derived statistics.
@@ -25,7 +26,7 @@ Each mode also has its own GitHub Pages-compatible HTML entry point:
 - `admin.html` — locked account administration console for profile maintenance.
 
 The pages share the same Three.js engine, data, settings and match shell; opening a mode URL starts directly on that mode's selection screen. The Back and Home actions return to `index.html`.
-Run `npm run sync-mode-pages` after changing the shared `index.html` shell to regenerate all five dedicated pages.
+Run `npm run sync-mode-pages` after changing the shared `index.html` shell to regenerate all six dedicated pages.
 
 ## Publish on GitHub Pages
 

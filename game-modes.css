@@ -276,6 +276,59 @@
 .season-draft-card .season-flow-actions{justify-content:space-between;gap:12px;margin-top:16px}
 @media(max-width:760px){#season-flow{width:calc(100% - 20px);margin:8px auto 20px}.season-draft-card .season-flow-actions{flex-direction:column}.season-draft-card .season-flow-actions button{width:100%}.season-draft-fullboard{padding:10px}.season-draft-fullboard>header{align-items:flex-start;flex-direction:column}.season-draft-matrix{grid-template-columns:46px repeat(var(--draft-teams),minmax(128px,1fr))}.season-draft-matrix-cell{min-height:56px;padding:7px}.season-draft-matrix-cell.team-head strong{font-size:8px}}
 
+/* Road to LSL · player career */
+#career-flow{width:min(100%,1160px);margin:14px auto 32px;box-sizing:border-box}
+.mode-player-career{border-color:#e2c77988;background:linear-gradient(125deg,#66512455,#15383b)}
+.career-flow-card{background:linear-gradient(135deg,#0b2930f7,#143d38ed);border:1px solid #e2c7796e;border-radius:14px;padding:clamp(18px,3vw,34px);box-shadow:0 20px 55px #00151e44;color:var(--cream);animation:selection-rise .48s both}
+.career-flow-card>.eyebrow,.career-panel h3{color:#82ddbf;font-size:9px;letter-spacing:1.5px}
+.career-flow-card h2{margin:8px 0;font-size:clamp(27px,4vw,45px);letter-spacing:.5px}
+.career-flow-card>p,.career-dashboard-columns p{color:#bed2c8;max-width:760px;line-height:1.55;font-size:12px}
+.career-pick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0 8px}
+.career-pick-grid label{display:grid;gap:8px;color:#7ed9bb;font-size:9px;letter-spacing:1.2px;font-weight:800}
+.career-pick-grid select{width:100%;font-size:12px}
+.career-data-note{font-size:9px!important;color:#96b6aa!important}
+.career-flow-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:17px}
+.career-flow-actions button{min-height:42px}
+.career-hub-head{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.career-hub-head h2{margin:6px 0 3px}
+.career-hub-head p{color:#bfd2c8;font-size:11px;margin:0}
+.career-level{display:grid;place-items:center;min-width:72px;min-height:72px;border:1px solid #e2c779aa;border-radius:50%;color:#e2c779;font-size:8px;letter-spacing:1px}
+.career-level b{font-size:24px;line-height:1}
+.career-progress{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;margin:19px 0}
+.career-progress>span{display:flex;align-items:center;justify-content:space-between;grid-column:1/-1;font-size:9px;letter-spacing:1px;color:#82ddbf}
+.career-progress>span strong{font-size:12px;color:var(--cream)}
+.career-progress>div{height:8px;background:#07252a;border-radius:9px;overflow:hidden}
+.career-progress i{display:block;height:100%;background:linear-gradient(90deg,#76d7b8,#e2c779);border-radius:9px}
+.career-progress small{font-size:8px;color:#b9d1c5;white-space:nowrap}
+.career-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:17px 0}
+.career-summary>div{display:grid;gap:5px;padding:11px 12px;background:#0c3037;border:1px solid #a5c9bd22;border-radius:6px}
+.career-summary small{font-size:8px;letter-spacing:1px;color:#82ddbf}
+.career-summary strong{font-size:19px;color:#e2c779}
+.career-next{display:grid;gap:7px;margin:0 0 12px;padding:16px;border-left:3px solid #e2c779;background:#284a42;border-radius:5px}
+.career-next .eyebrow{font-size:8px;letter-spacing:1.5px;color:#82ddbf}
+.career-next>strong{font-size:16px}
+.career-next>small{font-size:10px;color:#bed2c8}
+.career-next button{justify-self:start;margin-top:5px}
+.career-complete{border-color:#82ddbf}
+.career-dashboard-columns{display:grid;grid-template-columns:1.25fr .75fr;gap:12px}
+.career-panel{padding:14px;background:#092a32c9;border:1px solid #9abdb52e;border-radius:9px;margin-top:12px}
+.career-panel h3{margin:0 0 10px;color:#e2c779}
+.career-schedule{display:grid;gap:5px;max-height:300px;overflow:auto}
+.career-fixture{display:grid;grid-template-columns:85px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 10px;background:#102f36;border-radius:5px;font-size:10px}
+.career-fixture>span{font-size:8px;letter-spacing:.7px;color:#82ddbf}
+.career-fixture>strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.career-fixture>b{font-size:9px;color:#e2c779;text-align:right}
+.career-fixture.next{background:#284a42;box-shadow:0 0 0 1px #e2c77966}
+.career-growth{display:flex;justify-content:space-between;gap:10px;padding:11px;background:#10343b;border-radius:5px;color:#c4d9cf;font-size:9px;letter-spacing:.7px}
+.career-growth b{color:#e2c779;font-size:12px}
+.career-result{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:800px;margin:10px auto}
+.career-result>span{display:grid;gap:6px;padding:12px;background:#0d3037;border:1px solid #84d9b844;border-radius:7px;text-align:center}
+.career-result small{font-size:8px;letter-spacing:1px;color:#82ddbf}
+.career-result strong{font-size:19px;color:#e2c779}
+.career-result i{font-size:10px;font-style:normal;color:#bed2c8}
+@media(max-width:760px){#career-flow{width:calc(100% - 20px);margin:8px auto 20px}.career-pick-grid,.career-dashboard-columns{grid-template-columns:1fr}.career-summary{grid-template-columns:repeat(2,1fr)}.career-hub-head{align-items:flex-start}.career-level{min-width:58px;min-height:58px}.career-level b{font-size:20px}.career-fixture{grid-template-columns:68px minmax(0,1fr);font-size:9px}.career-fixture>b{grid-column:2;text-align:left}.career-flow-actions{flex-direction:column}.career-flow-actions button{width:100%}.career-result{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.career-flow-card{animation:none}}
+
 /* Draft polish: make roster needs, picks, and the live turn easy to scan. */
 .season-draft-livebar{gap:12px;min-height:56px;padding:11px 16px}
 .season-draft-livebar strong{font-size:12px}
